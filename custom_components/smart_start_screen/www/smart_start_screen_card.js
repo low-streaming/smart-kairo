@@ -22,7 +22,7 @@ class OpenKairoCard extends HTMLElement {
             color: white;
             overflow: hidden;
             z-index: 9999;
-            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.6s ease, transform 0.6s ease;
           }
 
           .grid {
@@ -52,7 +52,7 @@ class OpenKairoCard extends HTMLElement {
             width: 100%;
             padding: 0 20px;
             box-sizing: border-box;
-            margin-bottom: 80px; /* Platz für das Dock lassen */
+            margin-bottom: 80px; /* Platz für das Dock */
           }
 
           .top-bar {
@@ -101,7 +101,6 @@ class OpenKairoCard extends HTMLElement {
             width: 100%;
             max-width: 650px;
             box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(16, 185, 129, 0.05);
-            transition: 0.3s;
           }
           
           .news-text {
@@ -122,7 +121,7 @@ class OpenKairoCard extends HTMLElement {
             border: none;
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: 0.3s;
             font-family: 'Orbitron', sans-serif;
             letter-spacing: 1px;
             width: 100%;
@@ -143,7 +142,7 @@ class OpenKairoCard extends HTMLElement {
             text-transform: uppercase;
           }
 
-          /* --- NEU: MAC-OS STYLE DOCK FÜR SEITENLEISTE --- */
+          /* --- DOCK FÜR SEITENLEISTE (Mac Style) --- */
           .dock-container {
             position: absolute;
             bottom: 30px;
@@ -173,7 +172,7 @@ class OpenKairoCard extends HTMLElement {
             justify-content: center;
             color: rgba(255,255,255,0.5);
             cursor: pointer;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             min-width: 70px;
           }
           
@@ -208,7 +207,6 @@ class OpenKairoCard extends HTMLElement {
           <div class="grid"></div>
           
           <div class="top-bar">
-            <!-- Menü Button entfernt, stattdessen fettes System-Branding -->
             <div style="color: var(--primary); font-family: 'Orbitron'; font-size: 1rem; font-weight: 900; letter-spacing: 4px;">OK<span style="opacity:0.5">_SYS</span></div>
             <div style="color: white; opacity: 0.5; font-family: 'Orbitron'; font-size: 0.75rem; font-weight: 900; letter-spacing: 2px;">ONLINE</div>
           </div>
@@ -224,24 +222,19 @@ class OpenKairoCard extends HTMLElement {
               <button class="start-btn" id="go">DASHBOARD AUFRUFEN</button>
             </div>
             
-            <div class="footer" id="foot">CORE: 2.0.4 | NODE_ID: UNKNOWN | STATUS: CONNECTING</div>
+            <div class="footer" id="foot">CORE: 4.0.0 | NODE_ID: UNKNOWN | STATUS: CONNECTING</div>
           </div>
           
-          <!-- Das dynamische Dock -->
-          <div class="dock-container" id="auto-dock">
-             <!-- Wird von JS gefüllt -->
-          </div>
+          <div class="dock-container" id="auto-dock"></div>
         </div>
       `;
       this.cardContent = this.querySelector('#news');
       this.cardFooter = this.querySelector('#foot');
       
-      // HA Seitenleiste automatisch als App-Dock unten einfügen
       const dock = this.querySelector('#auto-dock');
       if (hass.panels) {
         let dockHtml = '';
         for (const [path, panel] of Object.entries(hass.panels)) {
-           // Wir filtern nur brauchbare Panels mit Titeln (außer Config)
            if (panel.title) {
               dockHtml += `
                 <div class="dock-item" data-path="/${path}">
@@ -251,7 +244,6 @@ class OpenKairoCard extends HTMLElement {
               `;
            }
         }
-        // Einstellungen immer als letztes manuell anhängen
         dockHtml += `
           <div class="dock-item" data-path="/config">
              <ha-icon icon="mdi:cog" class="dock-icon"></ha-icon>
@@ -260,10 +252,8 @@ class OpenKairoCard extends HTMLElement {
         `;
         dock.innerHTML = dockHtml;
         
-        // Klick-Event für die Dock-Items
         this.querySelectorAll('.dock-item').forEach(item => {
            item.onclick = () => {
-             // Kurze Visuelle Rückmeldung
              item.style.transform = 'scale(0.9)';
              setTimeout(() => {
                 window.location.href = item.getAttribute('data-path');
@@ -272,7 +262,6 @@ class OpenKairoCard extends HTMLElement {
         });
       }
 
-      // Haupt-Dashboard (Aktuelle Karte) entscheiern
       this.querySelector('#go').onclick = () => {
         const osLayer = this.querySelector('#os-container');
         osLayer.style.opacity = '0';
@@ -295,11 +284,14 @@ class OpenKairoCard extends HTMLElement {
   getCardSize() { return 10; }
 }
 
-customElements.define('openkairo-card', OpenKairoCard);
+// FIX: Verhindert "already defined" Fehler beim Neuladen der Karte in Home Assistant
+if (!customElements.get('openkairo-card')) {
+  customElements.define('openkairo-card', OpenKairoCard);
 
-window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "openkairo-card",
-  name: "OpenKairo OS Launchpad",
-  description: "Advanced custom Launchpad for OpenKairo Hardware with Dock Navigation."
-});
+  window.customCards = window.customCards || [];
+  window.customCards.push({
+    type: "openkairo-card",
+    name: "OpenKairo OS Launchpad",
+    description: "Advanced custom Launchpad for OpenKairo Hardware with Dock Navigation."
+  });
+}
