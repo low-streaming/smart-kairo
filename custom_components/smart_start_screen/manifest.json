@@ -1,0 +1,9 @@
+{
+  "domain": "smart_start_screen",
+  "name": "SmartStartScreen",
+  "documentation": "https://openkairo.de",
+  "dependencies": [],
+  "codeowners": ["@openkairo"],
+  "version": "1.0.0",
+  "iot_class": "cloud_polling"
+}
