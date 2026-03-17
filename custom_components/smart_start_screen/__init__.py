@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers import discovery
@@ -17,12 +18,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     js_path = os.path.join(www_dir, "smart_start_screen_card.js")
     
     if os.path.exists(js_path):
-        # Das hier ist die korrekte, aktuelle Methode mit 'await'!
+        # Trick: Wir generieren bei jedem Home Assistant Neustart eine neue "Versionsnummer" (Timestamp).
+        # Damit MUSS der Browser (bzw. die Home Assistant App) die Datei neu laden und kann den fehlerhaften Cache nicht nutzen.
+        cache_buster = str(time.time())
+        
         await hass.http.async_register_static_paths([
             StaticPathConfig("/smart_start_screen/card.js", js_path, False)
         ])
-        add_extra_js_url(hass, "/smart_start_screen/card.js")
-        _LOGGER.info("SmartStartScreen: UI registered successfully")
+        add_extra_js_url(hass, f"/smart_start_screen/card.js?v={cache_buster}")
+        _LOGGER.info("SmartStartScreen: UI registered successfully (Cache Busted)")
     else:
         _LOGGER.error("SmartStartScreen: JS file not found!")
 
