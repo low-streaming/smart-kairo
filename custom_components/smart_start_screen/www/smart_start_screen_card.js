@@ -111,7 +111,6 @@ class OpenKairoCard extends HTMLElement {
             color: rgba(255,255,255,0.9);
           }
 
-          /* --- NEU: SYSTEM RESSOURCEN WIDGETS --- */
           .system-stats {
             display: flex;
             justify-content: space-between;
@@ -128,6 +127,11 @@ class OpenKairoCard extends HTMLElement {
             flex-direction: column;
             align-items: center;
             flex: 1;
+            cursor: pointer;
+            transition: 0.3s;
+          }
+          .stat-item:hover {
+            transform: scale(1.05);
           }
 
           .stat-icon {
@@ -183,7 +187,6 @@ class OpenKairoCard extends HTMLElement {
             text-transform: uppercase;
           }
 
-          /* --- DOCK FÜR SEITENLEISTE (Mac Style) --- */
           .dock-container {
             position: absolute;
             bottom: 30px;
@@ -260,28 +263,21 @@ class OpenKairoCard extends HTMLElement {
               <div style="color:var(--primary); font-family: 'Orbitron', sans-serif; font-weight:900; letter-spacing:4px; font-size:0.75rem; margin-bottom:15px; opacity:0.8;">// INTELLIGENCE HUB //</div>
               <div class="news-text" id="news">Lade Updates...</div>
 
-              <!-- SYSTEM RESSOURCEN ANZEIGE -->
               <div class="system-stats">
-                <div class="stat-item">
-                  <div class="stat-icon">
-                    <ha-icon icon="mdi:cpu-64-bit"></ha-icon>
-                  </div>
+                <div class="stat-item" id="cpu-btn">
+                  <div class="stat-icon"><ha-icon icon="mdi:cpu-64-bit"></ha-icon></div>
                   <div class="stat-value" id="cpu-val">--<span style="font-size:0.8rem">%</span></div>
                   <div class="stat-label">CPU LOAD</div>
                 </div>
 
-                <div class="stat-item">
-                  <div class="stat-icon">
-                    <ha-icon icon="mdi:memory"></ha-icon>
-                  </div>
+                <div class="stat-item" id="ram-btn">
+                  <div class="stat-icon"><ha-icon icon="mdi:memory"></ha-icon></div>
                   <div class="stat-value" id="ram-val">--<span style="font-size:0.8rem">%</span></div>
                   <div class="stat-label">RAM USE</div>
                 </div>
 
-                <div class="stat-item">
-                  <div class="stat-icon">
-                    <ha-icon icon="mdi:harddisk"></ha-icon>
-                  </div>
+                <div class="stat-item" id="disk-btn">
+                  <div class="stat-icon"><ha-icon icon="mdi:harddisk"></ha-icon></div>
                   <div class="stat-value" id="disk-val">--<span style="font-size:0.8rem">%</span></div>
                   <div class="stat-label">STORAGE</div>
                 </div>
@@ -290,7 +286,7 @@ class OpenKairoCard extends HTMLElement {
               <button class="start-btn" id="go">DASHBOARD AUFRUFEN</button>
             </div>
             
-            <div class="footer" id="foot">CORE: 4.1.0 | NODE_ID: UNKNOWN | STATUS: CONNECTING</div>
+            <div class="footer" id="foot">CORE: 4.1.2 | NODE_ID: UNKNOWN | STATUS: CONNECTING</div>
           </div>
           
           <div class="dock-container" id="auto-dock"></div>
@@ -340,6 +336,11 @@ class OpenKairoCard extends HTMLElement {
         osLayer.style.transform = 'scale(1.05)';
         setTimeout(() => { osLayer.style.display = 'none'; }, 600);
       };
+      
+      // Shortcuts to Integration settings
+      this.querySelector('#cpu-btn').onclick = () => { window.location.href = '/config/integrations'; };
+      this.querySelector('#ram-btn').onclick = () => { window.location.href = '/config/integrations'; };
+      this.querySelector('#disk-btn').onclick = () => { window.location.href = '/config/integrations'; };
     }
 
     const state = hass.states['sensor.openkairo_os_status'];
@@ -350,18 +351,42 @@ class OpenKairoCard extends HTMLElement {
       this.cardFooter.innerText = `LOKALER CORE: VERIFIED | NODE: OK-${Math.floor(Math.random()*9000)+1000} | STATUS: ${state.state}`;
     }
 
-    // Werte für CPU, RAM und Disk Update
-    // Wir fangen die typischen Sensor-Namen des Home Assistant System Monitor Add-ons auf
+    // Extended Sensor Fallbacks for Raspberry Pi System Monitor
     const getSensor = (ids) => {
         for(let id of ids) {
-            if(hass.states[id]) return hass.states[id].state;
+            if(hass.states[id]) {
+                // Return simple number without decimals if it's numeric
+                const val = parseFloat(hass.states[id].state);
+                return isNaN(val) ? hass.states[id].state : Math.round(val);
+            }
         }
         return '--';
     };
 
-    const cpu = getSensor(['sensor.processor_use', 'sensor.cpu_use', 'sensor.glances_cpu_used']);
-    const ram = getSensor(['sensor.memory_use_percent', 'sensor.ram_use', 'sensor.glances_ram_used_percent']);
-    const disk = getSensor(['sensor.disk_use_percent', 'sensor.disk_use_percent_home', 'sensor.disk_use_percent_config']);
+    const cpu = getSensor([
+      'sensor.system_monitor_processor_use',
+      'sensor.processor_use', 
+      'sensor.cpu_use', 
+      'sensor.cpu_percent',
+      'sensor.glances_cpu_used'
+    ]);
+    
+    const ram = getSensor([
+      'sensor.system_monitor_memory_use_percent',
+      'sensor.memory_use_percent', 
+      'sensor.ram_use', 
+      'sensor.memory_percent',
+      'sensor.glances_ram_used_percent'
+    ]);
+    
+    // Some Pis report storage as simply "disk_use_percent" or "disk_use_percent_/"
+    const disk = getSensor([
+      'sensor.system_monitor_disk_use_percent',
+      'sensor.disk_use_percent', 
+      'sensor.disk_use_percent_home', 
+      'sensor.disk_use_percent_', 
+      'sensor.glances_disk_used_percent'
+    ]);
 
     if(this.cpuVal) this.cpuVal.innerHTML = `${cpu}<span style="font-size:0.8rem">%</span>`;
     if(this.ramVal) this.ramVal.innerHTML = `${ram}<span style="font-size:0.8rem">%</span>`;
