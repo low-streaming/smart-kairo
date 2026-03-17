@@ -2,6 +2,7 @@ import logging
 import os
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.components.frontend import add_extra_js_url
 
 from .const import DOMAIN
 
@@ -11,28 +12,24 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the SmartStartScreen integration."""
     hass.data.setdefault(DOMAIN, {})
     
-    # 1. Register the custom card as a Lovelace resource
-    # This makes the "geile" UI instantly available without manual YAML adding
+    # 1. Register the static path so HA serves the JS file
+    # Path in browser: /smart_start_screen/card.js
+    # Actual path: /config/custom_components/smart_start_screen/www/smart_start_screen_card.js
     www_dir = os.path.join(os.path.dirname(__file__), "www")
     
-    # Create static view for our JS file
     hass.http.register_static_path(
         "/smart_start_screen/card.js",
         os.path.join(www_dir, "smart_start_screen_card.js"),
         False
     )
 
-    # 2. Add as Lovelace Resource automatically (if not already there)
-    # This is the "Pro" way so the customer doesn't have to do anything
-    resources = hass.data.get("lovelace", {}).get("resources")
-    if resources:
-        resource_path = "/smart_start_screen/card.js"
-        if not any(res.get("url") == resource_path for res in await resources.async_get_items()):
-            await resources.async_create_item({"res_type": "module", "url": resource_path})
+    # 2. Tell the frontend to load this script
+    # This acts like adding a resource manually in Dashboards -> Resources
+    add_extra_js_url(hass, "/smart_start_screen/card.js")
 
-    _LOGGER.info("SmartStartScreen Integration initialized with Custom UI")
+    _LOGGER.info("SmartStartScreen Integration initialized - Custom UI served at /smart_start_screen/card.js")
     
-    # Load sensors
+    # Load sensors via discovery
     hass.async_create_task(
         hass.helpers.discovery.async_load_platform("sensor", DOMAIN, {}, config)
     )

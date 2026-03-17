@@ -21,11 +21,10 @@ class SmartStartGitHubSensor(SensorEntity):
         self._attr_name = "OpenKairo OS Status"
         self._attr_unique_id = "openkairo_github_status"
         self._attr_extra_state_attributes = {
-            "latest_commit": "Initialisiere...",
-            "last_update": "Unbekannt",
+            "github_news": "Lade aktuelle Nachrichten...",
             "version": "2.0.4",
-            "status_color": "#10b981",
-            "github_news": "Verbinde mit GitHub für aktuelle Updates..."
+            "dashboard_tip": "OpenKairo OS läuft lokal auf diesem Node.",
+            "last_commit": "Initialisiere..."
         }
 
     @property
@@ -33,28 +32,19 @@ class SmartStartGitHubSensor(SensorEntity):
         return self._state
 
     async def async_update(self):
-        """Fetch real data from GitHub API."""
+        """Fetch latest commit from GitHub to use as news."""
         try:
             async with async_timeout.timeout(10):
                 async with aiohttp.ClientSession() as session:
-                    # 1. Fetch Latest Commits (as News)
-                    async with session.get(f"{GITHUB_API_URL}/commits") as response:
+                    async with session.get(f"https://api.github.com/repos/open-kairo/smart-kairo/commits") as response:
                         if response.status == 200:
                             commits = await response.json()
                             if commits:
-                                latest = commits[0]
-                                msg = latest.get("commit", {}).get("message", "Keine Nachricht")
-                                date = latest.get("commit", {}).get("author", {}).get("date", "")
-                                self._attr_extra_state_attributes["latest_commit"] = msg
-                                self._attr_extra_state_attributes["last_update"] = date
-                                # Wir nutzen die Commit-Nachricht als 'geile News'
-                                self._attr_extra_state_attributes["github_news"] = f"LETZTES UPDATE: {msg}"
-
-                    # 2. Status check (Simuliert für die Hardware)
-                    self._state = "System Optimal"
-                    self._attr_extra_state_attributes["status_color"] = "#10b981"
-
+                                msg = commits[0].get("commit", {}).get("message", "System aktuell.")
+                                self._attr_extra_state_attributes["github_news"] = msg
+                                self._attr_extra_state_attributes["last_commit"] = msg
+                                self._state = "System Optimal"
         except Exception as e:
-            _LOGGER.error("Error fetching data from GitHub: %s", e)
-            self._state = "Offline"
-            self._attr_extra_state_attributes["status_color"] = "#ef4444"
+            _LOGGER.error("GitHub News Update failed: %s", e)
+            self._state = "Offline Mode"
+            self._attr_extra_state_attributes["github_news"] = "Verbindung zu GitHub fehlgeschlagen. Lokale Instanz läuft."
