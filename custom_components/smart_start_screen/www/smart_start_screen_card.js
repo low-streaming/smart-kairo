@@ -52,6 +52,7 @@ class OpenKairoCard extends HTMLElement {
             width: 100%;
             padding: 0 20px;
             box-sizing: border-box;
+            margin-bottom: 80px; /* Platz für das Dock lassen */
           }
 
           .top-bar {
@@ -64,47 +65,6 @@ class OpenKairoCard extends HTMLElement {
             align-items: center;
             z-index: 20;
           }
-
-          .menu-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 0.9rem;
-          }
-
-          .menu-btn:hover {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(16,185,129,0.3);
-          }
-
-          .menu-icon {
-            width: 18px;
-            height: 2px;
-            background: white;
-            position: relative;
-          }
-          .menu-icon::before, .menu-icon::after {
-            content: '';
-            position: absolute;
-            width: 18px;
-            height: 2px;
-            background: white;
-            left: 0;
-            transition: 0.2s;
-          }
-          .menu-icon::before { top: -6px; }
-          .menu-icon::after { bottom: -6px; }
 
           .logo {
             width: 120px;
@@ -152,40 +112,6 @@ class OpenKairoCard extends HTMLElement {
             color: rgba(255,255,255,0.9);
           }
 
-          .action-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 25px;
-          }
-
-          .action-btn {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.8);
-            padding: 12px 10px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-          }
-
-          .action-btn:hover {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.4);
-            color: white;
-            transform: translateY(-2px);
-          }
-          
-          .action-icon {
-            font-size: 1.3rem;
-          }
-
           .start-btn {
             background: var(--primary);
             color: white;
@@ -209,12 +135,72 @@ class OpenKairoCard extends HTMLElement {
           }
 
           .footer {
-            margin-top: 50px;
+            margin-top: 40px;
             font-family: 'Orbitron', sans-serif;
             font-size: 0.7rem;
             opacity: 0.2;
             letter-spacing: 2px;
             text-transform: uppercase;
+          }
+
+          /* --- NEU: MAC-OS STYLE DOCK FÜR SEITENLEISTE --- */
+          .dock-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 15px 30px;
+            border-radius: 25px;
+            max-width: 90vw;
+            overflow-x: auto;
+            z-index: 100;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+          }
+
+          .dock-container::-webkit-scrollbar { display: none; }
+          .dock-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+          .dock-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 70px;
+          }
+          
+          .dock-item:hover {
+            color: var(--primary);
+            transform: translateY(-10px) scale(1.15);
+          }
+
+          .dock-icon {
+            --mdc-icon-size: 32px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+          }
+
+          .dock-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            transition: 0.3s;
+            transform: translateY(5px);
+          }
+          
+          .dock-item:hover .dock-label {
+            opacity: 1;
+            transform: translateY(0);
           }
         </style>
         
@@ -222,10 +208,9 @@ class OpenKairoCard extends HTMLElement {
           <div class="grid"></div>
           
           <div class="top-bar">
-            <button class="menu-btn" id="menu-btn">
-              <div class="menu-icon"></div> MENÜ
-            </button>
-            <div style="color: var(--primary); font-family: 'Orbitron'; font-size: 0.75rem; font-weight: 900; letter-spacing: 2px;">SYS.ONLINE</div>
+            <!-- Menü Button entfernt, stattdessen fettes System-Branding -->
+            <div style="color: var(--primary); font-family: 'Orbitron'; font-size: 1rem; font-weight: 900; letter-spacing: 4px;">OK<span style="opacity:0.5">_SYS</span></div>
+            <div style="color: white; opacity: 0.5; font-family: 'Orbitron'; font-size: 0.75rem; font-weight: 900; letter-spacing: 2px;">ONLINE</div>
           </div>
 
           <div class="content-shell">
@@ -237,49 +222,64 @@ class OpenKairoCard extends HTMLElement {
               <div class="news-text" id="news">Lade Updates...</div>
               
               <button class="start-btn" id="go">DASHBOARD AUFRUFEN</button>
-              
-              <div class="action-grid">
-                <button class="action-btn" id="nav-energy">
-                  <span class="action-icon">⚡</span> Energie
-                </button>
-                <button class="action-btn" id="nav-garden">
-                  <span class="action-icon">🌱</span> Garten
-                </button>
-                <button class="action-btn" id="nav-system">
-                  <span class="action-icon">⚙️</span> System
-                </button>
-              </div>
             </div>
             
             <div class="footer" id="foot">CORE: 2.0.4 | NODE_ID: UNKNOWN | STATUS: CONNECTING</div>
+          </div>
+          
+          <!-- Das dynamische Dock -->
+          <div class="dock-container" id="auto-dock">
+             <!-- Wird von JS gefüllt -->
           </div>
         </div>
       `;
       this.cardContent = this.querySelector('#news');
       this.cardFooter = this.querySelector('#foot');
       
-      // Sidebar Toggle Event in HA
-      this.querySelector('#menu-btn').addEventListener('click', () => {
-        this.dispatchEvent(new Event('hass-toggle-menu', { bubbles: true, composed: true }));
-      });
-      
-      // Dashboard "Entscheiern" (Fade-Out)
+      // HA Seitenleiste automatisch als App-Dock unten einfügen
+      const dock = this.querySelector('#auto-dock');
+      if (hass.panels) {
+        let dockHtml = '';
+        for (const [path, panel] of Object.entries(hass.panels)) {
+           // Wir filtern nur brauchbare Panels mit Titeln (außer Config)
+           if (panel.title) {
+              dockHtml += `
+                <div class="dock-item" data-path="/${path}">
+                  <ha-icon icon="${panel.icon || 'mdi:apps'}" class="dock-icon"></ha-icon>
+                  <span class="dock-label">${panel.title}</span>
+                </div>
+              `;
+           }
+        }
+        // Einstellungen immer als letztes manuell anhängen
+        dockHtml += `
+          <div class="dock-item" data-path="/config">
+             <ha-icon icon="mdi:cog" class="dock-icon"></ha-icon>
+             <span class="dock-label">System</span>
+          </div>
+        `;
+        dock.innerHTML = dockHtml;
+        
+        // Klick-Event für die Dock-Items
+        this.querySelectorAll('.dock-item').forEach(item => {
+           item.onclick = () => {
+             // Kurze Visuelle Rückmeldung
+             item.style.transform = 'scale(0.9)';
+             setTimeout(() => {
+                window.location.href = item.getAttribute('data-path');
+             }, 150);
+           };
+        });
+      }
+
+      // Haupt-Dashboard (Aktuelle Karte) entscheiern
       this.querySelector('#go').onclick = () => {
         const osLayer = this.querySelector('#os-container');
         osLayer.style.opacity = '0';
-        osLayer.style.pointerEvents = 'none'; // Verhindert Klicks während es unsichtbar ist
+        osLayer.style.pointerEvents = 'none';
         osLayer.style.transform = 'scale(1.05)';
-        
-        // Nach dem Fade komplett aus dem Weg räumen
-        setTimeout(() => {
-          osLayer.style.display = 'none';
-        }, 600);
+        setTimeout(() => { osLayer.style.display = 'none'; }, 600);
       };
-
-      // Externe Navigation für die kleinen Buttons
-      this.querySelector('#nav-energy').onclick = () => { window.location.href = '/energy'; };
-      this.querySelector('#nav-garden').onclick = () => { window.location.href = '/dashboard-openkairo/garden'; }; // Pfad anpassen falls nötig
-      this.querySelector('#nav-system').onclick = () => { window.location.href = '/config'; };
     }
 
     const state = hass.states['sensor.openkairo_os_status'];
@@ -301,5 +301,5 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
-  description: "Advanced custom Launchpad for OpenKairo Hardware with Navigation."
+  description: "Advanced custom Launchpad for OpenKairo Hardware with Dock Navigation."
 });
