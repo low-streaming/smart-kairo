@@ -167,9 +167,9 @@ class OpenKairoCard extends HTMLElement {
     const state = hass.states['sensor.openkairo_os_status'];
     if (state && this.cardContent && this.cardFooter) {
       if (state.attributes.github_news) {
-         this.cardContent.innerHTML = \`<i>"\${state.attributes.github_news}"</i>\`;
+         this.cardContent.innerHTML = `<i>"${state.attributes.github_news}"</i>`;
       }
-      this.cardFooter.innerText = \`LOKALER CORE: VERIFIED | NODE: OK-\${Math.floor(Math.random()*9000)+1000} | STATUS: \${state.state}\`;
+      this.cardFooter.innerText = `LOKALER CORE: VERIFIED | NODE: OK-${Math.floor(Math.random()*9000)+1000} | STATUS: ${state.state}`;
     }
   }
 
