@@ -107,8 +107,51 @@ class OpenKairoCard extends HTMLElement {
             font-size: 1.2rem;
             font-weight: 300;
             line-height: 1.5;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             color: rgba(255,255,255,0.9);
+            min-height: 55px; /* keep height so it doesn't jump */
+          }
+
+          .social-module {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+          }
+          .social-module:hover {
+            background: rgba(0,0,0,0.5);
+            border-color: rgba(255,0,80,0.4);
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(255,0,80,0.2);
+          }
+          .social-logo {
+             color: #ff0050; /* TikTok red-pink */
+             --mdc-icon-size: 30px;
+             margin-right: 15px;
+          }
+          .social-text {
+             text-align: left;
+             flex-grow: 1;
+          }
+          .social-tag {
+             font-family: 'Orbitron', sans-serif;
+             font-size: 0.6rem;
+             color: #ff0050;
+             letter-spacing: 2px;
+             font-weight: 900;
+             text-transform: uppercase;
+          }
+          .social-title {
+             color: white;
+             font-size: 0.95rem;
+             font-weight: 600;
+             margin-top: 3px;
           }
 
           .system-stats {
@@ -261,7 +304,16 @@ class OpenKairoCard extends HTMLElement {
             
             <div class="glass-panel">
               <div style="color:var(--primary); font-family: 'Orbitron', sans-serif; font-weight:900; letter-spacing:4px; font-size:0.75rem; margin-bottom:15px; opacity:0.8;">// INTELLIGENCE HUB //</div>
-              <div class="news-text" id="news">Lade Updates...</div>
+              <div class="news-text" id="news">Stelle Verbindung her...</div>
+
+              <div class="social-module" onclick="window.open('https://www.tiktok.com/@openkairo', '_blank')">
+                <ha-icon icon="mdi:video-vintage" class="social-logo"></ha-icon>
+                <div class="social-text">
+                   <div class="social-tag">NEUES TIKTOK / YOUTUBE VIDEO</div>
+                   <div class="social-title" id="social-title">"Mein neues Smart Home Setup 🔥"</div>
+                </div>
+                <ha-icon icon="mdi:open-in-new" style="color:rgba(255,255,255,0.3);"></ha-icon>
+              </div>
 
               <div class="system-stats">
                 <div class="stat-item" id="cpu-btn">
@@ -313,12 +365,48 @@ class OpenKairoCard extends HTMLElement {
       this.querySelector('#disk-btn').onclick = () => { window.location.href = '/config/integrations'; };
     }
 
-    const state = hass.states['sensor.openkairo_os_status'];
-    if (state && this.cardContent && this.cardFooter) {
-      if (state.attributes.github_news) {
-         this.cardContent.innerHTML = `<i>"${state.attributes.github_news}"</i>`;
+    // --- Update Checker & Sci-Fi Logs ---
+    // Array of update entities that say "on" (meaning an update is available)
+    const updateEntities = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
+    
+    // Default Sci-Fi Logs
+    const scifiLogs = [
+      "Sicherheitsprotokolle online...",
+      "Core-Sensoren synchronisiert.",
+      "Verbindung zur OpenKairo-Cloud stabil.",
+      "Lokales Neural-Netzwerk kalibriert...",
+      "Quanten-Verschlüsselung der Node intakt."
+    ];
+    
+    if (updateEntities.length > 0) {
+      // Update is available!
+      const up = hass.states[updateEntities[0]]; // Gets the first available update
+      const title = up.attributes.title || up.attributes.friendly_name || "System";
+      if (this.cardContent) {
+        this.cardContent.innerHTML = `<span style="color:#ff4a4a; font-weight:900;">[ ACHTUNG: UPDATE VERFÜGBAR ]</span><br><span style="font-size:1.0rem">${title} (v${up.attributes.latest_version})</span>`;
       }
-      this.cardFooter.innerText = `LOKALER CORE: VERIFIED | NODE: OK-${Math.floor(Math.random()*9000)+1000} | STATUS: ${state.state}`;
+    } else {
+      // Rotating SciFi Logs if no updates available
+      if (!this._currentSciFiLog) {
+         this._currentSciFiLog = scifiLogs[0];
+         setInterval(() => {
+           // check if updates appeared in the meantime
+           const currentUpdates = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
+           if (currentUpdates.length === 0) {
+             this._currentSciFiLog = scifiLogs[Math.floor(Math.random() * scifiLogs.length)];
+             if (this.cardContent) {
+                 this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
+             }
+           }
+         }, 8000); // changes text every 8 seconds
+      }
+      if (this.cardContent && !this.cardContent.innerHTML.includes('UPDATE')) {
+         this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
+      }
+    }
+
+    if (this.cardFooter) {
+      this.cardFooter.innerText = `LOKALER CORE: VERIFIED | NODE: OK-${Math.floor(Math.random()*9000)+1000} | STATUS: CONNECTED`;
     }
 
     // Extended Sensor Fallbacks for Raspberry Pi System Monitor
