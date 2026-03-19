@@ -21,7 +21,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     paths_to_register = []
     
     if os.path.exists(js_path):
-        paths_to_register.append(StaticPathConfig("/smart_start_screen/card.js", js_path, False))
+        paths_to_register.append(StaticPathConfig("/smart_start_screen/smart_start_screen_card.js", js_path, False))
     
     if os.path.exists(solar_js_path):
         paths_to_register.append(StaticPathConfig("/smart_start_screen/openkairo_solar_card.js", solar_js_path, False))
@@ -31,7 +31,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await hass.http.async_register_static_paths(paths_to_register)
         
         if os.path.exists(js_path):
-            add_extra_js_url(hass, f"/smart_start_screen/card.js?v={cache_buster}")
+            add_extra_js_url(hass, f"/smart_start_screen/smart_start_screen_card.js?v={cache_buster}")
         if os.path.exists(solar_js_path):
             add_extra_js_url(hass, f"/smart_start_screen/openkairo_solar_card.js?v={cache_buster}")
             
