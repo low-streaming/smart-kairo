@@ -403,32 +403,46 @@ class OpenKairoCard extends HTMLElement {
     }
 
     // --- Update Checker & Sci-Fi Logs ---
-    // Array of update entities that say "on" (meaning an update is available)
-    const updateEntities = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
     const updateBanner = this.querySelector('#update-banner');
+    const updateEntities = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
+    
+    if (updateEntities.length > 0) {
+      // Update is available! Show banner.
+      const up = hass.states[updateEntities[0]]; // Gets the first available update
+      const title = up.attributes.title || up.attributes.friendly_name || "System";
+      if (updateBanner) {
+        updateBanner.innerHTML = `<div style="background: rgba(255, 74, 74, 0.1); border: 1px solid rgba(255, 74, 74, 0.4); border-radius: 10px; padding: 10px; margin-bottom: 20px; color:#ff4a4a; font-weight:bold; font-size:0.85rem;">
+           [ UPDATE VERFÜGBAR ]<br><span style="color:white; font-size: 0.8rem; font-weight:normal;">${title} (v${up.attributes.latest_version})</span>
+        </div>`;
+      }
+    } else {
+       if (updateBanner) updateBanner.innerHTML = '';
+    }
     
     // Default setup for dynamic logs
     const generateLog = () => {
-        const currentUpdates = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
-        if (currentUpdates.length === 0) {
-            const liveStates = Object.values(hass.states);
-            const lLights = liveStates.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
-            const lAutos = liveStates.filter(s => s.entity_id.startsWith('automation.')).length;
-            const lEnts = liveStates.length;
+        const liveStates = Object.values(hass.states);
+        const lLights = liveStates.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
+        const lAutos = liveStates.filter(s => s.entity_id.startsWith('automation.')).length;
+        const lEnts = liveStates.length;
 
-            const dynamicLogs = [
-               `ÜBERWACHE <span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lEnts}</span> ENTITÄTEN...`,
-               `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lLights}</span> LAMPEN SIND AKTUELL AKTIV.`,
-               `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lAutos}</span> ROUTINEN SIND <span style="color:#05f0a0">ONLINE</span>.`,
-               'Lokaler OpenKairo-Core <span style="color:#05f0a0">STABIL</span>.',
-               'Lokales Neural-Netzwerk <span style="color:#05f0a0">KALIBRIERT</span>.',
-               'Sicherheitsprotokolle <span style="color:var(--primary)">AKTIV</span>.',
-               'Subroutinen arbeiten <span style="color:#ff0050">FEHLERFREI</span>.'
-            ];
-            const nextLog = dynamicLogs[Math.floor(Math.random() * dynamicLogs.length)];
-            if (this.cardContent) {
-                this.cardContent.innerHTML = `<i>"${nextLog}"</i>`;
-            }
+        const dynamicLogs = [
+           `ÜBERWACHE <span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lEnts}</span> ENTITÄTEN...`,
+           `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lLights}</span> LAMPEN SIND AKTUELL AKTIV.`,
+           `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lAutos}</span> ROUTINEN SIND <span style="color:#05f0a0">ONLINE</span>.`,
+           'Lokaler OpenKairo-Core <span style="color:#05f0a0">STABIL</span>.',
+           'Lokales Neural-Netzwerk <span style="color:#05f0a0">KALIBRIERT</span>.',
+           'Sicherheitsprotokolle <span style="color:var(--primary)">AKTIV</span>.',
+           'Subroutinen arbeiten <span style="color:#ff0050">FEHLERFREI</span>.'
+        ];
+        
+        if (updateEntities.length > 0) {
+            dynamicLogs.push('<span style="color:#ff4a4a; font-weight:900; text-shadow: 0 0 10px #ff4a4a;">SYSTEM-UPDATE ERFORDERLICH!</span>');
+        }
+
+        const nextLog = dynamicLogs[Math.floor(Math.random() * dynamicLogs.length)];
+        if (this.cardContent) {
+            this.cardContent.innerHTML = `<i>"${nextLog}"</i>`;
         }
     };
 
