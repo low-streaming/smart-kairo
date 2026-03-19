@@ -46,17 +46,17 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col">
               <label>Animations-Typ</label>
               <select id="animation_type">
-                <option value="dots" \${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Energie-Kugeln (Dots)</option>
-                <option value="dash" \${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Strichel-Linien (Dash)</option>
-                <option value="neon" \${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
+                <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Energie-Kugeln (Dots)</option>
+                <option value="dash" ${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Strichel-Linien (Dash)</option>
+                <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
               </select>
             </div>
             <div class="row-col">
               <label>Geschwindigkeit</label>
               <select id="animation_speed">
-                <option value="slow" \${this.getVal('animation_speed') === 'slow' ? 'selected' : ''}>Langsam</option>
-                <option value="normal" \${this.getVal('animation_speed') === 'normal' ? 'selected' : ''}>Normal</option>
-                <option value="fast" \${this.getVal('animation_speed') === 'fast' ? 'selected' : ''}>Schnell</option>
+                <option value="slow" ${this.getVal('animation_speed') === 'slow' ? 'selected' : ''}>Langsam</option>
+                <option value="normal" ${this.getVal('animation_speed') === 'normal' ? 'selected' : ''}>Normal</option>
+                <option value="fast" ${this.getVal('animation_speed') === 'fast' ? 'selected' : ''}>Schnell</option>
               </select>
             </div>
           </div>
@@ -67,39 +67,39 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Solarproduktion (W)</label>
-              <ha-entity-picker id="solar_entity" .hass="\${this._hass}" .value="\${this.getVal('solar_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="solar_entity" .hass="${this._hass}" .value="${this.getVal('solar_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="solar_color" value="\${this.getVal('solar_color', '#ffb800')}"></div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Netzbezug (W)</label>
-              <ha-entity-picker id="grid_import_entity" .hass="\${this._hass}" .value="\${this.getVal('grid_import_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="grid_import_entity" .hass="${this._hass}" .value="${this.getVal('grid_import_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="grid_color" value="\${this.getVal('grid_color', '#ff4a4a')}"></div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="grid_color" value="${this.getVal('grid_color', '#ff4a4a')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Netzeinspeisung (W)</label>
-              <ha-entity-picker id="grid_export_entity" .hass="\${this._hass}" .value="\${this.getVal('grid_export_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="grid_export_entity" .hass="${this._hass}" .value="${this.getVal('grid_export_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
-            <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="\${this.getVal('home_color', '#10b981')}"></div>
+            <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Batterieleistung (W)</label>
-              <ha-entity-picker id="battery_power_entity" .hass="\${this._hass}" .value="\${this.getVal('battery_power_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="battery_power_entity" .hass="${this._hass}" .value="${this.getVal('battery_power_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="battery_color" value="\${this.getVal('battery_color', '#05f0a0')}"></div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="battery_color" value="${this.getVal('battery_color', '#05f0a0')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Batterieladung (%)</label>
-              <ha-entity-picker id="battery_level_entity" .hass="\${this._hass}" .value="\${this.getVal('battery_level_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="battery_level_entity" .hass="${this._hass}" .value="${this.getVal('battery_level_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col" style="justify-content:center;">
                <label>Batt. Invertieren?</label>
-               <input type="checkbox" id="battery_invert" \${this.getVal('battery_invert') ? 'checked' : ''}>
+               <input type="checkbox" id="battery_invert" ${this.getVal('battery_invert') ? 'checked' : ''}>
             </div>
           </div>
         </div>
@@ -109,23 +109,23 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Crypto Miner (W)</label>
-              <ha-entity-picker id="miner_entity" .hass="\${this._hass}" .value="\${this.getVal('miner_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="miner_entity" .hass="${this._hass}" .value="${this.getVal('miner_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="miner_color" value="\${this.getVal('miner_color', '#a855f7')}"></div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="miner_color" value="${this.getVal('miner_color', '#a855f7')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Wärmepumpe (W)</label>
-              <ha-entity-picker id="heatpump_entity" .hass="\${this._hass}" .value="\${this.getVal('heatpump_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="heatpump_entity" .hass="${this._hass}" .value="${this.getVal('heatpump_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="\${this.getVal('heatpump_color', '#3b82f6')}"></div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>E-Auto / Wallbox (W)</label>
-              <ha-entity-picker id="ev_entity" .hass="\${this._hass}" .value="\${this.getVal('ev_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="ev_entity" .hass="${this._hass}" .value="${this.getVal('ev_entity')}" allow-custom-entity></ha-entity-picker>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="\${this.getVal('ev_color', '#eab308')}"></div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
           </div>
         </div>
 
@@ -156,7 +156,9 @@ class OpenKairoSolarCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("openkairo-solar-editor", OpenKairoSolarCardEditor);
+if (!customElements.get("openkairo-solar-editor")) {
+  customElements.define("openkairo-solar-editor", OpenKairoSolarCardEditor);
+}
 
 class OpenKairoSolarCard extends HTMLElement {
   static getConfigElement() { return document.createElement("openkairo-solar-editor"); }
@@ -183,7 +185,7 @@ class OpenKairoSolarCard extends HTMLElement {
     }
   }
 
-  getValStr(key, def="") { return this._config[key] !== undefined ? this._config[key] : def; }
+  getValStr(key, def="") { return this._config && this._config[key] !== undefined ? this._config[key] : def; }
 
   setupDOM() {
     this.innerHTML = `
@@ -240,17 +242,17 @@ class OpenKairoSolarCard extends HTMLElement {
 
   // Draw node HTML
   drawNode(id, icon, label, color, x, y) {
-      return \`<div class="node \${id}" id="node-\${id}" style="left: \${x}%; top: \${y}%; border-color: \${color}; color: \${color};">
-         <ha-icon class="node-icon" icon="\${icon}"></ha-icon>
-         <div class="node-value" id="val-\${id}">0 W</div>
-         <div class="node-label">\${label}</div>
+      return \`<div class="node ${id}" id="node-${id}" style="left: ${x}%; top: ${y}%; border-color: ${color}; color: ${color};">
+         <ha-icon class="node-icon" icon="${icon}"></ha-icon>
+         <div class="node-value" id="val-${id}">0 W</div>
+         <div class="node-label">${label}</div>
       </div>\`;
   }
 
   // Generate SVG Path relative to percentages (rough bounding box math)
   drawPath(id, color, x1, y1, x2, y2) {
       // Use relatively scaled coordinates via SVG viewBox
-      return \`<path id="path-\${id}" class="svg-path" d="M \${x1} \${y1} Q \${x1} \${y2}, \${x2} \${y2}" stroke="\${color}"></path>\`;
+      return \`<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}" stroke="${color}"></path>\`;
   }
 
   updateLayout() {
@@ -265,8 +267,6 @@ class OpenKairoSolarCard extends HTMLElement {
       const cHeat = this.getValStr('heatpump_color', '#3b82f6');
       const cEv = this.getValStr('ev_color', '#eab308');
 
-      // Define Node Map
-      // Center Home = (50, 50)
       const nodes = [];
       const paths = [];
 
@@ -302,7 +302,6 @@ class OpenKairoSolarCard extends HTMLElement {
       svg.setAttribute('preserveAspectRatio', 'none');
       svg.innerHTML = paths.join('');
       
-      // Inject nodes but keep SVG
       const oldNodes = container.querySelectorAll('.node');
       oldNodes.forEach(n => n.remove());
       container.insertAdjacentHTML('beforeend', nodes.join(''));
@@ -311,7 +310,6 @@ class OpenKairoSolarCard extends HTMLElement {
   set hass(hass) {
     if (!this._config) return;
     
-    // We only construct layout once entities change setup
     if (!this._layoutBuilt) {
         this.updateLayout();
         this._layoutBuilt = true;
@@ -327,17 +325,16 @@ class OpenKairoSolarCard extends HTMLElement {
     let gridInW = getVal(this._config.grid_import_entity);
     let gridOutW = getVal(this._config.grid_export_entity);
     let battW = getVal(this._config.battery_power_entity); 
-    if (this.getValStr('battery_invert')) battW = battW * -1; // Standardize positive=discharge
+    if (this.getValStr('battery_invert')) battW = battW * -1; 
     let minerW = getVal(this._config.miner_entity);
     let heatW = getVal(this._config.heatpump_entity);
     let evW = getVal(this._config.ev_entity);
 
-    // Calc Home (assuming gridOut limits home)
     let extraConsumers = minerW + heatW + evW;
     let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
     if (homeW < 0) homeW = 0;
     
-    let totalHomeW = homeW + extraConsumers; // the physical center home node displays total
+    let totalHomeW = homeW + extraConsumers; 
 
     const upd = (id, val, textSuffix) => {
         const el = this.querySelector(\`#val-\${id}\`);
@@ -352,7 +349,6 @@ class OpenKairoSolarCard extends HTMLElement {
     upd('heatpump', heatW, ' W');
     upd('ev', evW, ' W');
 
-    // Handle animations
     const animType = this.getValStr('animation_type', 'dots');
     const animSpeedStr = this.getValStr('animation_speed', 'normal');
     const speedMult = animSpeedStr === 'fast' ? 0.5 : animSpeedStr === 'slow' ? 2 : 1;
@@ -366,10 +362,9 @@ class OpenKairoSolarCard extends HTMLElement {
         } else {
             p.style.opacity = 0.8;
             p.setAttribute('class', \`svg-path anim-\${animType}\`);
-            // Dynamic speed based on power amount
             let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
-            if (duration > 3) duration = 3; // cap slow
-            if (duration < 0.2) duration = 0.2; // cap fast
+            if (duration > 3) duration = 3; 
+            if (duration < 0.2) duration = 0.2; 
             
             p.style.animationDuration = duration + 's';
             p.style.animationDirection = reverse ? 'reverse' : 'normal';
@@ -378,7 +373,7 @@ class OpenKairoSolarCard extends HTMLElement {
 
     animatePath('solar-home', solarW, 5000, false);
     animatePath('grid-home', gridInW > 0 ? gridInW : gridOutW, 5000, gridOutW > 0);
-    animatePath('batt-home', battW, 3000, battW < 0); // flow towards home if >0, towards batt if <0
+    animatePath('batt-home', battW, 3000, battW < 0); 
     animatePath('home-miner', minerW, 2000, false);
     animatePath('home-heatpump', heatW, 3000, false);
     animatePath('home-ev', evW, 11000, false);
@@ -386,7 +381,10 @@ class OpenKairoSolarCard extends HTMLElement {
 
   getCardSize() { return 5; }
 }
-customElements.define("openkairo-solar-card", OpenKairoSolarCard);
+
+if (!customElements.get("openkairo-solar-card")) {
+  customElements.define("openkairo-solar-card", OpenKairoSolarCard);
+}
 
 window.customCards = window.customCards || [];
 const cardExists = window.customCards.find(c => c.type === "openkairo-solar-card");
