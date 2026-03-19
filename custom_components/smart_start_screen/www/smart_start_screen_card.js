@@ -385,6 +385,78 @@ class OpenKairoCard extends HTMLElement {
             opacity: 1;
             transform: translateY(0);
           }
+
+          @media (max-width: 768px) {
+            .content-shell {
+              padding: 0 15px;
+              margin-bottom: 90px;
+            }
+            .logo {
+              width: 70px;
+            }
+            h1 {
+              font-size: 2.2rem;
+            }
+            .top-bar {
+              top: 15px;
+              left: 20px;
+              right: 20px;
+            }
+            .glass-panel {
+              padding: 25px 15px;
+              margin-top: 15px;
+              border-radius: 25px;
+            }
+            .hub-badge {
+              font-size: 0.55rem;
+              letter-spacing: 2px;
+              padding: 6px 14px;
+              margin-bottom: 20px;
+            }
+            .news-text {
+              font-size: 1rem;
+              margin-bottom: 20px;
+              min-height: 45px;
+            }
+            .social-container {
+              flex-direction: column;
+              gap: 10px;
+            }
+            .system-stats {
+              gap: 8px;
+            }
+            .stat-item {
+              padding: 15px 5px;
+              border-radius: 12px;
+            }
+            .stat-value {
+              font-size: 1.1rem;
+            }
+            .stat-label {
+              font-size: 0.55rem;
+              letter-spacing: 1px;
+            }
+            .start-btn {
+              padding: 15px 20px;
+              font-size: 1rem;
+            }
+            .dock-container {
+              padding: 10px 15px;
+              gap: 12px;
+              bottom: 15px;
+              width: 90vw;
+              box-sizing: border-box;
+            }
+            .dock-item {
+              min-width: 55px;
+            }
+            .dock-icon {
+              --mdc-icon-size: 26px;
+            }
+            .dock-label {
+              font-size: 0.6rem;
+            }
+          }
         </style>
         
         <div class="kairo-os" id="os-container">
@@ -416,10 +488,10 @@ class OpenKairoCard extends HTMLElement {
               </div>
 
               <div class="system-stats">
-                <div class="stat-item" id="light-btn">
-                  <div class="stat-icon"><ha-icon icon="mdi:lightbulb-group"></ha-icon></div>
-                  <div class="stat-value" id="light-val">0</div>
-                  <div class="stat-label">LICHTER AN</div>
+                <div class="stat-item" id="dev-btn">
+                  <div class="stat-icon"><ha-icon icon="mdi:devices"></ha-icon></div>
+                  <div class="stat-value" id="dev-val">0</div>
+                  <div class="stat-label">GERÄTE</div>
                 </div>
 
                 <div class="stat-item" id="auto-btn">
@@ -446,7 +518,7 @@ class OpenKairoCard extends HTMLElement {
       `;
       this.cardContent = this.querySelector('#news');
       this.cardFooter = this.querySelector('#foot');
-      this.lightVal = this.querySelector('#light-val');
+      this.devVal = this.querySelector('#dev-val');
       this.autoVal = this.querySelector('#auto-val');
       this.entVal = this.querySelector('#ent-val');
 
@@ -460,7 +532,7 @@ class OpenKairoCard extends HTMLElement {
       };
       
       // Shortcuts to meaningful pages
-      this.querySelector('#light-btn').onclick = () => { window.location.href = '/config/devices/dashboard?domain=light'; };
+      this.querySelector('#dev-btn').onclick = () => { window.location.href = '/config/devices/dashboard'; };
       this.querySelector('#auto-btn').onclick = () => { window.location.href = '/config/automation/dashboard'; };
       this.querySelector('#ent-btn').onclick = () => { window.location.href = '/config/entities'; };
     }
@@ -476,10 +548,18 @@ class OpenKairoCard extends HTMLElement {
       const up = this._hass.states[updateEntities[0]]; // Gets the first available update
       const title = up.attributes.title || up.attributes.friendly_name || "System";
       if (updateBanner) {
-        updateBanner.innerHTML = `<div style="background: rgba(255, 0, 80, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 0, 80, 0.3); border-top: 1px solid rgba(255,0,80,0.6); border-radius: 20px; padding: 15px; margin-bottom: 25px; color:#ff4a4a; display:flex; flex-direction:column; align-items:center; box-shadow: 0 10px 20px rgba(255,0,80,0.1), inset 0 0 20px rgba(255,0,80,0.05);">
+        updateBanner.innerHTML = `<div id="update-click-btn" style="cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: rgba(255, 0, 80, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 0, 80, 0.3); border-top: 1px solid rgba(255,0,80,0.6); border-radius: 20px; padding: 15px; margin-bottom: 25px; color:#ff4a4a; display:flex; flex-direction:column; align-items:center; box-shadow: 0 10px 20px rgba(255,0,80,0.1), inset 0 0 20px rgba(255,0,80,0.05);" onmouseover="this.style.background='rgba(255,0,80,0.1)';this.style.transform='scale(1.02)'" onmouseout="this.style.background='rgba(255,0,80,0.05)';this.style.transform='scale(1)'">
            <div style="font-family:'Orbitron'; font-weight:900; letter-spacing:2px; font-size:0.75rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;"><span style="display:inline-block;width:6px;height:6px;background:#ff4a4a;border-radius:50%;box-shadow:0 0 10px #ff4a4a; animation: dotPulse 2s infinite;"></span>SYSTEM-UPDATE VERFÜGBAR</div>
            <span style="color:rgba(255,255,255,0.8); font-size: 0.85rem; font-weight:600; font-family:'Inter',sans-serif;">${title} <span style="opacity:0.5; font-weight:400;">(v${up.attributes.latest_version})</span></span>
         </div>`;
+        const clickBanner = updateBanner.querySelector('#update-click-btn');
+        if (clickBanner) {
+            clickBanner.onclick = () => {
+                const event = new Event('hass-more-info', { bubbles: true, cancelable: false, composed: true });
+                event.detail = { entityId: updateEntities[0] };
+                this.dispatchEvent(event);
+            };
+        }
       }
     } else {
        if (updateBanner) updateBanner.innerHTML = '';
@@ -492,13 +572,13 @@ class OpenKairoCard extends HTMLElement {
                if (!this._hass || !this._hass.states) return;
 
                const liveStates = Object.values(this._hass.states);
-               const lLights = liveStates.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
+               const lDevs = this._hass.devices ? Object.keys(this._hass.devices).length : (this._hass.entities ? new Set(Object.values(this._hass.entities).map(e => e.device_id).filter(id => id)).size : "UNBEKANNT");
                const lAutos = liveStates.filter(s => s.entity_id.startsWith('automation.')).length;
                const lEnts = liveStates.length;
 
                const dynamicLogs = [
                   `ÜBERWACHE <span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lEnts}</span> ENTITÄTEN...`,
-                  `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lLights}</span> LAMPEN SIND AKTUELL SIGNALBEREIT.`,
+                  `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lDevs}</span> GERÄTE SIND VERBUNDEN.`,
                   `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lAutos}</span> ROUTINEN SIND <span style="color:#05f0a0">ONLINE</span>.`,
                   'Lokaler OpenKairo-Core <span style="color:#05f0a0">STABIL</span>.',
                   'Lokales Neural-Netzwerk <span style="color:#05f0a0">KALIBRIERT</span>.',
@@ -536,8 +616,13 @@ class OpenKairoCard extends HTMLElement {
     // --- Smart Home Intelligence Summary ---
     const states = Object.values(hass.states);
     
-    // Count lights that are currently ON
-    const lightsOn = states.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
+    // Count devices safely from hass.devices or hass.entities
+    let totalDevices = 0;
+    if (hass.devices) {
+        totalDevices = Object.keys(hass.devices).length;
+    } else if (hass.entities) {
+        totalDevices = new Set(Object.values(hass.entities).map(e => e.device_id).filter(id => id)).size;
+    }
     
     // Count active automations
     const automations = states.filter(s => s.entity_id.startsWith('automation.')).length;
@@ -545,7 +630,7 @@ class OpenKairoCard extends HTMLElement {
     // Total connected entities
     const totalEntities = states.length;
 
-    if(this.lightVal) this.lightVal.innerText = lightsOn.toString();
+    if(this.devVal) this.devVal.innerText = totalDevices > 0 ? totalDevices.toString() : "-";
     if(this.autoVal) this.autoVal.innerText = automations.toString();
     if(this.entVal) this.entVal.innerText = totalEntities.toString();
 
