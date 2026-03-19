@@ -1,6 +1,9 @@
 class OpenKairoSolarCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = config;
+    if (this._hass && !this._initialized) {
+        this.renderForm();
+    }
   }
 
   configChanged(newConfig) {
@@ -12,13 +15,14 @@ class OpenKairoSolarCardEditor extends HTMLElement {
     this.dispatchEvent(event);
   }
 
-  get _solar_entity() { return this._config.solar_entity || ""; }
-  get _grid_import_entity() { return this._config.grid_import_entity || ""; }
-  get _grid_export_entity() { return this._config.grid_export_entity || ""; }
-  get _battery_power_entity() { return this._config.battery_power_entity || ""; }
-  get _battery_level_entity() { return this._config.battery_level_entity || ""; }
+  get _solar_entity() { return this._config?.solar_entity || ""; }
+  get _grid_import_entity() { return this._config?.grid_import_entity || ""; }
+  get _grid_export_entity() { return this._config?.grid_export_entity || ""; }
+  get _battery_power_entity() { return this._config?.battery_power_entity || ""; }
+  get _battery_level_entity() { return this._config?.battery_level_entity || ""; }
 
   renderForm() {
+    this._initialized = true;
     this.innerHTML = `
       <style>
         .row { margin-bottom: 12px; }
@@ -33,53 +37,28 @@ class OpenKairoSolarCardEditor extends HTMLElement {
         
         <div class="row">
           <label>Solarproduktion (z.B. Wechselrichter Leistung in W)</label>
-          <ha-entity-picker
-            id="solar_entity"
-            .hass="\${this._hass}"
-            .value="\${this._solar_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+          <ha-entity-picker id="solar_entity" allow-custom-entity></ha-entity-picker>
         </div>
 
         <div class="row">
           <label>Netzbezug (aus dem Stromnetz in W)</label>
-          <ha-entity-picker
-            id="grid_import_entity"
-            .hass="\${this._hass}"
-            .value="\${this._grid_import_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+          <ha-entity-picker id="grid_import_entity" allow-custom-entity></ha-entity-picker>
         </div>
 
         <div class="row">
           <label>Netzeinspeisung (ins Stromnetz in W)</label>
-          <ha-entity-picker
-            id="grid_export_entity"
-            .hass="\${this._hass}"
-            .value="\${this._grid_export_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+          <ha-entity-picker id="grid_export_entity" allow-custom-entity></ha-entity-picker>
         </div>
 
         <h3>optional: Speicher / Batterie</h3>
         <div class="row">
           <label>Batterieleistung (Laden/Entladen in W)</label>
-          <ha-entity-picker
-            id="battery_power_entity"
-            .hass="\${this._hass}"
-            .value="\${this._battery_power_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+          <ha-entity-picker id="battery_power_entity" allow-custom-entity></ha-entity-picker>
         </div>
 
         <div class="row">
           <label>Batterie-Ladestand (in %)</label>
-          <ha-entity-picker
-            id="battery_level_entity"
-            .hass="\${this._hass}"
-            .value="\${this._battery_level_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+          <ha-entity-picker id="battery_level_entity" allow-custom-entity></ha-entity-picker>
         </div>
       </div>
     `;
@@ -101,7 +80,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    if (!this.querySelector('.card-config')) {
+    if (this._config && !this._initialized) {
       this.renderForm();
     }
   }
