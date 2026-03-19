@@ -13,7 +13,7 @@ class OpenKairoCard extends HTMLElement {
           .kairo-os {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: #05070a;
+            background: radial-gradient(circle at center, #051014 0%, #010305 100%);
             font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
@@ -121,17 +121,48 @@ class OpenKairoCard extends HTMLElement {
           }
 
           .glass-panel {
-            background: rgba(5, 10, 15, 0.45);
-            backdrop-filter: blur(35px);
-            -webkit-backdrop-filter: blur(35px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 35px;
-            padding: 30px;
+            background: rgba(5, 12, 18, 0.55);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 40px;
+            padding: 35px;
             margin-top: 25px;
             width: 100%;
-            max-width: 660px;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.9), inset 0 2px 20px rgba(255,255,255,0.03);
+            max-width: 680px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(255,255,255,0.02);
+          }
+          
+          .hub-badge {
+             display: inline-flex;
+             align-items: center;
+             gap: 8px;
+             font-family: 'Orbitron', sans-serif;
+             font-size: 0.65rem;
+             font-weight: 900;
+             letter-spacing: 4px;
+             color: var(--primary);
+             background: rgba(16, 185, 129, 0.1);
+             border: 1px solid rgba(16, 185, 129, 0.3);
+             padding: 8px 18px;
+             border-radius: 50px;
+             margin-bottom: 25px;
+             box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+          }
+          
+          .pulse-dot {
+             width: 6px;
+             height: 6px;
+             background: var(--primary);
+             border-radius: 50%;
+             box-shadow: 0 0 10px var(--primary);
+             animation: dotPulse 2s infinite;
+          }
+          
+          @keyframes dotPulse {
+             0%, 100% { opacity: 1; transform: scale(1); }
+             50% { opacity: 0.4; transform: scale(1.5); }
           }
           
           .news-text {
@@ -188,12 +219,8 @@ class OpenKairoCard extends HTMLElement {
           .system-stats {
             display: flex;
             justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 25px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 20px;
-            padding: 15px;
-            border: 1px solid rgba(255,255,255,0.05);
+            gap: 15px;
+            margin-bottom: 30px;
           }
 
           .stat-item {
@@ -202,16 +229,45 @@ class OpenKairoCard extends HTMLElement {
             align-items: center;
             flex: 1;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px 10px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
           }
+          
+          .stat-item::before {
+             content: '';
+             position: absolute;
+             top: 0; left: 0; right: 0; height: 1px;
+             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+             opacity: 0;
+             transition: 0.4s;
+          }
+
           .stat-item:hover {
-            transform: scale(1.05);
+            transform: translateY(-8px);
+            background: rgba(16, 185, 129, 0.05);
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(16, 185, 129, 0.1);
           }
+          
+          .stat-item:hover::before { opacity: 1; }
 
           .stat-icon {
             color: var(--primary);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             opacity: 0.8;
+            transition: 0.4s;
+          }
+          
+          .stat-item:hover .stat-icon {
+             color: #fff;
+             opacity: 1;
+             text-shadow: 0 0 15px var(--primary);
+             transform: scale(1.2);
           }
 
           .stat-value {
@@ -231,26 +287,33 @@ class OpenKairoCard extends HTMLElement {
           }
 
           .start-btn {
-            background: linear-gradient(135deg, var(--primary), #05f0a0);
+            background: linear-gradient(135deg, #10b981 0%, #05f0a0 50%, #10b981 100%);
+            background-size: 200% auto;
             color: #000;
-            padding: 16px 40px;
-            border-radius: 100px;
+            padding: 18px 40px;
+            border-radius: 20px;
             font-weight: 900;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4), inset 0 2px 2px rgba(255,255,255,0.6);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3), inset 0 2px 2px rgba(255,255,255,0.6);
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             width: 100%;
             position: relative;
             overflow: hidden;
+            animation: gradientShine 4s linear infinite;
+          }
+          
+          @keyframes gradientShine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
           }
 
           .start-btn:hover {
-            transform: translateY(-5px) scale(1.03);
-            box-shadow: 0 20px 50px rgba(16, 185, 129, 0.7), inset 0 2px 5px rgba(255,255,255,0.8);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.6), inset 0 2px 5px rgba(255,255,255,0.8);
           }
 
           .footer {
@@ -337,7 +400,7 @@ class OpenKairoCard extends HTMLElement {
             <h1>OPENKAIRO <span style="color:var(--primary)">OS</span></h1>
             
             <div class="glass-panel">
-              <div style="color:var(--primary); font-family: 'Orbitron', sans-serif; font-weight:900; letter-spacing:4px; font-size:0.75rem; margin-bottom:15px; opacity:0.8;">// INTELLIGENCE HUB //</div>
+              <div class="hub-badge"><span class="pulse-dot"></span> INTELLIGENCE HUB</div>
               <div id="update-banner"></div>
               <div class="news-text" id="news">Stelle Verbindung her...</div>
 
@@ -413,8 +476,9 @@ class OpenKairoCard extends HTMLElement {
       const up = this._hass.states[updateEntities[0]]; // Gets the first available update
       const title = up.attributes.title || up.attributes.friendly_name || "System";
       if (updateBanner) {
-        updateBanner.innerHTML = `<div style="background: rgba(255, 74, 74, 0.1); border: 1px solid rgba(255, 74, 74, 0.4); border-radius: 10px; padding: 10px; margin-bottom: 20px; color:#ff4a4a; font-weight:bold; font-size:0.85rem;">
-           [ UPDATE VERFÜGBAR ]<br><span style="color:white; font-size: 0.8rem; font-weight:normal;">${title} (v${up.attributes.latest_version})</span>
+        updateBanner.innerHTML = `<div style="background: rgba(255, 0, 80, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 0, 80, 0.3); border-top: 1px solid rgba(255,0,80,0.6); border-radius: 20px; padding: 15px; margin-bottom: 25px; color:#ff4a4a; display:flex; flex-direction:column; align-items:center; box-shadow: 0 10px 20px rgba(255,0,80,0.1), inset 0 0 20px rgba(255,0,80,0.05);">
+           <div style="font-family:'Orbitron'; font-weight:900; letter-spacing:2px; font-size:0.75rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;"><span style="display:inline-block;width:6px;height:6px;background:#ff4a4a;border-radius:50%;box-shadow:0 0 10px #ff4a4a; animation: dotPulse 2s infinite;"></span>SYSTEM-UPDATE VERFÜGBAR</div>
+           <span style="color:rgba(255,255,255,0.8); font-size: 0.85rem; font-weight:600; font-family:'Inter',sans-serif;">${title} <span style="opacity:0.5; font-weight:400;">(v${up.attributes.latest_version})</span></span>
         </div>`;
       }
     } else {
