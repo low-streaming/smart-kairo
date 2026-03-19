@@ -348,22 +348,22 @@ class OpenKairoCard extends HTMLElement {
               </div>
 
               <div class="system-stats">
-                <div class="stat-item" id="cpu-btn">
-                  <div class="stat-icon"><ha-icon icon="mdi:cpu-64-bit"></ha-icon></div>
-                  <div class="stat-value" id="cpu-val">--<span style="font-size:0.8rem">%</span></div>
-                  <div class="stat-label">CPU LOAD</div>
+                <div class="stat-item" id="light-btn">
+                  <div class="stat-icon"><ha-icon icon="mdi:lightbulb-group"></ha-icon></div>
+                  <div class="stat-value" id="light-val">0</div>
+                  <div class="stat-label">LICHTER AN</div>
                 </div>
 
-                <div class="stat-item" id="ram-btn">
-                  <div class="stat-icon"><ha-icon icon="mdi:memory"></ha-icon></div>
-                  <div class="stat-value" id="ram-val">--<span style="font-size:0.8rem">%</span></div>
-                  <div class="stat-label">RAM USE</div>
+                <div class="stat-item" id="auto-btn">
+                  <div class="stat-icon"><ha-icon icon="mdi:robot"></ha-icon></div>
+                  <div class="stat-value" id="auto-val">0</div>
+                  <div class="stat-label">ROUTINEN</div>
                 </div>
 
-                <div class="stat-item" id="disk-btn">
-                  <div class="stat-icon"><ha-icon icon="mdi:harddisk"></ha-icon></div>
-                  <div class="stat-value" id="disk-val">--<span style="font-size:0.8rem">%</span></div>
-                  <div class="stat-label">STORAGE</div>
+                <div class="stat-item" id="ent-btn">
+                  <div class="stat-icon"><ha-icon icon="mdi:cube-outline"></ha-icon></div>
+                  <div class="stat-value" id="ent-val">0</div>
+                  <div class="stat-label">ENTITÄTEN</div>
                 </div>
               </div>
               
@@ -378,9 +378,9 @@ class OpenKairoCard extends HTMLElement {
       `;
       this.cardContent = this.querySelector('#news');
       this.cardFooter = this.querySelector('#foot');
-      this.cpuVal = this.querySelector('#cpu-val');
-      this.ramVal = this.querySelector('#ram-val');
-      this.diskVal = this.querySelector('#disk-val');
+      this.lightVal = this.querySelector('#light-val');
+      this.autoVal = this.querySelector('#auto-val');
+      this.entVal = this.querySelector('#ent-val');
 
 
       this.querySelector('#go').onclick = () => {
@@ -391,10 +391,10 @@ class OpenKairoCard extends HTMLElement {
         setTimeout(() => { osLayer.style.display = 'none'; }, 600);
       };
       
-      // Shortcuts to Integration settings
-      this.querySelector('#cpu-btn').onclick = () => { window.location.href = '/config/integrations'; };
-      this.querySelector('#ram-btn').onclick = () => { window.location.href = '/config/integrations'; };
-      this.querySelector('#disk-btn').onclick = () => { window.location.href = '/config/integrations'; };
+      // Shortcuts to meaningful pages
+      this.querySelector('#light-btn').onclick = () => { window.location.href = '/config/devices/dashboard?domain=light'; };
+      this.querySelector('#auto-btn').onclick = () => { window.location.href = '/config/automation/dashboard'; };
+      this.querySelector('#ent-btn').onclick = () => { window.location.href = '/config/entities'; };
     }
 
     // --- Update Checker & Sci-Fi Logs ---
@@ -402,86 +402,62 @@ class OpenKairoCard extends HTMLElement {
     const updateEntities = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
     const updateBanner = this.querySelector('#update-banner');
     
-    // Default Sci-Fi Logs
-    const scifiLogs = [
-      "Sicherheitsprotokolle online...",
-      "Core-Sensoren synchronisiert.",
-      "Verbindung zur OpenKairo-Cloud stabil.",
-      "Lokales Neural-Netzwerk kalibriert...",
-      "Quanten-Verschlüsselung der Node intakt."
-    ];
-    
-    if (updateEntities.length > 0) {
-      // Update is available! Show banner.
-      const up = hass.states[updateEntities[0]]; // Gets the first available update
-      const title = up.attributes.title || up.attributes.friendly_name || "System";
-      if (updateBanner) {
-        updateBanner.innerHTML = `<div style="background: rgba(255, 74, 74, 0.1); border: 1px solid rgba(255, 74, 74, 0.4); border-radius: 10px; padding: 10px; margin-bottom: 20px; color:#ff4a4a; font-weight:bold; font-size:0.85rem;">
-           [ UPDATE VERFÜGBAR ]<br><span style="color:white; font-size: 0.8rem; font-weight:normal;">${title} (v${up.attributes.latest_version})</span>
-        </div>`;
-      }
-    } else {
-       if (updateBanner) updateBanner.innerHTML = '';
-    }
-
-    // Always keep Rotating SciFi Logs active
+    // Default setup for logs
     if (!this._currentSciFiLog) {
-       this._currentSciFiLog = scifiLogs[0];
+       this._currentSciFiLog = "System initialisiert...";
        setInterval(() => {
-           this._currentSciFiLog = scifiLogs[Math.floor(Math.random() * scifiLogs.length)];
-           if (this.cardContent) {
-               this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
+           // check if updates appeared in the meantime
+           const currentUpdates = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
+           if (currentUpdates.length === 0) {
+             // Retrieve realtime stats
+             const liveStates = Object.values(hass.states);
+             const lLights = liveStates.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
+             const lAutos = liveStates.filter(s => s.entity_id.startsWith('automation.')).length;
+             const lEnts = liveStates.length;
+
+             const dynamicLogs = [
+                `ÜBERWACHE <span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lEnts}</span> ENTITÄTEN...`,
+                `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lLights}</span> LAMPEN SIND AKTUELL AKTIV.`,
+                `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lAutos}</span> ROUTINEN SIND <span style="color:#05f0a0">ONLINE</span>.`,
+                'Lokaler OpenKairo-Core <span style="color:#05f0a0">STABIL</span>.',
+                'Lokales Neural-Netzwerk <span style="color:#05f0a0">KALIBRIERT</span>.',
+                'Sicherheitsprotokolle <span style="color:var(--primary)">AKTIV</span>.',
+                'Subroutinen arbeiten <span style="color:#ff0050">FEHLERFREI</span>.'
+             ];
+
+             this._currentSciFiLog = dynamicLogs[Math.floor(Math.random() * dynamicLogs.length)];
+             if (this.cardContent) {
+                 this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
+             }
            }
-       }, 8000); // changes text every 8 seconds
+       }, 5000); // changes text every 5 seconds for more dynamics
     }
-    if (this.cardContent) {
-       this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
+    if (this.cardContent && !this.cardContent.innerHTML.includes('UPDATE')) {
+       // Only if we don't already have a dynamic text loaded
+       if(this.cardContent.innerHTML === '<i>"Stelle Verbindung her..."</i>') {
+           this.cardContent.innerHTML = `<i>"Synchronisiere Core..."</i>`;
+       }
     }
 
     if (this.cardFooter) {
       this.cardFooter.innerText = `LOKALER CORE: VERIFIED | NODE: OK-${Math.floor(Math.random()*9000)+1000} | STATUS: CONNECTED`;
     }
 
-    // Extended Sensor Fallbacks for Raspberry Pi System Monitor
-    const getSensor = (ids) => {
-        for(let id of ids) {
-            if(hass.states[id]) {
-                // Return simple number without decimals if it's numeric
-                const val = parseFloat(hass.states[id].state);
-                return isNaN(val) ? hass.states[id].state : Math.round(val);
-            }
-        }
-        return '--';
-    };
-
-    const cpu = getSensor([
-      'sensor.system_monitor_processor_use',
-      'sensor.processor_use', 
-      'sensor.cpu_use', 
-      'sensor.cpu_percent',
-      'sensor.glances_cpu_used'
-    ]);
+    // --- Smart Home Intelligence Summary ---
+    const states = Object.values(hass.states);
     
-    const ram = getSensor([
-      'sensor.system_monitor_memory_use_percent',
-      'sensor.memory_use_percent', 
-      'sensor.ram_use', 
-      'sensor.memory_percent',
-      'sensor.glances_ram_used_percent'
-    ]);
+    // Count lights that are currently ON
+    const lightsOn = states.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
     
-    // Some Pis report storage as simply "disk_use_percent" or "disk_use_percent_/"
-    const disk = getSensor([
-      'sensor.system_monitor_disk_use_percent',
-      'sensor.disk_use_percent', 
-      'sensor.disk_use_percent_home', 
-      'sensor.disk_use_percent_', 
-      'sensor.glances_disk_used_percent'
-    ]);
+    // Count active automations
+    const automations = states.filter(s => s.entity_id.startsWith('automation.')).length;
+    
+    // Total connected entities
+    const totalEntities = states.length;
 
-    if(this.cpuVal) this.cpuVal.innerHTML = `${cpu}<span style="font-size:0.8rem">%</span>`;
-    if(this.ramVal) this.ramVal.innerHTML = `${ram}<span style="font-size:0.8rem">%</span>`;
-    if(this.diskVal) this.diskVal.innerHTML = `${disk}<span style="font-size:0.8rem">%</span>`;
+    if(this.lightVal) this.lightVal.innerText = lightsOn.toString();
+    if(this.autoVal) this.autoVal.innerText = automations.toString();
+    if(this.entVal) this.entVal.innerText = totalEntities.toString();
 
     // Dynamically update the dock if panels or sidebar config changes
     const sidebarStateStr = localStorage.getItem('sidebarSavedState') || '';
