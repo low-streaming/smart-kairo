@@ -297,37 +297,7 @@ class OpenKairoCard extends HTMLElement {
       this.cpuVal = this.querySelector('#cpu-val');
       this.ramVal = this.querySelector('#ram-val');
       this.diskVal = this.querySelector('#disk-val');
-      
-      const dock = this.querySelector('#auto-dock');
-      if (hass.panels) {
-        let dockHtml = '';
-        for (const [path, panel] of Object.entries(hass.panels)) {
-           if (panel.title) {
-              dockHtml += `
-                <div class="dock-item" data-path="/${path}">
-                  <ha-icon icon="${panel.icon || 'mdi:apps'}" class="dock-icon"></ha-icon>
-                  <span class="dock-label">${panel.title}</span>
-                </div>
-              `;
-           }
-        }
-        dockHtml += `
-          <div class="dock-item" data-path="/config">
-             <ha-icon icon="mdi:cog" class="dock-icon"></ha-icon>
-             <span class="dock-label">System</span>
-          </div>
-        `;
-        dock.innerHTML = dockHtml;
-        
-        this.querySelectorAll('.dock-item').forEach(item => {
-           item.onclick = () => {
-             item.style.transform = 'scale(0.9)';
-             setTimeout(() => {
-                window.location.href = item.getAttribute('data-path');
-             }, 150);
-           };
-        });
-      }
+
 
       this.querySelector('#go').onclick = () => {
         const osLayer = this.querySelector('#os-container');
@@ -391,6 +361,56 @@ class OpenKairoCard extends HTMLElement {
     if(this.cpuVal) this.cpuVal.innerHTML = `${cpu}<span style="font-size:0.8rem">%</span>`;
     if(this.ramVal) this.ramVal.innerHTML = `${ram}<span style="font-size:0.8rem">%</span>`;
     if(this.diskVal) this.diskVal.innerHTML = `${disk}<span style="font-size:0.8rem">%</span>`;
+
+    // Dynamically update the dock if panels or sidebar config changes
+    const sidebarStateStr = localStorage.getItem('sidebarSavedState') || '';
+    const panelStateHash = Object.keys(hass.panels || {}).join(',') + sidebarStateStr;
+    
+    if (this._panelStateHash !== panelStateHash) {
+      this._panelStateHash = panelStateHash;
+      const dock = this.querySelector('#auto-dock');
+      if (dock && hass.panels) {
+        let hiddenPanels = [];
+        try {
+          const sidebarState = JSON.parse(sidebarStateStr);
+          if (sidebarState && sidebarState.hidden) {
+            hiddenPanels = sidebarState.hidden;
+          }
+        } catch(e) {}
+
+        let dockHtml = '';
+        for (const [path, panel] of Object.entries(hass.panels)) {
+           // Skip hidden panels from the HA sidebar
+           if (hiddenPanels.includes(path)) continue;
+
+           // Only show true lovelace dashboards
+           if (panel.title && panel.component_name === 'lovelace') {
+              dockHtml += `
+                <div class="dock-item" data-path="/${path}">
+                  <ha-icon icon="${panel.icon || 'mdi:view-dashboard'}" class="dock-icon"></ha-icon>
+                  <span class="dock-label">${panel.title}</span>
+                </div>
+              `;
+           }
+        }
+        dockHtml += `
+          <div class="dock-item" data-path="/config">
+             <ha-icon icon="mdi:cog" class="dock-icon"></ha-icon>
+             <span class="dock-label">System</span>
+          </div>
+        `;
+        dock.innerHTML = dockHtml;
+        
+        this.querySelectorAll('.dock-item').forEach(item => {
+           item.onclick = () => {
+             item.style.transform = 'scale(0.9)';
+             setTimeout(() => {
+                window.location.href = item.getAttribute('data-path');
+             }, 150);
+           };
+        });
+      }
+    }
   }
 
   setConfig(config) {}
