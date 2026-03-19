@@ -24,6 +24,25 @@ class OpenKairoCard extends HTMLElement {
             z-index: 9999;
             transition: opacity 0.6s ease, transform 0.6s ease;
           }
+          
+          .kairo-os::before {
+            content: '';
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(0,0,0,0) 65%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulseOrb 12s infinite alternate ease-in-out;
+            z-index: 0;
+            pointer-events: none;
+          }
+
+          @keyframes pulseOrb {
+             0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+             100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+          }
 
           .grid {
             position: absolute;
@@ -53,6 +72,12 @@ class OpenKairoCard extends HTMLElement {
             padding: 0 20px;
             box-sizing: border-box;
             margin-bottom: 80px; 
+            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+
+          @keyframes slideUpFade {
+             0% { opacity: 0; transform: translateY(40px); }
+             100% { opacity: 1; transform: translateY(0); }
           }
 
           .top-bar {
@@ -84,23 +109,24 @@ class OpenKairoCard extends HTMLElement {
             font-weight: 900;
             margin: 0;
             letter-spacing: -1px;
-            background: linear-gradient(180deg, #fff, rgba(255,255,255,0.4));
+            background: linear-gradient(180deg, #ffffff 30%, #5caaa0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(255,255,255,0.1);
+            text-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
           }
 
           .glass-panel {
-            background: rgba(16, 185, 129, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 30px;
+            background: rgba(5, 10, 15, 0.45);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 35px;
             padding: 30px;
-            margin-top: 20px;
+            margin-top: 25px;
             width: 100%;
-            max-width: 650px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(16, 185, 129, 0.05);
+            max-width: 660px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.9), inset 0 2px 20px rgba(255,255,255,0.03);
           }
           
           .news-text {
@@ -200,25 +226,26 @@ class OpenKairoCard extends HTMLElement {
           }
 
           .start-btn {
-            background: var(--primary);
-            color: white;
+            background: linear-gradient(135deg, var(--primary), #05f0a0);
+            color: #000;
             padding: 16px 40px;
             border-radius: 100px;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 1.1rem;
             border: none;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
-            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4), inset 0 2px 2px rgba(255,255,255,0.6);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             width: 100%;
+            position: relative;
+            overflow: hidden;
           }
 
           .start-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 20px 50px rgba(16, 185, 129, 0.6);
-            background: #12d494;
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 20px 50px rgba(16, 185, 129, 0.7), inset 0 2px 5px rgba(255,255,255,0.8);
           }
 
           .footer {
@@ -237,16 +264,18 @@ class OpenKairoCard extends HTMLElement {
             transform: translateX(-50%);
             display: flex;
             gap: 20px;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
             border: 1px solid rgba(255,255,255,0.05);
-            padding: 15px 30px;
-            border-radius: 25px;
+            border-top: 1px solid rgba(255,255,255,0.25);
+            padding: 15px 35px;
+            border-radius: 40px;
             max-width: 90vw;
             overflow-x: auto;
             z-index: 100;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 10px rgba(255,255,255,0.05);
+            animation: slideUpFade 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
 
           .dock-container::-webkit-scrollbar { display: none; }
