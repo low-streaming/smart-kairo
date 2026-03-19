@@ -80,6 +80,11 @@ class OpenKairoCard extends HTMLElement {
              100% { opacity: 1; transform: translateY(0); }
           }
 
+          @keyframes slideUpFadeDock {
+             0% { opacity: 0; transform: translate(-50%, 40px); }
+             100% { opacity: 1; transform: translate(-50%, 0); }
+          }
+
           .top-bar {
             position: absolute;
             top: 30px;
@@ -275,7 +280,7 @@ class OpenKairoCard extends HTMLElement {
             overflow-x: auto;
             z-index: 100;
             box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 10px rgba(255,255,255,0.05);
-            animation: slideUpFade 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: slideUpFadeDock 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
 
           .dock-container::-webkit-scrollbar { display: none; }
@@ -402,41 +407,34 @@ class OpenKairoCard extends HTMLElement {
     const updateEntities = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
     const updateBanner = this.querySelector('#update-banner');
     
-    // Default setup for logs
-    if (!this._currentSciFiLog) {
-       this._currentSciFiLog = "System initialisiert...";
-       setInterval(() => {
-           // check if updates appeared in the meantime
-           const currentUpdates = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
-           if (currentUpdates.length === 0) {
-             // Retrieve realtime stats
-             const liveStates = Object.values(hass.states);
-             const lLights = liveStates.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
-             const lAutos = liveStates.filter(s => s.entity_id.startsWith('automation.')).length;
-             const lEnts = liveStates.length;
+    // Default setup for dynamic logs
+    const generateLog = () => {
+        const currentUpdates = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
+        if (currentUpdates.length === 0) {
+            const liveStates = Object.values(hass.states);
+            const lLights = liveStates.filter(s => s.entity_id.startsWith('light.') && s.state === 'on').length;
+            const lAutos = liveStates.filter(s => s.entity_id.startsWith('automation.')).length;
+            const lEnts = liveStates.length;
 
-             const dynamicLogs = [
-                `ÜBERWACHE <span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lEnts}</span> ENTITÄTEN...`,
-                `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lLights}</span> LAMPEN SIND AKTUELL AKTIV.`,
-                `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lAutos}</span> ROUTINEN SIND <span style="color:#05f0a0">ONLINE</span>.`,
-                'Lokaler OpenKairo-Core <span style="color:#05f0a0">STABIL</span>.',
-                'Lokales Neural-Netzwerk <span style="color:#05f0a0">KALIBRIERT</span>.',
-                'Sicherheitsprotokolle <span style="color:var(--primary)">AKTIV</span>.',
-                'Subroutinen arbeiten <span style="color:#ff0050">FEHLERFREI</span>.'
-             ];
+            const dynamicLogs = [
+               `ÜBERWACHE <span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lEnts}</span> ENTITÄTEN...`,
+               `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lLights}</span> LAMPEN SIND AKTUELL AKTIV.`,
+               `<span style="color:var(--primary); text-shadow: 0 0 10px var(--primary); font-weight:900;">${lAutos}</span> ROUTINEN SIND <span style="color:#05f0a0">ONLINE</span>.`,
+               'Lokaler OpenKairo-Core <span style="color:#05f0a0">STABIL</span>.',
+               'Lokales Neural-Netzwerk <span style="color:#05f0a0">KALIBRIERT</span>.',
+               'Sicherheitsprotokolle <span style="color:var(--primary)">AKTIV</span>.',
+               'Subroutinen arbeiten <span style="color:#ff0050">FEHLERFREI</span>.'
+            ];
+            const nextLog = dynamicLogs[Math.floor(Math.random() * dynamicLogs.length)];
+            if (this.cardContent) {
+                this.cardContent.innerHTML = `<i>"${nextLog}"</i>`;
+            }
+        }
+    };
 
-             this._currentSciFiLog = dynamicLogs[Math.floor(Math.random() * dynamicLogs.length)];
-             if (this.cardContent) {
-                 this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
-             }
-           }
-       }, 5000); // changes text every 5 seconds for more dynamics
-    }
-    if (this.cardContent && !this.cardContent.innerHTML.includes('UPDATE')) {
-       // Only if we don't already have a dynamic text loaded
-       if(this.cardContent.innerHTML === '<i>"Stelle Verbindung her..."</i>') {
-           this.cardContent.innerHTML = `<i>"Synchronisiere Core..."</i>`;
-       }
+    if (!this._logInterval) {
+       generateLog(); // generate immediate log
+       this._logInterval = setInterval(generateLog, 5000); // changes text every 5 seconds
     }
 
     if (this.cardFooter) {
