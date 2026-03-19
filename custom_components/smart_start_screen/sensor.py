@@ -36,7 +36,7 @@ class SmartStartGitHubSensor(SensorEntity):
         try:
             async with async_timeout.timeout(10):
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(f"https://api.github.com/repos/open-kairo/smart-kairo/commits") as response:
+                    async with session.get("https://api.github.com/repos/openkairo/smart-kairo/commits") as response:
                         if response.status == 200:
                             commits = await response.json()
                             if commits:
