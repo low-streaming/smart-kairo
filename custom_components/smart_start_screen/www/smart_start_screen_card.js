@@ -112,47 +112,47 @@ class OpenKairoCard extends HTMLElement {
             min-height: 55px; /* keep height so it doesn't jump */
           }
 
-          .social-module {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 20px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 25px;
-            cursor: pointer;
-            transition: 0.3s;
+          .social-container {
+             display: flex;
+             gap: 15px;
+             width: 100%;
+             margin-bottom: 25px;
           }
-          .social-module:hover {
-            background: rgba(0,0,0,0.5);
-            border-color: rgba(255,0,80,0.4);
-            transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(255,0,80,0.2);
-          }
-          .social-logo {
-             color: #ff0050; /* TikTok red-pink */
-             --mdc-icon-size: 30px;
-             margin-right: 15px;
-          }
-          .social-text {
-             text-align: left;
-             flex-grow: 1;
-          }
-          .social-tag {
+          .social-btn {
+             flex: 1;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             gap: 10px;
+             padding: 15px;
+             border-radius: 15px;
              font-family: 'Orbitron', sans-serif;
-             font-size: 0.6rem;
-             color: #ff0050;
-             letter-spacing: 2px;
              font-weight: 900;
-             text-transform: uppercase;
-          }
-          .social-title {
+             font-size: 0.9rem;
+             letter-spacing: 2px;
+             cursor: pointer;
+             transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+             border: 1px solid rgba(255,255,255,0.05);
+             background: rgba(0,0,0,0.3);
              color: white;
-             font-size: 0.95rem;
-             font-weight: 600;
-             margin-top: 3px;
           }
+          .social-btn:hover {
+             transform: translateY(-5px) scale(1.02);
+          }
+          .tiktok-btn:hover {
+             background: rgba(255, 0, 80, 0.15);
+             border-color: rgba(255, 0, 80, 0.5);
+             text-shadow: 0 0 15px rgba(255,0,80,0.8);
+             box-shadow: 0 10px 20px rgba(255, 0, 80, 0.2), inset 0 0 15px rgba(255,0,80,0.1);
+          }
+          .youtube-btn:hover {
+             background: rgba(255, 0, 0, 0.15);
+             border-color: rgba(255, 0, 0, 0.5);
+             text-shadow: 0 0 15px rgba(255,0,0,0.8);
+             box-shadow: 0 10px 20px rgba(255, 0, 0, 0.2), inset 0 0 15px rgba(255,0,0,0.1);
+          }
+          .tiktok-btn ha-icon { color: #ff0050; --mdc-icon-size: 26px; }
+          .youtube-btn ha-icon { color: #ff0000; --mdc-icon-size: 26px; }
 
           .system-stats {
             display: flex;
@@ -307,13 +307,15 @@ class OpenKairoCard extends HTMLElement {
               <div id="update-banner"></div>
               <div class="news-text" id="news">Stelle Verbindung her...</div>
 
-              <div class="social-module" onclick="window.open('https://www.tiktok.com/@openkairo', '_blank')">
-                <ha-icon icon="mdi:video-vintage" class="social-logo"></ha-icon>
-                <div class="social-text">
-                   <div class="social-tag">NEUES TIKTOK / YOUTUBE VIDEO</div>
-                   <div class="social-title" id="social-title">"Mein neues Smart Home Setup 🔥"</div>
-                </div>
-                <ha-icon icon="mdi:open-in-new" style="color:rgba(255,255,255,0.3);"></ha-icon>
+              <div class="social-container">
+                 <div class="social-btn tiktok-btn" onclick="window.open('https://www.tiktok.com/@openkairo', '_blank')">
+                    <ha-icon icon="mdi:video-vintage"></ha-icon>
+                    <span>TIKTOK</span>
+                 </div>
+                 <div class="social-btn youtube-btn" onclick="window.open('https://www.youtube.com/@openkairo', '_blank')">
+                    <ha-icon icon="mdi:youtube"></ha-icon>
+                    <span>YOUTUBE</span>
+                 </div>
               </div>
 
               <div class="system-stats">
