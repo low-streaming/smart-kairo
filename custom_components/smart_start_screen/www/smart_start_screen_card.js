@@ -67,9 +67,9 @@ class OpenKairoCard extends HTMLElement {
           }
 
           .logo {
-            width: 120px;
+            width: 90px;
             filter: drop-shadow(0 0 20px var(--primary));
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             animation: pulse 4s infinite ease-in-out;
           }
 
@@ -80,7 +80,7 @@ class OpenKairoCard extends HTMLElement {
 
           h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 3.5rem;
+            font-size: 3.0rem;
             font-weight: 900;
             margin: 0;
             letter-spacing: -1px;
@@ -96,8 +96,8 @@ class OpenKairoCard extends HTMLElement {
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(16, 185, 129, 0.2);
             border-radius: 30px;
-            padding: 40px;
-            margin-top: 30px;
+            padding: 30px;
+            margin-top: 20px;
             width: 100%;
             max-width: 650px;
             box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(16, 185, 129, 0.05);
@@ -116,11 +116,11 @@ class OpenKairoCard extends HTMLElement {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px 25px;
+            padding: 12px 20px;
             background: rgba(0,0,0,0.3);
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             cursor: pointer;
             transition: 0.3s;
           }
@@ -158,10 +158,10 @@ class OpenKairoCard extends HTMLElement {
             display: flex;
             justify-content: space-between;
             gap: 20px;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             background: rgba(0,0,0,0.3);
             border-radius: 20px;
-            padding: 20px;
+            padding: 15px;
             border: 1px solid rgba(255,255,255,0.05);
           }
 
@@ -222,9 +222,9 @@ class OpenKairoCard extends HTMLElement {
           }
 
           .footer {
-            margin-top: 40px;
+            margin-top: 20px;
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             opacity: 0.2;
             letter-spacing: 2px;
             text-transform: uppercase;
