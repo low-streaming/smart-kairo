@@ -242,17 +242,17 @@ class OpenKairoSolarCard extends HTMLElement {
 
   // Draw node HTML
   drawNode(id, icon, label, color, x, y) {
-      return \`<div class="node ${id}" id="node-${id}" style="left: ${x}%; top: ${y}%; border-color: ${color}; color: ${color};">
+      return `<div class="node ${id}" id="node-${id}" style="left: ${x}%; top: ${y}%; border-color: ${color}; color: ${color};">
          <ha-icon class="node-icon" icon="${icon}"></ha-icon>
          <div class="node-value" id="val-${id}">0 W</div>
          <div class="node-label">${label}</div>
-      </div>\`;
+      </div>`;
   }
 
   // Generate SVG Path relative to percentages (rough bounding box math)
   drawPath(id, color, x1, y1, x2, y2) {
       // Use relatively scaled coordinates via SVG viewBox
-      return \`<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}" stroke="${color}"></path>\`;
+      return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}" stroke="${color}"></path>`;
   }
 
   updateLayout() {
@@ -337,7 +337,7 @@ class OpenKairoSolarCard extends HTMLElement {
     let totalHomeW = homeW + extraConsumers; 
 
     const upd = (id, val, textSuffix) => {
-        const el = this.querySelector(\`#val-\${id}\`);
+        const el = this.querySelector(`#val-${id}`);
         if (el) el.innerText = Math.round(val) + textSuffix;
     };
     
@@ -354,14 +354,14 @@ class OpenKairoSolarCard extends HTMLElement {
     const speedMult = animSpeedStr === 'fast' ? 0.5 : animSpeedStr === 'slow' ? 2 : 1;
 
     const animatePath = (pathId, flowW, maxExpected, reverse = false) => {
-        const p = this.querySelector(\`#path-\${pathId}\`);
+        const p = this.querySelector(`#path-${pathId}`);
         if (!p) return;
         if (Math.abs(flowW) < 5) {
             p.style.opacity = 0.1;
             p.style.animation = 'none';
         } else {
             p.style.opacity = 0.8;
-            p.setAttribute('class', \`svg-path anim-\${animType}\`);
+            p.setAttribute('class', `svg-path anim-${animType}`);
             let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
             if (duration > 3) duration = 3; 
             if (duration < 0.2) duration = 0.2; 
