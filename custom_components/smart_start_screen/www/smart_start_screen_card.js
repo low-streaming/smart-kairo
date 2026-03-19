@@ -304,6 +304,7 @@ class OpenKairoCard extends HTMLElement {
             
             <div class="glass-panel">
               <div style="color:var(--primary); font-family: 'Orbitron', sans-serif; font-weight:900; letter-spacing:4px; font-size:0.75rem; margin-bottom:15px; opacity:0.8;">// INTELLIGENCE HUB //</div>
+              <div id="update-banner"></div>
               <div class="news-text" id="news">Stelle Verbindung her...</div>
 
               <div class="social-module" onclick="window.open('https://www.tiktok.com/@openkairo', '_blank')">
@@ -368,6 +369,7 @@ class OpenKairoCard extends HTMLElement {
     // --- Update Checker & Sci-Fi Logs ---
     // Array of update entities that say "on" (meaning an update is available)
     const updateEntities = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
+    const updateBanner = this.querySelector('#update-banner');
     
     // Default Sci-Fi Logs
     const scifiLogs = [
@@ -379,30 +381,30 @@ class OpenKairoCard extends HTMLElement {
     ];
     
     if (updateEntities.length > 0) {
-      // Update is available!
+      // Update is available! Show banner.
       const up = hass.states[updateEntities[0]]; // Gets the first available update
       const title = up.attributes.title || up.attributes.friendly_name || "System";
-      if (this.cardContent) {
-        this.cardContent.innerHTML = `<span style="color:#ff4a4a; font-weight:900;">[ ACHTUNG: UPDATE VERFÜGBAR ]</span><br><span style="font-size:1.0rem">${title} (v${up.attributes.latest_version})</span>`;
+      if (updateBanner) {
+        updateBanner.innerHTML = `<div style="background: rgba(255, 74, 74, 0.1); border: 1px solid rgba(255, 74, 74, 0.4); border-radius: 10px; padding: 10px; margin-bottom: 20px; color:#ff4a4a; font-weight:bold; font-size:0.85rem;">
+           [ UPDATE VERFÜGBAR ]<br><span style="color:white; font-size: 0.8rem; font-weight:normal;">${title} (v${up.attributes.latest_version})</span>
+        </div>`;
       }
     } else {
-      // Rotating SciFi Logs if no updates available
-      if (!this._currentSciFiLog) {
-         this._currentSciFiLog = scifiLogs[0];
-         setInterval(() => {
-           // check if updates appeared in the meantime
-           const currentUpdates = Object.keys(hass.states).filter(k => k.startsWith('update.') && hass.states[k].state === 'on');
-           if (currentUpdates.length === 0) {
-             this._currentSciFiLog = scifiLogs[Math.floor(Math.random() * scifiLogs.length)];
-             if (this.cardContent) {
-                 this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
-             }
+       if (updateBanner) updateBanner.innerHTML = '';
+    }
+
+    // Always keep Rotating SciFi Logs active
+    if (!this._currentSciFiLog) {
+       this._currentSciFiLog = scifiLogs[0];
+       setInterval(() => {
+           this._currentSciFiLog = scifiLogs[Math.floor(Math.random() * scifiLogs.length)];
+           if (this.cardContent) {
+               this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
            }
-         }, 8000); // changes text every 8 seconds
-      }
-      if (this.cardContent && !this.cardContent.innerHTML.includes('UPDATE')) {
-         this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
-      }
+       }, 8000); // changes text every 8 seconds
+    }
+    if (this.cardContent) {
+       this.cardContent.innerHTML = `<i>"${this._currentSciFiLog}"</i>`;
     }
 
     if (this.cardFooter) {
