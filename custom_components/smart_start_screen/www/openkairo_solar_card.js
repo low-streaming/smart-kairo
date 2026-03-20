@@ -54,12 +54,12 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </select>
             </div>
             <div class="row-col">
-              <label>Geschwindigkeit</label>
-              <select id="animation_speed">
-                <option value="slow" ${this.getVal('animation_speed') === 'slow' ? 'selected' : ''}>Langsam</option>
-                <option value="normal" ${this.getVal('animation_speed') === 'normal' ? 'selected' : ''}>Normal</option>
-                <option value="fast" ${this.getVal('animation_speed') === 'fast' ? 'selected' : ''}>Schnell</option>
-              </select>
+              <label>Geschwindigkeit (${this.getVal('animation_speed', '5')})</label>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Schildkröte</span>
+                <input type="range" id="animation_speed" min="1" max="10" step="1" value="${isNaN(this.getVal('animation_speed')) ? (this.getVal('animation_speed')==='fast'?8:this.getVal('animation_speed')==='slow'?2:5) : this.getVal('animation_speed')}">
+                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Rakete</span>
+              </div>
             </div>
           </div>
         </div>
@@ -444,10 +444,31 @@ class OpenKairoSolarCard extends HTMLElement {
         .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
         .anim-dash { stroke-dasharray: 6 22; animation: dashAnim linear infinite; }
         .anim-neon { stroke-dasharray: 5 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.4;}
-        .anim-comet { stroke-dasharray: 30 70; animation: dashAnim linear infinite; filter: drop-shadow(0 0 4px currentColor); stroke-width: 1.5; }
-        .anim-pulse { stroke-dasharray: 10 40; animation: dashAnim linear infinite; stroke-width: 2.5; filter: drop-shadow(0 0 8px currentColor); }
+        
+        /* EXCLUSIVE: Faster, sharp comet with flicker */
+        .anim-comet { 
+          stroke-dasharray: 20 180; 
+          animation: cometAnim 1.5s linear infinite; 
+          filter: drop-shadow(0 0 8px currentColor); 
+          stroke-width: 2.2; 
+        }
+        
+        /* EXCLUSIVE: Heavy, slow energy blocks */
+        .anim-pulse { 
+          stroke-dasharray: 50 50; 
+          animation: dashAnim 4s linear infinite; 
+          stroke-width: 4.5; 
+          stroke-linecap: square; 
+          filter: drop-shadow(0 0 12px currentColor);
+          opacity: 0.9 !important;
+        }
         
         @keyframes dashAnim { to { stroke-dashoffset: -100; } }
+        @keyframes cometAnim { 
+          0% { stroke-dashoffset: 200; stroke-opacity: 0.5; }
+          40%, 60% { stroke-opacity: 1; }
+          100% { stroke-dashoffset: 0; stroke-opacity: 0.5; }
+        }
 
         .node {
            position: absolute; width: 68px; height: 68px; border-radius: 50%;
@@ -640,8 +661,15 @@ class OpenKairoSolarCard extends HTMLElement {
     };
 
     const animType = this.getValStr('animation_type', 'dots');
-    const animSpeedStr = this.getValStr('animation_speed', 'normal');
-    const speedMult = animSpeedStr === 'fast' ? 0.5 : animSpeedStr === 'slow' ? 2 : 1;
+    const animSpeed = this.getValStr('animation_speed', '5');
+    
+    // Support both numeric slider (1-10) and legacy strings (slow/normal/fast)
+    let speedMult = 1;
+    if (!isNaN(animSpeed)) {
+        speedMult = 5 / parseFloat(animSpeed);
+    } else {
+        speedMult = animSpeed === 'fast' ? 0.5 : animSpeed === 'slow' ? 2 : 1;
+    }
 
     const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
         const p = this.querySelector(`#path-${pathId}`);
