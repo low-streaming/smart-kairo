@@ -397,13 +397,14 @@ class OpenKairoSolarCard extends HTMLElement {
         }
         
         .main-container { 
-           display: grid; grid-template-columns: 170px 1fr; gap: 10px; 
-           align-items: center; position: relative; width: 100%; min-height: 500px;
+           display: flex; flex-wrap: wrap; gap: 20px; 
+           align-items: center; justify-content: center;
+           position: relative; width: 100%; min-height: 500px;
         }
         
         .sidebar-stats {
-          display: flex; flex-direction: column; gap: 15px; width: 160px; 
-          flex-shrink: 0; padding-top: 10px;
+          flex: 0 0 160px; display: flex; flex-direction: column; gap: 15px; 
+          z-index: 20; position: relative; padding-top: 10px;
         }
         
         .stat-box {
@@ -418,18 +419,18 @@ class OpenKairoSolarCard extends HTMLElement {
         .stat-value { font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 800; color: #fff; line-height: 1.2; text-align: center; overflow-wrap: anywhere; max-width: 100%;}
 
         .flow-container { 
-           position: relative; width: 100%; height: 500px;
+           flex: 1 1 400px; position: relative; height: 500px;
            display: flex; align-items: center; justify-content: center;
-           margin-left: 0;
+           min-width: 320px;
         }
         
-        .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
-        .svg-path { fill: none; stroke-width: 1.5; stroke-linecap: round; transition: 0.5s; opacity: 0.15; }
+        .svg-layer { position: absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
+        .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
         
         /* Animation Types - Premium Particles */
         .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
-        .anim-dash { stroke-dasharray: 8 20; animation: dashAnim linear infinite; }
-        .anim-neon { stroke-dasharray: 10 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.8;}
+        .anim-dash { stroke-dasharray: 6 22; animation: dashAnim linear infinite; }
+        .anim-neon { stroke-dasharray: 5 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.4;}
         
         @keyframes dashAnim { to { stroke-dashoffset: -100; } }
 
@@ -532,56 +533,57 @@ class OpenKairoSolarCard extends HTMLElement {
       const nodes = [];
       const paths = [];
 
-      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 35));
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 40));
+      
       if (this.getValStr('solar_entity')) {
-          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 10));
-          paths.push(this.drawPath('solar-home', cSolar, 50, 10, 50, 35));
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 12));
+          paths.push(this.drawPath('solar-home', cSolar, 50, 12, 50, 40));
       }
       if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
-          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 15, 35));
-          paths.push(this.drawPath('grid-home', cGrid, 15, 35, 50, 35));
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 18, 40));
+          paths.push(this.drawPath('grid-home', cGrid, 18, 40, 50, 40));
       }
       if (this.getValStr('battery_power_entity')) {
-          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 85, 35));
-          paths.push(this.drawPath('batt-home', cBatt, 85, 35, 50, 35));
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 82, 40));
+          paths.push(this.drawPath('batt-home', cBatt, 82, 40, 50, 40));
       }
       
-      // Options in arc layout below
+      // Consumers in a wide arc below
       if (this.getValStr('pool_entity')) {
           const name = this.getValStr('pool_name', 'Pool');
           const icon = this.getValStr('pool_icon', 'mdi:pool');
-          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 12, 65));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 35, 12, 65, false));
+          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 15, 68));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 40, 15, 68, false));
       }
       if (this.getValStr('miner_entity')) {
           const name = this.getValStr('miner_name', 'Miner');
           const icon = this.getValStr('miner_icon', 'mdi:bitcoin');
-          nodes.push(this.drawNode('miner', icon, name, cMiner, 25, 82));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 35, 25, 82, false));
+          nodes.push(this.drawNode('miner', icon, name, cMiner, 30, 84));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 40, 30, 84, false));
       }
       if (this.getValStr('heatpump_entity')) {
           const name = this.getValStr('heatpump_name', 'Heizung');
           const icon = this.getValStr('heatpump_icon', 'mdi:heat-pump');
-          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 42, 92));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 35, 42, 92, false));
+          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 45, 92));
+          paths.push(this.drawPath('home-heatpump', cHeat, 50, 40, 45, 92, false));
       }
       if (this.getValStr('ev_entity')) {
           const name = this.getValStr('ev_name', 'Auto');
           const icon = this.getValStr('ev_icon', 'mdi:car-electric');
-          nodes.push(this.drawNode('ev', icon, name, cEv, 58, 92));
-          paths.push(this.drawPath('home-ev', cEv, 50, 35, 58, 92, false));
+          nodes.push(this.drawNode('ev', icon, name, cEv, 55, 92));
+          paths.push(this.drawPath('home-ev', cEv, 50, 40, 55, 92, false));
       }
       if (this.getValStr('ac_entity')) {
           const name = this.getValStr('ac_name', 'Klima');
           const icon = this.getValStr('ac_icon', 'mdi:air-conditioner');
-          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 75, 82));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 35, 75, 82, false));
+          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 70, 84));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 40, 70, 84, false));
       }
       if (this.getValStr('washer_entity')) {
           const name = this.getValStr('washer_name', 'Waschm.');
           const icon = this.getValStr('washer_icon', 'mdi:washing-machine');
-          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 88, 65));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 35, 88, 65, false));
+          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 85, 68));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 40, 85, 68, false));
       }
 
       const svgHtml = `
@@ -726,17 +728,23 @@ class OpenKairoSolarCard extends HTMLElement {
     animatePath('home-pool', poolW, 5000, false);
     animatePath('home-washer', washerW, 3000, false);
     
-    // Stats & Weather (Unit-Aware)
+    // Stats & Weather (Auto-Scaling & Unit-Aware)
     const updateStat = (id, entityId) => {
         const el = this.querySelector(`#stat-${id}`);
         if (!el) return;
         if (!entityId) { el.style.display = 'none'; return; }
         el.style.display = 'flex';
         const state = hass.states[entityId];
-        const val = state ? parseFloat(state.state) || 0 : null;
-        const unit = state && state.attributes.unit_of_measurement ? ' ' + state.attributes.unit_of_measurement : ' kWh';
+        let val = state ? parseFloat(state.state) || 0 : null;
+        let unit = state && state.attributes.unit_of_measurement ? state.attributes.unit_of_measurement : 'kWh';
+        
+        // Intelligent Auto-Scaling
+        if (unit.toLowerCase() === 'wh' && val >= 1000) { val /= 1000; unit = 'kWh'; }
+        else if (unit.toLowerCase() === 'kwh' && val >= 1000) { val /= 1000; unit = 'MWh'; }
+        
+        const valStr = val !== null ? (val < 10 ? val.toFixed(2) : val.toFixed(1)) + ' ' + unit : '--';
         const valEl = el.querySelector('.stat-value');
-        if (valEl) valEl.innerText = val !== null ? (Math.round(val * 10) / 10) + unit : '--';
+        if (valEl) valEl.innerText = valStr;
     };
 
     updateStat('today', this._config.solar_yield_today_entity);
