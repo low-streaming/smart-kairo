@@ -49,6 +49,8 @@ class OpenKairoSolarCardEditor extends HTMLElement {
                 <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Energie-Kugeln (Dots)</option>
                 <option value="dash" ${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Strichel-Linien (Dash)</option>
                 <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
+                <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Energy Comet (Slow Tail)</option>
+                <option value="pulse" ${this.getVal('animation_type') === 'pulse' ? 'selected' : ''}>Power Pulse (Thick)</option>
               </select>
             </div>
             <div class="row-col">
@@ -379,6 +381,7 @@ class OpenKairoSolarCard extends HTMLElement {
   setConfig(config) {
     if (!config) throw new Error("Invalid configuration");
     this._config = Object.assign({}, config);
+    this._layoutBuilt = false; // Reset layout flag on config change
     if (!this.content) {
       this.setupDOM();
     }
@@ -441,6 +444,8 @@ class OpenKairoSolarCard extends HTMLElement {
         .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
         .anim-dash { stroke-dasharray: 6 22; animation: dashAnim linear infinite; }
         .anim-neon { stroke-dasharray: 5 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.4;}
+        .anim-comet { stroke-dasharray: 30 70; animation: dashAnim linear infinite; filter: drop-shadow(0 0 4px currentColor); stroke-width: 1.5; }
+        .anim-pulse { stroke-dasharray: 10 40; animation: dashAnim linear infinite; stroke-width: 2.5; filter: drop-shadow(0 0 8px currentColor); }
         
         @keyframes dashAnim { to { stroke-dashoffset: -100; } }
 
@@ -684,10 +689,15 @@ class OpenKairoSolarCard extends HTMLElement {
     const cGr = this.getValStr('grid_color', '#ff4a4a');
 
     upd('solar', solarW);
-    if (gridOutW > 0) {
-        upd('grid', -gridOutW, cEx);
+    
+    // Grid Logic (Import vs Export)
+    if (gridOutW > 0 || gridInW < 0) {
+        const exportVal = gridOutW > 0 ? gridOutW : Math.abs(gridInW);
+        upd('grid', -exportVal, cEx);
+        animatePath('grid-home', exportVal, 5000, true, cEx);
     } else {
         upd('grid', gridInW, cGr);
+        animatePath('grid-home', gridInW, 5000, false, cGr);
     }
     
     // Custom label for Battery to include SOC
@@ -729,7 +739,7 @@ class OpenKairoSolarCard extends HTMLElement {
     };
 
     animatePath('solar-home', solarW, 5000, false);
-    animatePath('grid-home', gridInW > 0 ? gridInW : gridOutW, 5000, gridOutW > 0, gridOutW > 0 ? cEx : cGr);
+    // Grid animation handled above in color logic
     animatePath('batt-home', battW, 3000, battW < 0); 
     animatePath('home-miner', minerW, 2000, false);
     animatePath('home-heatpump', heatW, 3000, false);
