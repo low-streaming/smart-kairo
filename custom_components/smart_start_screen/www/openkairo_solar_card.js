@@ -67,35 +67,35 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Solarproduktion (W)</label>
-              <ha-entity-picker id="solar_entity" .hass="${this._hass}" .value="${this.getVal('solar_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="solar_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Netzbezug (W)</label>
-              <ha-entity-picker id="grid_import_entity" .hass="${this._hass}" .value="${this.getVal('grid_import_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="grid_import_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="grid_color" value="${this.getVal('grid_color', '#ff4a4a')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Netzeinspeisung (W)</label>
-              <ha-entity-picker id="grid_export_entity" .hass="${this._hass}" .value="${this.getVal('grid_export_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="grid_export_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Batterieleistung (W)</label>
-              <ha-entity-picker id="battery_power_entity" .hass="${this._hass}" .value="${this.getVal('battery_power_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="battery_power_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="battery_color" value="${this.getVal('battery_color', '#05f0a0')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Batterieladung (%)</label>
-              <ha-entity-picker id="battery_level_entity" .hass="${this._hass}" .value="${this.getVal('battery_level_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="battery_level_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col" style="justify-content:center;">
                <label>Batt. Invertieren?</label>
@@ -109,21 +109,21 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Crypto Miner (W)</label>
-              <ha-entity-picker id="miner_entity" .hass="${this._hass}" .value="${this.getVal('miner_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="miner_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="miner_color" value="${this.getVal('miner_color', '#a855f7')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Wärmepumpe (W)</label>
-              <ha-entity-picker id="heatpump_entity" .hass="${this._hass}" .value="${this.getVal('heatpump_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="heatpump_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>E-Auto / Wallbox (W)</label>
-              <ha-entity-picker id="ev_entity" .hass="${this._hass}" .value="${this.getVal('ev_entity')}" allow-custom-entity></ha-entity-picker>
+              <ha-entity-picker id="ev_entity" allow-custom-entity></ha-entity-picker>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
           </div>
