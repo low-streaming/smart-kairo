@@ -331,28 +331,28 @@ class OpenKairoSolarCard extends HTMLElement {
       
       // Options below
       if (this.getValStr('pool_entity')) {
-          nodes.push(this.drawNode('pool', 'mdi:pool', 'Pool', this.getValStr('pool_color', '#00d1ff'), 15, 80));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 50, 15, 80));
+          nodes.push(this.drawNode('pool', 'mdi:pool', 'Pool', this.getValStr('pool_color', '#00d1ff'), 10, 75));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 50, 10, 75));
       }
       if (this.getValStr('miner_entity')) {
-          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 30, 90));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 50, 30, 90));
+          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 25, 90));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 50, 25, 90));
       }
       if (this.getValStr('heatpump_entity')) {
           nodes.push(this.drawNode('heatpump', 'mdi:heat-pump', 'Heizung', cHeat, 50, 95));
           paths.push(this.drawPath('home-heatpump', cHeat, 50, 50, 50, 95));
       }
       if (this.getValStr('ev_entity')) {
-          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 70, 90));
-          paths.push(this.drawPath('home-ev', cEv, 50, 50, 70, 90));
+          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 75, 90));
+          paths.push(this.drawPath('home-ev', cEv, 50, 50, 75, 90));
       }
       if (this.getValStr('ac_entity')) {
-          nodes.push(this.drawNode('ac', 'mdi:air-conditioner', 'Klima', this.getValStr('ac_color', '#3b82f6'), 85, 80));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 50, 85, 80));
+          nodes.push(this.drawNode('ac', 'mdi:air-conditioner', 'Klima', this.getValStr('ac_color', '#3b82f6'), 90, 75));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 50, 90, 75));
       }
       if (this.getValStr('washer_entity')) {
-          nodes.push(this.drawNode('washer', 'mdi:washing-machine', 'Waschm.', this.getValStr('washer_color', '#f43f5e'), 95, 65));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 50, 95, 65));
+          nodes.push(this.drawNode('washer', 'mdi:washing-machine', 'Waschm.', this.getValStr('washer_color', '#f43f5e'), 95, 55));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 50, 95, 55));
       }
 
       const svgHtml = `<svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">${paths.join('')}</svg>`;
@@ -379,6 +379,9 @@ class OpenKairoSolarCard extends HTMLElement {
     let gridOutW = getVal(this._config.grid_export_entity);
     let battW = getVal(this._config.battery_power_entity); 
     if (this.getValStr('battery_invert')) battW = battW * -1; 
+    let minerW = getVal(this._config.miner_entity);
+    let heatW = getVal(this._config.heatpump_entity);
+    let evW = getVal(this._config.ev_entity);
     let acW = getVal(this._config.ac_entity);
     let poolW = getVal(this._config.pool_entity);
     let washerW = getVal(this._config.washer_entity);
