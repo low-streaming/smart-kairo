@@ -289,9 +289,9 @@ class OpenKairoSolarCardEditor extends HTMLElement {
       </div>
     `;
 
-    // Dynamically mount Entity Pickers to prevent ConnectedCallback crash in HA
+    // Dynamically mount Selectors (Entities & Icons)
     const mountSelector = (key, type = "entity") => {
-        const container = this.shadowRoot.getElementById(`${key}_picker`) || this.querySelector(`#${key}_picker`);
+        const container = this.querySelector(`#${key}_picker`);
         if (!container) return;
         const sel = document.createElement('ha-selector');
         sel.hass = this._hass;
@@ -397,12 +397,12 @@ class OpenKairoSolarCard extends HTMLElement {
         }
         
         .main-container { 
-           display: grid; grid-template-columns: 140px 1fr; gap: 10px; 
+           display: grid; grid-template-columns: 170px 1fr; gap: 10px; 
            align-items: center; position: relative; width: 100%; min-height: 500px;
         }
         
         .sidebar-stats {
-          display: flex; flex-direction: column; gap: 15px; width: 130px; 
+          display: flex; flex-direction: column; gap: 15px; width: 160px; 
           flex-shrink: 0; padding-top: 10px;
         }
         
@@ -410,17 +410,17 @@ class OpenKairoSolarCard extends HTMLElement {
           background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
           border-radius: 16px; padding: 12px; display: flex; flex-direction: column;
           align-items: center; gap: 4px; backdrop-filter: blur(8px);
-          transition: 0.3s; min-width: 110px;
+          transition: 0.3s; width: 150px;
         }
         .stat-box:hover { background: rgba(255,255,255,0.07); border-color: rgba(16, 185, 129, 0.3); transform: translateY(-2px);}
         .stat-box ha-icon { --mdc-icon-size: 20px; color: #10b981; margin-bottom: 2px; filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.4));}
         .stat-label { font-size: 0.55rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px; font-weight: 500;}
-        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.68rem; font-weight: 800; color: #fff; line-height: 1.2; text-align: center;}
+        .stat-value { font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 800; color: #fff; line-height: 1.2; text-align: center; overflow-wrap: anywhere; max-width: 100%;}
 
         .flow-container { 
-          position: relative; width: 100%; height: 500px;
-          display: flex; align-items: center; justify-content: center;
-          margin-left: -20px; /* Slight overlap for better integration */
+           position: relative; width: 100%; height: 500px;
+           display: flex; align-items: center; justify-content: center;
+           margin-left: 0;
         }
         
         .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
@@ -726,21 +726,22 @@ class OpenKairoSolarCard extends HTMLElement {
     animatePath('home-pool', poolW, 5000, false);
     animatePath('home-washer', washerW, 3000, false);
     
-    // Stats & Weather
-    const updateStat = (id, entityId, unit) => {
+    // Stats & Weather (Unit-Aware)
+    const updateStat = (id, entityId) => {
         const el = this.querySelector(`#stat-${id}`);
         if (!el) return;
         if (!entityId) { el.style.display = 'none'; return; }
         el.style.display = 'flex';
         const state = hass.states[entityId];
         const val = state ? parseFloat(state.state) || 0 : null;
+        const unit = state && state.attributes.unit_of_measurement ? ' ' + state.attributes.unit_of_measurement : ' kWh';
         const valEl = el.querySelector('.stat-value');
         if (valEl) valEl.innerText = val !== null ? (Math.round(val * 10) / 10) + unit : '--';
     };
 
-    updateStat('today', this._config.solar_yield_today_entity, ' kWh');
-    updateStat('week', this._config.solar_yield_week_entity, ' kWh');
-    updateStat('month', this._config.solar_yield_month_entity, ' kWh');
+    updateStat('today', this._config.solar_yield_today_entity);
+    updateStat('week', this._config.solar_yield_week_entity);
+    updateStat('month', this._config.solar_yield_month_entity);
     
     // Weather
     const weatherEnt = this._config.weather_entity;
