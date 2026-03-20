@@ -133,6 +133,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
 
         <div class="group">
           <h3>Optionale Sonderverbraucher</h3>
+          <!-- CRYPTO MINER -->
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Crypto Miner (W)</label>
@@ -145,6 +146,14 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="miner_entity_kw" ${this.getVal('miner_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
+            <div class="row-col"><label>Anzeigename</label><input type="text" id="miner_name" value="${this.getVal('miner_name', 'Miner')}"></div>
+            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="miner_icon" value="${this.getVal('miner_icon', 'mdi:bitcoin')}"></div>
+          </div>
+          
+          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
+
+          <!-- WÄRMEPUMPE -->
+          <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Wärmepumpe / Heizung (W)</label>
               <div style="display:flex; align-items:center; gap:8px;">
@@ -155,6 +164,14 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
             <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="heatpump_entity_kw" ${this.getVal('heatpump_entity_kw') ? 'checked' : ''}></div>
           </div>
+          <div class="row">
+            <div class="row-col"><label>Anzeigename</label><input type="text" id="heatpump_name" value="${this.getVal('heatpump_name', 'Heizung')}"></div>
+            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="heatpump_icon" value="${this.getVal('heatpump_icon', 'mdi:heat-pump')}"></div>
+          </div>
+
+          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
+
+          <!-- E-AUTO -->
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>E-Auto / Wallbox (W)</label>
@@ -167,6 +184,14 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="ev_entity_kw" ${this.getVal('ev_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
+            <div class="row-col"><label>Anzeigename</label><input type="text" id="ev_name" value="${this.getVal('ev_name', 'Auto')}"></div>
+            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="ev_icon" value="${this.getVal('ev_icon', 'mdi:car-electric')}"></div>
+          </div>
+
+          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
+
+          <!-- KLIMAANLAGE -->
+          <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Klimaanlage (W)</label>
               <div style="display:flex; align-items:center; gap:8px;">
@@ -177,6 +202,14 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col"><label>Farbe</label><input type="color" id="ac_color" value="${this.getVal('ac_color', '#3b82f6')}"></div>
             <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="ac_entity_kw" ${this.getVal('ac_entity_kw') ? 'checked' : ''}></div>
           </div>
+          <div class="row">
+            <div class="row-col"><label>Anzeigename</label><input type="text" id="ac_name" value="${this.getVal('ac_name', 'Klima')}"></div>
+            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="ac_icon" value="${this.getVal('ac_icon', 'mdi:air-conditioner')}"></div>
+          </div>
+
+          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
+
+          <!-- POOL -->
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Pool / Teich (W)</label>
@@ -189,6 +222,14 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="pool_entity_kw" ${this.getVal('pool_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
+            <div class="row-col"><label>Anzeigename</label><input type="text" id="pool_name" value="${this.getVal('pool_name', 'Pool')}"></div>
+            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="pool_icon" value="${this.getVal('pool_icon', 'mdi:pool')}"></div>
+          </div>
+
+          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
+
+          <!-- WASCHMASCHINE -->
+          <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Waschm. / Spülm. (W)</label>
               <div style="display:flex; align-items:center; gap:8px;">
@@ -198,6 +239,10 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="washer_color" value="${this.getVal('washer_color', '#f43f5e')}"></div>
             <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="washer_entity_kw" ${this.getVal('washer_entity_kw') ? 'checked' : ''}></div>
+          </div>
+          <div class="row">
+            <div class="row-col"><label>Anzeigename</label><input type="text" id="washer_name" value="${this.getVal('washer_name', 'Waschm.')}"></div>
+            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="washer_icon" value="${this.getVal('washer_icon', 'mdi:washing-machine')}"></div>
           </div>
         </div>
 
@@ -336,15 +381,22 @@ class OpenKairoSolarCard extends HTMLElement {
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;800&display=swap');
         
         ha-card {
-          background: rgba(5, 12, 18, 0.85); backdrop-filter: blur(20px);
-          border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px;
-          color: #fff; font-family: 'Inter', sans-serif; padding: 20px;
-          position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+           background: rgba(10, 20, 28, 0.98); border-radius: 28px; padding: 25px;
+           position: relative; box-shadow: 0 15px 45px rgba(0,0,0,0.7);
+           overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+           color: #fff; font-family: 'Inter', sans-serif;
         }
         
-        .header { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);}
+        .header { 
+           font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: #10b981; 
+           text-align: center; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; 
+           text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
         
-        .main-container { display: flex; gap: 30px; align-items: flex-start; padding: 0 10px;}
+        .main-container { 
+           display: grid; grid-template-columns: 140px 1fr; gap: 10px; 
+           align-items: center; position: relative; width: 100%; min-height: 500px;
+        }
         
         .sidebar-stats {
           display: flex; flex-direction: column; gap: 15px; width: 130px; 
@@ -362,7 +414,11 @@ class OpenKairoSolarCard extends HTMLElement {
         .stat-label { font-size: 0.55rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px; font-weight: 500;}
         .stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 800; color: #fff;}
 
-        .flow-container { position: relative; flex: 1; aspect-ratio: 1.4; min-height: 550px; display: flex; align-items: center; justify-content: center;}
+        .flow-container { 
+          position: relative; width: 100%; height: 500px;
+          display: flex; align-items: center; justify-content: center;
+          margin-left: -20px; /* Slight overlap for better integration */
+        }
         
         .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
         .svg-path { fill: none; stroke-width: 1.5; stroke-linecap: round; transition: 0.5s; opacity: 0.15; }
@@ -460,8 +516,8 @@ class OpenKairoSolarCard extends HTMLElement {
 
   updateLayout() {
       const container = this.querySelector('#flow-container');
-      const svg = this.querySelector('#svg-layer');
-      
+      if (!container) return;
+
       const cSolar = this.getValStr('solar_color', '#ffb800');
       const cGrid = this.getValStr('grid_color', '#ff4a4a');
       const cHome = this.getValStr('home_color', '#10b981');
@@ -473,44 +529,56 @@ class OpenKairoSolarCard extends HTMLElement {
       const nodes = [];
       const paths = [];
 
-      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 30));
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 35));
       if (this.getValStr('solar_entity')) {
-          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 7));
-          paths.push(this.drawPath('solar-home', cSolar, 50, 7, 50, 30));
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 10));
+          paths.push(this.drawPath('solar-home', cSolar, 50, 10, 50, 35));
       }
       if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
-          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 12, 30));
-          paths.push(this.drawPath('grid-home', cGrid, 12, 30, 50, 30));
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 15, 35));
+          paths.push(this.drawPath('grid-home', cGrid, 15, 35, 50, 35));
       }
       if (this.getValStr('battery_power_entity')) {
-          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 88, 30));
-          paths.push(this.drawPath('batt-home', cBatt, 88, 30, 50, 30));
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 85, 35));
+          paths.push(this.drawPath('batt-home', cBatt, 85, 35, 50, 35));
       }
       
       // Options in arc layout below
       if (this.getValStr('pool_entity')) {
-          nodes.push(this.drawNode('pool', 'mdi:pool', 'Pool', this.getValStr('pool_color', '#00d1ff'), 10, 60));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 30, 10, 60, false));
+          const name = this.getValStr('pool_name', 'Pool');
+          const icon = this.getValStr('pool_icon', 'mdi:pool');
+          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 12, 65));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 35, 12, 65, false));
       }
       if (this.getValStr('miner_entity')) {
-          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 25, 80));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 30, 25, 80, false));
+          const name = this.getValStr('miner_name', 'Miner');
+          const icon = this.getValStr('miner_icon', 'mdi:bitcoin');
+          nodes.push(this.drawNode('miner', icon, name, cMiner, 25, 82));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 35, 25, 82, false));
       }
       if (this.getValStr('heatpump_entity')) {
-          nodes.push(this.drawNode('heatpump', 'mdi:heat-pump', 'Heizung', cHeat, 40, 95));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 30, 40, 95, false));
+          const name = this.getValStr('heatpump_name', 'Heizung');
+          const icon = this.getValStr('heatpump_icon', 'mdi:heat-pump');
+          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 42, 92));
+          paths.push(this.drawPath('home-heatpump', cHeat, 50, 35, 42, 92, false));
       }
       if (this.getValStr('ev_entity')) {
-          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 60, 95));
-          paths.push(this.drawPath('home-ev', cEv, 50, 30, 60, 95, false));
+          const name = this.getValStr('ev_name', 'Auto');
+          const icon = this.getValStr('ev_icon', 'mdi:car-electric');
+          nodes.push(this.drawNode('ev', icon, name, cEv, 58, 92));
+          paths.push(this.drawPath('home-ev', cEv, 50, 35, 58, 92, false));
       }
       if (this.getValStr('ac_entity')) {
-          nodes.push(this.drawNode('ac', 'mdi:air-conditioner', 'Klima', this.getValStr('ac_color', '#3b82f6'), 75, 80));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 30, 75, 80, false));
+          const name = this.getValStr('ac_name', 'Klima');
+          const icon = this.getValStr('ac_icon', 'mdi:air-conditioner');
+          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 75, 82));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 35, 75, 82, false));
       }
       if (this.getValStr('washer_entity')) {
-          nodes.push(this.drawNode('washer', 'mdi:washing-machine', 'Waschm.', this.getValStr('washer_color', '#f43f5e'), 90, 60));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 30, 90, 60, false));
+          const name = this.getValStr('washer_name', 'Waschm.');
+          const icon = this.getValStr('washer_icon', 'mdi:washing-machine');
+          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 88, 65));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 35, 88, 65, false));
       }
 
       const svgHtml = `
