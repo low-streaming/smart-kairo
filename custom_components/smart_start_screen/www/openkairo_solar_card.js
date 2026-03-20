@@ -190,6 +190,46 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
         </div>
 
+        <div class="group">
+          <h3>Statistiken & Wetter</h3>
+          <div class="row">
+            <div class="row-col">
+              <label>Ertrag Heute (kWh)</label>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="solar_yield_today_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_today_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-col">
+              <label>Ertrag Woche (kWh)</label>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="solar_yield_week_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_week_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-col">
+              <label>Ertrag Monat (kWh)</label>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="solar_yield_month_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_month_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-col">
+              <label>Wetter (Entity)</label>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="weather_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="weather_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     `;
 
@@ -217,7 +257,9 @@ class OpenKairoSolarCardEditor extends HTMLElement {
         'solar_entity', 'grid_import_entity', 'grid_export_entity',
         'battery_power_entity', 'battery_level_entity',
         'miner_entity', 'heatpump_entity', 'ev_entity',
-        'ac_entity', 'pool_entity', 'washer_entity'
+        'ac_entity', 'pool_entity', 'washer_entity',
+        'solar_yield_today_entity', 'solar_yield_week_entity', 'solar_yield_month_entity',
+        'weather_entity'
     ].forEach(mountPicker);
 
     // Bind generic inputs (Selects, Colors, Checkboxes)
@@ -259,7 +301,11 @@ class OpenKairoSolarCard extends HTMLElement {
       ev_color: "#eab308",
       ac_color: "#3b82f6",
       pool_color: "#00d1ff",
-      washer_color: "#f43f5e"
+      washer_color: "#f43f5e",
+      solar_yield_today_entity: "",
+      solar_yield_week_entity: "",
+      solar_yield_month_entity: "",
+      weather_entity: ""
     };
   }
 
@@ -285,8 +331,18 @@ class OpenKairoSolarCard extends HTMLElement {
           position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
-        .header { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 20px; letter-spacing: 2px;}
+        .header { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 5px; letter-spacing: 2px;}
         
+        .status-bar {
+          display: flex; justify-content: space-between; align-items: center;
+          padding: 8px 15px; background: rgba(255,255,255,0.03); border-radius: 12px;
+          margin-bottom: 15px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .status-group { display: flex; gap: 12px; align-items: center; }
+        .status-item { display: flex; align-items: center; gap: 4px; color: rgba(255,255,255,0.7); }
+        .status-item ha-icon { --mdc-icon-size: 16px; color: #10b981; }
+        .status-item .val { font-weight: 800; color: #fff; }
+
         .flow-container { position: relative; width: 100%; aspect-ratio: 1.5; min-height: 550px; display: flex; align-items: center; justify-content: center;}
         
         .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
@@ -318,6 +374,16 @@ class OpenKairoSolarCard extends HTMLElement {
       </style>
       <ha-card>
         <div class="header">ENERGY OS</div>
+        <div class="status-bar" id="status-bar">
+           <div class="status-group">
+              <div class="status-item" id="stat-today"><ha-icon icon="mdi:calendar-today"></ha-icon><span class="val">--</span></div>
+              <div class="status-item" id="stat-week"><ha-icon icon="mdi:calendar-week"></ha-icon><span class="val">--</span></div>
+              <div class="status-item" id="stat-month"><ha-icon icon="mdi:calendar-month"></ha-icon><span class="val">--</span></div>
+           </div>
+           <div class="status-group">
+              <div class="status-item" id="stat-weather"><ha-icon icon="mdi:weather-sunny"></ha-icon><span class="val">--°C</span></div>
+           </div>
+        </div>
         <div class="flow-container" id="flow-container">
            <svg class="svg-layer" id="svg-layer"></svg>
         </div>
@@ -504,7 +570,59 @@ class OpenKairoSolarCard extends HTMLElement {
     animatePath('home-ev', evW, 11000, false);
     animatePath('home-ac', acW, 3000, false);
     animatePath('home-pool', poolW, 5000, false);
-    animatePath('home-washer', washerW, 3000, false);
+    animatePath('home- washer', washerW, 3000, false);
+    
+    // Update Stats Bar
+    const updateStat = (id, entityId, unit) => {
+        const el = this.querySelector(`#stat-${id}`);
+        if (!el) return;
+        if (!entityId) { el.style.display = 'none'; return; }
+        el.style.display = 'flex';
+        const val = getVal(entityId);
+        el.querySelector('.val').innerText = (Math.round(val * 10) / 10) + unit;
+    };
+
+    updateStat('today', this._config.solar_yield_today_entity, ' kWh');
+    updateStat('week', this._config.solar_yield_week_entity, ' kWh');
+    updateStat('month', this._config.solar_yield_month_entity, ' kWh');
+
+    // Weather
+    const weatherEl = this.querySelector('#stat-weather');
+    const weatherEntity = this._config.weather_entity;
+    if (weatherEl) {
+        if (!weatherEntity) {
+            weatherEl.style.display = 'none';
+        } else {
+            weatherEl.style.display = 'flex';
+            const w = hass.states[weatherEntity];
+            if (w) {
+                const temp = w.attributes.temperature;
+                const state = w.state;
+                weatherEl.querySelector('.val').innerText = (temp || '--') + '°C';
+                
+                // Map state to icon
+                const iconMap = {
+                    'sunny': 'mdi:weather-sunny',
+                    'clear-night': 'mdi:weather-night',
+                    'cloudy': 'mdi:weather-cloudy',
+                    'fog': 'mdi:weather-fog',
+                    'hail': 'mdi:weather-hail',
+                    'lightning': 'mdi:weather-lightning',
+                    'lightning-rainy': 'mdi:weather-lightning-rainy',
+                    'partlycloudy': 'mdi:weather-partly-cloudy',
+                    'pouring': 'mdi:weather-pouring',
+                    'rainy': 'mdi:weather-rainy',
+                    'snowy': 'mdi:weather-snowy',
+                    'snowy-rainy': 'mdi:weather-snowy-rainy',
+                    'sunny': 'mdi:weather-sunny',
+                    'windy': 'mdi:weather-windy',
+                    'windy-variant': 'mdi:weather-windy-variant'
+                };
+                const icon = iconMap[state] || 'mdi:weather-cloudy';
+                weatherEl.querySelector('ha-icon').setAttribute('icon', icon);
+            }
+        }
+    }
     
     } catch(err) {
       console.error("OpenKairo Solar Card Error:", err);
