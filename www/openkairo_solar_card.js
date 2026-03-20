@@ -147,7 +147,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
           <div class="row">
             <div class="row-col"><label>Anzeigename</label><input type="text" id="miner_name" value="${this.getVal('miner_name', 'Miner')}"></div>
-            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="miner_icon" value="${this.getVal('miner_icon', 'mdi:bitcoin')}"></div>
+            <div class="row-col"><label>Icon (MDI)</label><div id="miner_icon_picker"></div></div>
           </div>
           
           <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
@@ -166,7 +166,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
           <div class="row">
             <div class="row-col"><label>Anzeigename</label><input type="text" id="heatpump_name" value="${this.getVal('heatpump_name', 'Heizung')}"></div>
-            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="heatpump_icon" value="${this.getVal('heatpump_icon', 'mdi:heat-pump')}"></div>
+            <div class="row-col"><label>Icon (MDI)</label><div id="heatpump_icon_picker"></div></div>
           </div>
 
           <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
@@ -185,7 +185,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
           <div class="row">
             <div class="row-col"><label>Anzeigename</label><input type="text" id="ev_name" value="${this.getVal('ev_name', 'Auto')}"></div>
-            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="ev_icon" value="${this.getVal('ev_icon', 'mdi:car-electric')}"></div>
+            <div class="row-col"><label>Icon (MDI)</label><div id="ev_icon_picker"></div></div>
           </div>
 
           <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
@@ -204,7 +204,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
           <div class="row">
             <div class="row-col"><label>Anzeigename</label><input type="text" id="ac_name" value="${this.getVal('ac_name', 'Klima')}"></div>
-            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="ac_icon" value="${this.getVal('ac_icon', 'mdi:air-conditioner')}"></div>
+            <div class="row-col"><label>Icon (MDI)</label><div id="ac_icon_picker"></div></div>
           </div>
 
           <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
@@ -223,7 +223,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
           <div class="row">
             <div class="row-col"><label>Anzeigename</label><input type="text" id="pool_name" value="${this.getVal('pool_name', 'Pool')}"></div>
-            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="pool_icon" value="${this.getVal('pool_icon', 'mdi:pool')}"></div>
+            <div class="row-col"><label>Icon (MDI)</label><div id="pool_icon_picker"></div></div>
           </div>
 
           <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
@@ -242,7 +242,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
           <div class="row">
             <div class="row-col"><label>Anzeigename</label><input type="text" id="washer_name" value="${this.getVal('washer_name', 'Waschm.')}"></div>
-            <div class="row-col"><label>Icon (mdi:)</label><input type="text" id="washer_icon" value="${this.getVal('washer_icon', 'mdi:washing-machine')}"></div>
+            <div class="row-col"><label>Icon (MDI)</label><div id="washer_icon_picker"></div></div>
           </div>
         </div>
 
@@ -290,33 +290,36 @@ class OpenKairoSolarCardEditor extends HTMLElement {
     `;
 
     // Dynamically mount Entity Pickers to prevent ConnectedCallback crash in HA
-    const mountPicker = (id) => {
-        const picker = document.createElement('ha-selector');
-        picker.hass = this._hass;
-        picker.selector = { entity: {} };
-        picker.value = this.getVal(id);
-        picker.addEventListener('value-changed', (ev) => { this.updateConfig(id, ev.detail.value); });
-        
-        const container = this.querySelector(`#${id}_picker`);
-        if(container) container.appendChild(picker);
+    const mountSelector = (key, type = "entity") => {
+        const container = this.shadowRoot.getElementById(`${key}_picker`) || this.querySelector(`#${key}_picker`);
+        if (!container) return;
+        const sel = document.createElement('ha-selector');
+        sel.hass = this._hass;
+        sel.selector = type === "icon" ? { icon: {} } : { entity: {} };
+        sel.value = this.getVal(key);
+        sel.addEventListener('value-changed', (ev) => { this.updateConfig(key, ev.detail.value); });
+        container.innerHTML = "";
+        container.appendChild(sel);
 
         // Clear button logic
-        const clearBtn = this.querySelector(`.clear-btn[data-id="${id}"]`);
+        const clearBtn = this.querySelector(`.clear-btn[data-id="${key}"]`);
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
-                this.updateConfig(id, ""); 
+                this.updateConfig(key, ""); 
             });
         }
     };
 
     [
         'solar_entity', 'grid_import_entity', 'grid_export_entity',
-        'battery_power_entity', 'battery_level_entity',
+        'battery_power_entity', 'battery_soc_entity',
         'miner_entity', 'heatpump_entity', 'ev_entity',
         'ac_entity', 'pool_entity', 'washer_entity',
         'solar_yield_today_entity', 'solar_yield_week_entity', 'solar_yield_month_entity',
         'weather_entity'
-    ].forEach(mountPicker);
+    ].forEach(k => mountSelector(k));
+
+    ['miner_icon', 'heatpump_icon', 'ev_icon', 'ac_icon', 'pool_icon', 'washer_icon'].forEach(k => mountSelector(k, "icon"));
 
     // Bind generic inputs (Selects, Colors, Checkboxes)
     this.querySelectorAll('input, select').forEach(el => {
@@ -407,12 +410,12 @@ class OpenKairoSolarCard extends HTMLElement {
           background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
           border-radius: 16px; padding: 12px; display: flex; flex-direction: column;
           align-items: center; gap: 4px; backdrop-filter: blur(8px);
-          transition: 0.3s;
+          transition: 0.3s; min-width: 110px;
         }
-        .stat-box:hover { background: rgba(255,255,255,0.06); border-color: rgba(16, 185, 129, 0.3);}
+        .stat-box:hover { background: rgba(255,255,255,0.07); border-color: rgba(16, 185, 129, 0.3); transform: translateY(-2px);}
         .stat-box ha-icon { --mdc-icon-size: 20px; color: #10b981; margin-bottom: 2px; filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.4));}
         .stat-label { font-size: 0.55rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px; font-weight: 500;}
-        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 800; color: #fff;}
+        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.68rem; font-weight: 800; color: #fff; line-height: 1.2; text-align: center;}
 
         .flow-container { 
           position: relative; width: 100%; height: 500px;
