@@ -73,6 +73,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_entity_kw" ${this.getVal('solar_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -83,6 +84,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="grid_color" value="${this.getVal('grid_color', '#ff4a4a')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="grid_import_entity_kw" ${this.getVal('grid_import_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -93,6 +95,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Export-Farbe</label><input type="color" id="grid_export_color" value="${this.getVal('grid_export_color', '#00d1ff')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="grid_export_entity_kw" ${this.getVal('grid_export_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -100,6 +103,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:5px;">(Wird automatisch aus Saldo berechnet)</div>
             </div>
             <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -110,6 +114,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="battery_color" value="${this.getVal('battery_color', '#05f0a0')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="battery_power_entity_kw" ${this.getVal('battery_power_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -137,6 +142,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="miner_color" value="${this.getVal('miner_color', '#a855f7')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="miner_entity_kw" ${this.getVal('miner_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -147,6 +153,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="heatpump_entity_kw" ${this.getVal('heatpump_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -157,6 +164,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="ev_entity_kw" ${this.getVal('ev_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -167,6 +175,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="ac_color" value="${this.getVal('ac_color', '#3b82f6')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="ac_entity_kw" ${this.getVal('ac_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -177,6 +186,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="pool_color" value="${this.getVal('pool_color', '#00d1ff')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="pool_entity_kw" ${this.getVal('pool_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -187,6 +197,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="washer_color" value="${this.getVal('washer_color', '#f43f5e')}"></div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="washer_entity_kw" ${this.getVal('washer_entity_kw') ? 'checked' : ''}></div>
           </div>
         </div>
 
@@ -475,23 +486,37 @@ class OpenKairoSolarCard extends HTMLElement {
           this._layoutBuilt = true;
       }
 
-      const getVal = (entityId) => {
+      const getPower = (entityId, isKw) => {
+          if (!entityId) return 0;
+          const state = hass.states[entityId];
+          let val = state ? parseFloat(state.state) || 0 : 0;
+          return isKw ? val * 1000 : val;
+      };
+
+      const formatPower = (val) => {
+          const abs = Math.abs(val);
+          if (abs >= 1000) return (val / 1000).toFixed(1) + ' kW';
+          return Math.round(val) + ' W';
+      };
+
+      let solarW = getPower(this._config.solar_entity, this._config.solar_entity_kw);
+      let gridInW = getPower(this._config.grid_import_entity, this._config.grid_import_entity_kw);
+      let gridOutW = getPower(this._config.grid_export_entity, this._config.grid_export_entity_kw);
+      let battW = getPower(this._config.battery_power_entity, this._config.battery_power_entity_kw); 
+      if (this.getValStr('battery_invert')) battW = battW * -1; 
+      
+      let minerW = getPower(this._config.miner_entity, this._config.miner_entity_kw);
+      let heatW = getPower(this._config.heatpump_entity, this._config.heatpump_entity_kw);
+      let evW = getPower(this._config.ev_entity, this._config.ev_entity_kw);
+      let acW = getPower(this._config.ac_entity, this._config.ac_entity_kw);
+      let poolW = getPower(this._config.pool_entity, this._config.pool_entity_kw);
+      let washerW = getPower(this._config.washer_entity, this._config.washer_entity_kw);
+
+      const getValRaw = (entityId) => {
           if (!entityId) return 0;
           const state = hass.states[entityId];
           return state ? parseFloat(state.state) || 0 : 0;
       };
-
-      let solarW = getVal(this._config.solar_entity);
-    let gridInW = getVal(this._config.grid_import_entity);
-    let gridOutW = getVal(this._config.grid_export_entity);
-    let battW = getVal(this._config.battery_power_entity); 
-    if (this.getValStr('battery_invert')) battW = battW * -1; 
-    let minerW = getVal(this._config.miner_entity);
-    let heatW = getVal(this._config.heatpump_entity);
-    let evW = getVal(this._config.ev_entity);
-    let acW = getVal(this._config.ac_entity);
-    let poolW = getVal(this._config.pool_entity);
-    let washerW = getVal(this._config.washer_entity);
 
     let extraConsumers = minerW + heatW + evW + acW + poolW + washerW;
     let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
@@ -500,12 +525,12 @@ class OpenKairoSolarCard extends HTMLElement {
     let totalHomeW = homeW + extraConsumers; 
 
     // Battery Level (%)
-    const battLevel = getVal(this._config.battery_level_entity);
+    const battLevel = getValRaw(this._config.battery_level_entity);
 
-    const upd = (id, val, textSuffix, colorOverride = null) => {
+    const upd = (id, val, colorOverride = null) => {
         const el = this.querySelector(`#val-${id}`);
         const n = this.querySelector(`#node-${id}`);
-        if (el) el.innerText = Math.round(val) + textSuffix;
+        if (el) el.innerText = formatPower(val);
         if (n && colorOverride) {
             n.style.borderColor = colorOverride;
             n.style.color = colorOverride;
@@ -517,26 +542,26 @@ class OpenKairoSolarCard extends HTMLElement {
     const cEx = this.getValStr('grid_export_color', '#00d1ff');
     const cGr = this.getValStr('grid_color', '#ff4a4a');
 
-    upd('solar', solarW, ' W');
+    upd('solar', solarW);
     if (gridOutW > 0) {
-        upd('grid', -gridOutW, ' W', cEx);
+        upd('grid', -gridOutW, cEx);
     } else {
-        upd('grid', gridInW, ' W', cGr);
+        upd('grid', gridInW, cGr);
     }
     
     // Custom label for Battery to include SOC
     const battEl = this.querySelector(`#val-batt`);
     if (battEl) {
-        battEl.innerHTML = `<div>${Math.round(battW)} W</div><div style="font-size:0.6rem; opacity:0.7;">${Math.round(battLevel)}%</div>`;
+        battEl.innerHTML = `<div>${formatPower(battW)}</div><div style="font-size:0.6rem; opacity:0.7;">${Math.round(battLevel)}%</div>`;
     }
 
-    upd('home', totalHomeW, ' W');
-    upd('miner', minerW, ' W');
-    upd('heatpump', heatW, ' W');
-    upd('ev', evW, ' W');
-    upd('ac', acW, ' W');
-    upd('pool', poolW, ' W');
-    upd('washer', washerW, ' W');
+    upd('home', totalHomeW);
+    upd('miner', minerW);
+    upd('heatpump', heatW);
+    upd('ev', evW);
+    upd('ac', acW);
+    upd('pool', poolW);
+    upd('washer', washerW);
 
     const animType = this.getValStr('animation_type', 'dots');
     const animSpeedStr = this.getValStr('animation_speed', 'normal');
@@ -570,7 +595,7 @@ class OpenKairoSolarCard extends HTMLElement {
     animatePath('home-ev', evW, 11000, false);
     animatePath('home-ac', acW, 3000, false);
     animatePath('home-pool', poolW, 5000, false);
-    animatePath('home- washer', washerW, 3000, false);
+    animatePath('home-washer', washerW, 3000, false);
     
     // Update Stats Bar
     const updateStat = (id, entityId, unit) => {
