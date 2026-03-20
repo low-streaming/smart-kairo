@@ -249,31 +249,34 @@ class OpenKairoSolarCardEditor extends HTMLElement {
         <div class="group">
           <h3>Statistiken & Wetter</h3>
           <div class="row">
-            <div class="row-col">
+            <div class="row-col" style="flex:3;">
               <label>Ertrag Heute (kWh)</label>
               <div style="display:flex; align-items:center; gap:8px;">
                 <div id="solar_yield_today_entity_picker" style="flex:1;"></div>
                 <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_today_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
               </div>
             </div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_yield_today_entity_kw" ${this.getVal('solar_yield_today_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
-            <div class="row-col">
+            <div class="row-col" style="flex:3;">
               <label>Ertrag Woche (kWh)</label>
               <div style="display:flex; align-items:center; gap:8px;">
                 <div id="solar_yield_week_entity_picker" style="flex:1;"></div>
                 <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_week_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
               </div>
             </div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_yield_week_entity_kw" ${this.getVal('solar_yield_week_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
-            <div class="row-col">
+            <div class="row-col" style="flex:3;">
               <label>Ertrag Monat (kWh)</label>
               <div style="display:flex; align-items:center; gap:8px;">
                 <div id="solar_yield_month_entity_picker" style="flex:1;"></div>
                 <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_month_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
               </div>
             </div>
+            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_yield_month_entity_kw" ${this.getVal('solar_yield_month_entity_kw') ? 'checked' : ''}></div>
           </div>
           <div class="row">
             <div class="row-col">
@@ -312,7 +315,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
 
     [
         'solar_entity', 'grid_import_entity', 'grid_export_entity',
-        'battery_power_entity', 'battery_soc_entity',
+        'battery_power_entity', 'battery_level_entity',
         'miner_entity', 'heatpump_entity', 'ev_entity',
         'ac_entity', 'pool_entity', 'washer_entity',
         'solar_yield_today_entity', 'solar_yield_week_entity', 'solar_yield_month_entity',
@@ -334,7 +337,12 @@ class OpenKairoSolarCardEditor extends HTMLElement {
     this._hass = hass;
     if (this._config && !this._initialized) {
       this.renderForm();
+      this._initialized = true;
     }
+    // Update all selectors with new hass
+    this.querySelectorAll('ha-selector').forEach(sel => {
+        sel.hass = hass;
+    });
   }
 }
 
@@ -420,11 +428,13 @@ class OpenKairoSolarCard extends HTMLElement {
 
         .flow-container { 
            flex: 1 1 400px; position: relative; height: 500px;
-           display: flex; align-items: center; justify-content: center;
-           min-width: 320px;
+           min-width: 320px; overflow: hidden;
         }
         
-        .svg-layer { position: absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
+        .svg-layer { 
+          position: absolute; top:0; left:0; width:100%; height:100%; 
+          pointer-events:none; z-index: 1; display: block;
+        }
         .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
         
         /* Animation Types - Premium Particles */
@@ -729,13 +739,14 @@ class OpenKairoSolarCard extends HTMLElement {
     animatePath('home-washer', washerW, 3000, false);
     
     // Stats & Weather (Auto-Scaling & Unit-Aware)
-    const updateStat = (id, entityId) => {
+    const updateStat = (id, entityId, isKw = false) => {
         const el = this.querySelector(`#stat-${id}`);
         if (!el) return;
         if (!entityId) { el.style.display = 'none'; return; }
         el.style.display = 'flex';
         const state = hass.states[entityId];
         let val = state ? parseFloat(state.state) || 0 : null;
+        if (val !== null && isKw) val *= 1000;
         let unit = state && state.attributes.unit_of_measurement ? state.attributes.unit_of_measurement : 'kWh';
         
         // Intelligent Auto-Scaling
@@ -747,9 +758,9 @@ class OpenKairoSolarCard extends HTMLElement {
         if (valEl) valEl.innerText = valStr;
     };
 
-    updateStat('today', this._config.solar_yield_today_entity);
-    updateStat('week', this._config.solar_yield_week_entity);
-    updateStat('month', this._config.solar_yield_month_entity);
+    updateStat('today', this._config.solar_yield_today_entity, this._config.solar_yield_today_entity_kw);
+    updateStat('week', this._config.solar_yield_week_entity, this._config.solar_yield_week_entity_kw);
+    updateStat('month', this._config.solar_yield_month_entity, this._config.solar_yield_month_entity_kw);
     
     // Weather
     const weatherEnt = this._config.weather_entity;
