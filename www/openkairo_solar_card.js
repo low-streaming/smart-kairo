@@ -56,9 +56,9 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col">
               <label>Geschwindigkeit (${this.getVal('animation_speed', '5')})</label>
               <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Schildkröte</span>
+                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Zen (Langsam)</span>
                 <input type="range" id="animation_speed" min="1" max="10" step="1" value="${isNaN(this.getVal('animation_speed')) ? (this.getVal('animation_speed')==='fast'?8:this.getVal('animation_speed')==='slow'?2:5) : this.getVal('animation_speed')}">
-                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Rakete</span>
+                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Super (Schnell)</span>
               </div>
             </div>
           </div>
@@ -471,11 +471,11 @@ class OpenKairoSolarCard extends HTMLElement {
         }
 
         .node {
-           position: absolute; width: 68px; height: 68px; border-radius: 50%;
+           position: absolute; width: 82px; height: 82px; border-radius: 50%;
            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5)); 
            border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column;
            justify-content: center; align-items: center; transform: translate(-50%, -50%); z-index: 10;
-           box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 0 15px rgba(255,255,255,0.05); 
+           box-shadow: 0 12px 30px rgba(0,0,0,0.65), inset 0 0 15px rgba(255,255,255,0.05); 
            backdrop-filter: blur(12px) saturate(180%);
            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -485,9 +485,9 @@ class OpenKairoSolarCard extends HTMLElement {
            border: 1px solid currentColor; opacity: 0.25; pointer-events: none;
         }
 
-        .node-icon { --mdc-icon-size: 24px; margin-bottom: 3px; color: currentColor; opacity: 0.9; filter: drop-shadow(0 0 5px currentColor);}
-        .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
-        .node-label { font-size: 0.5rem; text-transform: uppercase; color: rgba(255,255,255,0.5); letter-spacing: 1.2px; font-weight: 300;}
+        .node-icon { --mdc-icon-size: 28px; margin-bottom: 4px; color: currentColor; opacity: 0.9; filter: drop-shadow(0 0 5px currentColor);}
+        .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.82rem; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+        .node-label { font-size: 0.58rem; text-transform: uppercase; color: rgba(255,255,255,0.5); letter-spacing: 1.2px; font-weight: 300; margin-top:1px;}
 
         @keyframes pulseHome {
             0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
@@ -666,7 +666,9 @@ class OpenKairoSolarCard extends HTMLElement {
     // Support both numeric slider (1-10) and legacy strings (slow/normal/fast)
     let speedMult = 1;
     if (!isNaN(animSpeed)) {
-        speedMult = 5 / parseFloat(animSpeed);
+        // Redesigned: 1 is very slow (10x), 5 is normal (2x), 10 is fast (1x)
+        // More intuitive mapping: speedMult = 10 / parseFloat(animSpeed)
+        speedMult = 10 / parseFloat(animSpeed);
     } else {
         speedMult = animSpeed === 'fast' ? 0.5 : animSpeed === 'slow' ? 2 : 1;
     }
