@@ -1,324 +1,400 @@
 class OpenKairoSolarCardEditor extends HTMLElement {
   setConfig(config) {
-    this._config = config;
+    this._config = Object.assign({}, config);
+    if (!this._config.animation_type) this._config.animation_type = 'dots';
+    if (!this._config.animation_speed) this._config.animation_speed = 'normal';
+    
+    if (this._hass && !this._initialized) {
+        this.renderForm();
+    }
   }
 
-  configChanged(newConfig) {
-    const event = new Event("config-changed", {
-      bubbles: true,
-      composed: true
-    });
-    event.detail = { config: newConfig };
+  configChanged() {
+    const event = new Event("config-changed", { bubbles: true, composed: true });
+    event.detail = { config: this._config };
     this.dispatchEvent(event);
   }
 
-  get _solar_entity() { return this._config.solar_entity || ""; }
-  get _grid_import_entity() { return this._config.grid_import_entity || ""; }
-  get _grid_export_entity() { return this._config.grid_export_entity || ""; }
-  get _battery_power_entity() { return this._config.battery_power_entity || ""; }
-  get _battery_level_entity() { return this._config.battery_level_entity || ""; }
+  getVal(key, defaultVal = "") {
+    return this._config?.[key] !== undefined ? this._config[key] : defaultVal;
+  }
+
+  updateConfig(key, value) {
+    this._config = Object.assign({}, this._config);
+    this._config[key] = value;
+    this.configChanged();
+  }
 
   renderForm() {
+    this._initialized = true;
     this.innerHTML = `
       <style>
-        .row { margin-bottom: 12px; }
-        label { display: block; font-size: 12px; margin-bottom: 4px; color: var(--secondary-text-color); }
+        .group { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .row { margin-bottom: 12px; display: flex; gap: 10px; align-items: center; }
+        .row-col { display: flex; flex-direction: column; flex: 1; }
+        label { display: block; font-size: 11px; margin-bottom: 4px; color: var(--secondary-text-color); font-weight: bold; text-transform: uppercase; }
         ha-entity-picker { width: 100%; }
-        h3 { margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid var(--divider-color); padding-bottom: 5px; }
-        .info { font-size: 11px; opacity: 0.7; font-style: italic; margin-bottom: 20px; }
+        input[type="color"] { background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; height: 36px; padding: 2px; cursor:pointer;}
+        select { background: var(--card-background-color); color: var(--primary-text-color); border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 4px; width: 100%; }
+        h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary-color); border-bottom: 1px solid var(--divider-color); padding-bottom: 8px; font-family: sans-serif; }
       </style>
       <div class="card-config">
-        <h3>OpenKAIRO Solar Flow</h3>
-        <div class="info">Wähle die Entitäten für dein Solar-Dashboard aus. Der Hausverbrauch wird automatisch berechnet!</div>
         
-        <div class="row">
-          <label>Solarproduktion (z.B. Wechselrichter Leistung in W)</label>
-          <ha-entity-picker
-            id="solar_entity"
-            .hass="\${this._hass}"
-            .value="\${this._solar_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+        <div class="group">
+          <h3>Haupteinstellungen & Aussehen</h3>
+          <div class="row">
+            <div class="row-col">
+              <label>Animations-Typ</label>
+              <select id="animation_type">
+                <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Energie-Kugeln (Dots)</option>
+                <option value="dash" ${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Strichel-Linien (Dash)</option>
+                <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
+              </select>
+            </div>
+            <div class="row-col">
+              <label>Geschwindigkeit</label>
+              <select id="animation_speed">
+                <option value="slow" ${this.getVal('animation_speed') === 'slow' ? 'selected' : ''}>Langsam</option>
+                <option value="normal" ${this.getVal('animation_speed') === 'normal' ? 'selected' : ''}>Normal</option>
+                <option value="fast" ${this.getVal('animation_speed') === 'fast' ? 'selected' : ''}>Schnell</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div class="row">
-          <label>Netzbezug (aus dem Stromnetz in W)</label>
-          <ha-entity-picker
-            id="grid_import_entity"
-            .hass="\${this._hass}"
-            .value="\${this._grid_import_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+        <div class="group">
+          <h3>Energiequellen</h3>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Solarproduktion (W)</label>
+              <ha-entity-picker id="solar_entity" .hass="${this._hass}" .value="${this.getVal('solar_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Netzbezug (W)</label>
+              <ha-entity-picker id="grid_import_entity" .hass="${this._hass}" .value="${this.getVal('grid_import_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="grid_color" value="${this.getVal('grid_color', '#ff4a4a')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Netzeinspeisung (W)</label>
+              <ha-entity-picker id="grid_export_entity" .hass="${this._hass}" .value="${this.getVal('grid_export_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Batterieleistung (W)</label>
+              <ha-entity-picker id="battery_power_entity" .hass="${this._hass}" .value="${this.getVal('battery_power_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="battery_color" value="${this.getVal('battery_color', '#05f0a0')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Batterieladung (%)</label>
+              <ha-entity-picker id="battery_level_entity" .hass="${this._hass}" .value="${this.getVal('battery_level_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col" style="justify-content:center;">
+               <label>Batt. Invertieren?</label>
+               <input type="checkbox" id="battery_invert" ${this.getVal('battery_invert') ? 'checked' : ''}>
+            </div>
+          </div>
         </div>
 
-        <div class="row">
-          <label>Netzeinspeisung (ins Stromnetz in W)</label>
-          <ha-entity-picker
-            id="grid_export_entity"
-            .hass="\${this._hass}"
-            .value="\${this._grid_export_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
+        <div class="group">
+          <h3>Optionale Extra-Verbraucher</h3>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Crypto Miner (W)</label>
+              <ha-entity-picker id="miner_entity" .hass="${this._hass}" .value="${this.getVal('miner_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="miner_color" value="${this.getVal('miner_color', '#a855f7')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Wärmepumpe (W)</label>
+              <ha-entity-picker id="heatpump_entity" .hass="${this._hass}" .value="${this.getVal('heatpump_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>E-Auto / Wallbox (W)</label>
+              <ha-entity-picker id="ev_entity" .hass="${this._hass}" .value="${this.getVal('ev_entity')}" allow-custom-entity></ha-entity-picker>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
+          </div>
         </div>
 
-        <h3>optional: Speicher / Batterie</h3>
-        <div class="row">
-          <label>Batterieleistung (Laden/Entladen in W)</label>
-          <ha-entity-picker
-            id="battery_power_entity"
-            .hass="\${this._hass}"
-            .value="\${this._battery_power_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
-        </div>
-
-        <div class="row">
-          <label>Batterie-Ladestand (in %)</label>
-          <ha-entity-picker
-            id="battery_level_entity"
-            .hass="\${this._hass}"
-            .value="\${this._battery_level_entity}"
-            allow-custom-entity
-          ></ha-entity-picker>
-        </div>
       </div>
     `;
 
-    // Modern Lit-Elements style binding via raw DOM for ha-entity-picker
-    const pickers = this.querySelectorAll('ha-entity-picker');
-    pickers.forEach(picker => {
+    // Bind Entity Pickers
+    this.querySelectorAll('ha-entity-picker').forEach(picker => {
         picker.hass = this._hass;
-        picker.value = this[`_${picker.id}`];
-        picker.addEventListener('value-changed', (ev) => {
-            if (this._config[picker.id] !== ev.detail.value) {
-                const newConfig = Object.assign({}, this._config);
-                newConfig[picker.id] = ev.detail.value;
-                this.configChanged(newConfig);
-            }
+        picker.value = this.getVal(picker.id);
+        picker.addEventListener('value-changed', (ev) => { this.updateConfig(picker.id, ev.detail.value); });
+    });
+
+    // Bind generic inputs (Selects, Colors, Checkboxes)
+    this.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('change', (ev) => {
+            const val = el.type === 'checkbox' ? el.checked : el.value;
+            this.updateConfig(el.id, val); 
         });
     });
   }
 
   set hass(hass) {
     this._hass = hass;
-    if (!this.querySelector('.card-config')) {
+    if (this._config && !this._initialized) {
       this.renderForm();
     }
   }
 }
 
-customElements.define("openkairo-solar-editor", OpenKairoSolarCardEditor);
+if (!customElements.get("openkairo-solar-editor")) {
+  customElements.define("openkairo-solar-editor", OpenKairoSolarCardEditor);
+}
 
 class OpenKairoSolarCard extends HTMLElement {
-  static getConfigElement() {
-    return document.createElement("openkairo-solar-editor");
-  }
+  static getConfigElement() { return document.createElement("openkairo-solar-editor"); }
 
   static getStubConfig() {
     return {
-      solar_entity: "",
-      grid_import_entity: "",
-      grid_export_entity: "",
-      battery_power_entity: "",
-      battery_level_entity: ""
+      type: "custom:openkairo-solar-card",
+      animation_type: "dots",
+      animation_speed: "normal",
+      solar_color: "#ffb800",
+      grid_color: "#ff4a4a",
+      home_color: "#10b981",
+      battery_color: "#05f0a0",
+      miner_color: "#a855f7",
+      heatpump_color: "#3b82f6",
+      ev_color: "#eab308"
     };
   }
 
   setConfig(config) {
-    this._config = config;
+    if (!config) throw new Error("Invalid configuration");
+    this._config = Object.assign({}, config);
     if (!this.content) {
-      this.innerHTML = `
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;800&display=swap');
-          
-          ha-card {
-            background: rgba(5, 12, 18, 0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 20px;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            padding: 20px;
-          }
-          
-          .header {
-             font-family: 'Orbitron', sans-serif;
-             font-size: 0.9rem;
-             letter-spacing: 2px;
-             color: #10b981;
-             text-align: center;
-             font-weight: 900;
-             margin-bottom: 30px;
-             display: flex;
-             justify-content: center;
-             align-items: center;
-             gap: 10px;
-          }
-
-          .flow-container {
-             position: relative;
-             height: 250px;
-             width: 100%;
-          }
-
-          .node {
-             position: absolute;
-             width: 80px;
-             height: 80px;
-             border-radius: 50%;
-             background: rgba(255,255,255,0.05);
-             border: 1px solid rgba(255,255,255,0.1);
-             display: flex;
-             flex-direction: column;
-             justify-content: center;
-             align-items: center;
-             transform: translate(-50%, -50%);
-             z-index: 10;
-          }
-
-          .node-icon {
-             --mdc-icon-size: 28px;
-             margin-bottom: 4px;
-          }
-
-          .node-value {
-             font-family: 'Orbitron', sans-serif;
-             font-size: 0.9rem;
-             font-weight: 900;
-          }
-
-          /* Positions */
-          .node.solar { top: 20%; left: 50%; border-color: #ffb800; box-shadow: 0 0 20px rgba(255, 184, 0, 0.2); }
-          .node.solar ha-icon { color: #ffb800; }
-
-          .node.home { top: 80%; left: 50%; border-color: #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
-          .node.home ha-icon { color: #10b981; }
-
-          .node.grid { top: 50%; left: 20%; border-color: #ff4a4a; }
-          .node.grid ha-icon { color: #ff4a4a; }
-
-          .node.battery { top: 50%; left: 80%; border-color: #05f0a0; }
-          .node.battery ha-icon { color: #05f0a0; }
-
-          /* Connections / Flow Lines will go here */
-          .line {
-             position: absolute;
-             height: 2px;
-             background: rgba(255,255,255,0.1);
-             transform-origin: 0 0;
-             z-index: 1;
-             overflow: hidden;
-          }
-
-          .dot {
-             width: 8px;
-             height: 8px;
-             background: #ffb800;
-             border-radius: 50%;
-             position: absolute;
-             top: -3px;
-             left: 0;
-             box-shadow: 0 0 10px #ffb800;
-             display: none;
-          }
-
-          @keyframes flowAnim {
-             0% { left: 0%; opacity: 0; }
-             10% { opacity: 1; }
-             90% { opacity: 1; }
-             100% { left: 100%; opacity: 0; }
-          }
-        </style>
-        <ha-card>
-          <div class="header">
-             <ha-icon icon="mdi:solar-power"></ha-icon> 
-             ENERGY OS
-          </div>
-          <div class="flow-container">
-             <!-- Solar -->
-             <div class="node solar">
-                <ha-icon class="node-icon" icon="mdi:white-balance-sunny"></ha-icon>
-                <div class="node-value" id="val-solar">0 W</div>
-             </div>
-             <!-- Grid -->
-             <div class="node grid">
-                <ha-icon class="node-icon" icon="mdi:transmission-tower"></ha-icon>
-                <div class="node-value" id="val-grid">0 W</div>
-             </div>
-             <!-- Battery -->
-             <div class="node battery">
-                <ha-icon class="node-icon" icon="mdi:battery-high"></ha-icon>
-                <div class="node-value" id="val-batt">0 %</div>
-             </div>
-             <!-- Home -->
-             <div class="node home">
-                <ha-icon class="node-icon" icon="mdi:home"></ha-icon>
-                <div class="node-value" id="val-home">0 W</div>
-             </div>
-          </div>
-        </ha-card>
-      `;
-      this.content = true;
+      this.setupDOM();
     }
+  }
+
+  getValStr(key, def="") { return this._config && this._config[key] !== undefined ? this._config[key] : def; }
+
+  setupDOM() {
+    this.innerHTML = `
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;800&display=swap');
+        
+        ha-card {
+          background: rgba(5, 12, 18, 0.85); backdrop-filter: blur(20px);
+          border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px;
+          color: #fff; font-family: 'Inter', sans-serif; padding: 20px;
+          position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .header { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 20px; letter-spacing: 2px;}
+        
+        .flow-container { position: relative; width: 100%; aspect-ratio: 1.2; display: flex; align-items: center; justify-content: center;}
+        
+        .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
+        .svg-path { fill: none; stroke-width: 4; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
+        
+        /* Animation Types */
+        .anim-dots { stroke-dasharray: 4 20; animation: dashAnim linear infinite; stroke-linecap: round;}
+        .anim-dash { stroke-dasharray: 20 20; animation: dashAnim linear infinite; }
+        .anim-neon { stroke-dasharray: 100 200; animation: dashAnim linear infinite; filter: drop-shadow(0 0 8px currentColor); stroke-width: 3;}
+        
+        @keyframes dashAnim { to { stroke-dashoffset: -100; } }
+
+        .node {
+           position: absolute; width: 65px; height: 65px; border-radius: 50%;
+           background: rgba(0,0,0,0.5); border: 2px solid; display: flex; flex-direction: column;
+           justify-content: center; align-items: center; transform: translate(-50%, -50%); z-index: 10;
+           box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+           transition: 0.3s;
+        }
+        .node * { z-index: 12; }
+        .node::before {
+           content: ''; position: absolute; inset: 0; border-radius: 50%;
+           box-shadow: inset 0 0 20px currentColor; opacity: 0.2;
+        }
+
+        .node-icon { --mdc-icon-size: 24px; margin-bottom: 2px; color: currentColor; }
+        .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 900; color: #fff;}
+        .node-label { font-size: 0.5rem; text-transform: uppercase; color: rgba(255,255,255,0.5); letter-spacing: 1px;}
+      </style>
+      <ha-card>
+        <div class="header">ENERGY OS</div>
+        <div class="flow-container" id="flow-container">
+           <svg class="svg-layer" id="svg-layer"></svg>
+        </div>
+      </ha-card>
+    `;
+    this.content = true;
+  }
+
+  // Draw node HTML
+  drawNode(id, icon, label, color, x, y) {
+      return `<div class="node ${id}" id="node-${id}" style="left: ${x}%; top: ${y}%; border-color: ${color}; color: ${color};">
+         <ha-icon class="node-icon" icon="${icon}"></ha-icon>
+         <div class="node-value" id="val-${id}">0 W</div>
+         <div class="node-label">${label}</div>
+      </div>`;
+  }
+
+  // Generate SVG Path relative to percentages (rough bounding box math)
+  drawPath(id, color, x1, y1, x2, y2) {
+      // Use relatively scaled coordinates via SVG viewBox
+      return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}" stroke="${color}"></path>`;
+  }
+
+  updateLayout() {
+      const container = this.querySelector('#flow-container');
+      const svg = this.querySelector('#svg-layer');
+      
+      const cSolar = this.getValStr('solar_color', '#ffb800');
+      const cGrid = this.getValStr('grid_color', '#ff4a4a');
+      const cHome = this.getValStr('home_color', '#10b981');
+      const cBatt = this.getValStr('battery_color', '#05f0a0');
+      const cMiner = this.getValStr('miner_color', '#a855f7');
+      const cHeat = this.getValStr('heatpump_color', '#3b82f6');
+      const cEv = this.getValStr('ev_color', '#eab308');
+
+      const nodes = [];
+      const paths = [];
+
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 50));
+      if (this.getValStr('solar_entity')) {
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 15));
+          paths.push(this.drawPath('solar-home', cSolar, 50, 15, 50, 50));
+      }
+      if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 15, 50));
+          paths.push(this.drawPath('grid-home', cGrid, 15, 50, 50, 50));
+      }
+      if (this.getValStr('battery_power_entity')) {
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 85, 50));
+          paths.push(this.drawPath('batt-home', cBatt, 85, 50, 50, 50));
+      }
+      
+      // Options below
+      if (this.getValStr('miner_entity')) {
+          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 15, 85));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 50, 15, 85));
+      }
+      if (this.getValStr('heatpump_entity')) {
+          nodes.push(this.drawNode('heatpump', 'mdi:heat-pump', 'Heizung', cHeat, 50, 85));
+          paths.push(this.drawPath('home-heatpump', cHeat, 50, 50, 50, 85));
+      }
+      if (this.getValStr('ev_entity')) {
+          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 85, 85));
+          paths.push(this.drawPath('home-ev', cEv, 50, 50, 85, 85));
+      }
+
+      const svgHtml = `<svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">${paths.join('')}</svg>`;
+      container.innerHTML = svgHtml + nodes.join('');
   }
 
   set hass(hass) {
-    if (!this._config) return;
-    
-    // Helper to get numeric state safely
-    const getVal = (entityId) => {
-        if (!entityId) return 0;
-        const state = hass.states[entityId];
-        return state ? parseFloat(state.state) || 0 : 0;
-    };
+    try {
+      if (!this._config || !hass || !hass.states) return;
+      
+      if (!this._layoutBuilt) {
+          this.updateLayout();
+          this._layoutBuilt = true;
+      }
 
-    let solarW = getVal(this._config.solar_entity);
+      const getVal = (entityId) => {
+          if (!entityId) return 0;
+          const state = hass.states[entityId];
+          return state ? parseFloat(state.state) || 0 : 0;
+      };
+
+      let solarW = getVal(this._config.solar_entity);
     let gridInW = getVal(this._config.grid_import_entity);
     let gridOutW = getVal(this._config.grid_export_entity);
-    let battW = getVal(this._config.battery_power_entity); // positive = charge, negative = discharge, or vice versa depending on user. We can assume generic later.
-    let battLevel = getVal(this._config.battery_level_entity);
+    let battW = getVal(this._config.battery_power_entity); 
+    if (this.getValStr('battery_invert')) battW = battW * -1; 
+    let minerW = getVal(this._config.miner_entity);
+    let heatW = getVal(this._config.heatpump_entity);
+    let evW = getVal(this._config.ev_entity);
 
-    // Simple Home Calculation (assuming standard convention)
-    // Home = Solar + GridIn - GridOut - BatteryCharge(or + BatteryDischarge)
-    // To keep it foolproof for V1 we just do Solar + GridIn - GridOut
-    let homeW = solarW + gridInW - gridOutW;
-    if (homeW < 0) homeW = 0; // Prevent negative home consumption on data mismatch
+    let extraConsumers = minerW + heatW + evW;
+    let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
+    if (homeW < 0) homeW = 0;
+    
+    let totalHomeW = homeW + extraConsumers; 
 
-    // Update DOM
-    const eSolar = this.querySelector('#val-solar');
-    const eGrid = this.querySelector('#val-grid');
-    const eBatt = this.querySelector('#val-batt');
-    const eHome = this.querySelector('#val-home');
+    const upd = (id, val, textSuffix) => {
+        const el = this.querySelector(`#val-${id}`);
+        if (el) el.innerText = Math.round(val) + textSuffix;
+    };
+    
+    upd('solar', solarW, ' W');
+    if (gridOutW > 0) upd('grid', -gridOutW, ' W'); else upd('grid', gridInW, ' W');
+    upd('batt', battW, ' W');
+    upd('home', totalHomeW, ' W');
+    upd('miner', minerW, ' W');
+    upd('heatpump', heatW, ' W');
+    upd('ev', evW, ' W');
 
-    if (eSolar) eSolar.innerText = Math.round(solarW) + ' W';
-    // showing grid net or separate based on max? We can show Net.
-    if (eGrid) {
-       if (gridOutW > 0) eGrid.innerText = "-" + Math.round(gridOutW) + ' W';
-       else eGrid.innerText = Math.round(gridInW) + ' W';
+    const animType = this.getValStr('animation_type', 'dots');
+    const animSpeedStr = this.getValStr('animation_speed', 'normal');
+    const speedMult = animSpeedStr === 'fast' ? 0.5 : animSpeedStr === 'slow' ? 2 : 1;
+
+    const animatePath = (pathId, flowW, maxExpected, reverse = false) => {
+        const p = this.querySelector(`#path-${pathId}`);
+        if (!p) return;
+        if (Math.abs(flowW) < 5) {
+            p.style.opacity = '0.1';
+            p.style.animation = 'none';
+        } else {
+            p.style.opacity = '0.8';
+            p.setAttribute('class', `svg-path anim-${animType}`);
+            p.style.animation = ''; // Important: clear inline "none" so class animation can resume
+            let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
+            if (duration > 3) duration = 3; 
+            if (duration < 0.2) duration = 0.2; 
+            
+            p.style.animationDuration = duration + 's';
+            p.style.animationDirection = reverse ? 'reverse' : 'normal';
+        }
+    };
+
+    animatePath('solar-home', solarW, 5000, false);
+    animatePath('grid-home', gridInW > 0 ? gridInW : gridOutW, 5000, gridOutW > 0);
+    animatePath('batt-home', battW, 3000, battW < 0); 
+    animatePath('home-miner', minerW, 2000, false);
+    animatePath('home-heatpump', heatW, 3000, false);
+    animatePath('home-ev', evW, 11000, false);
+    
+    } catch(err) {
+      console.error("OpenKairo Solar Card Error:", err);
     }
-    if (eBatt) {
-       if (this._config.battery_level_entity) {
-          eBatt.innerText = Math.round(battLevel) + ' %';
-       } else {
-          eBatt.innerText = '-';
-       }
-    }
-    if (eHome) eHome.innerText = Math.round(homeW) + ' W';
   }
 
-  getCardSize() {
-    return 4;
-  }
+  getCardSize() { return 5; }
 }
 
-customElements.define("openkairo-solar-card", OpenKairoSolarCard);
+if (!customElements.get("openkairo-solar-card")) {
+  customElements.define("openkairo-solar-card", OpenKairoSolarCard);
+}
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "openkairo-solar-card",
-  name: "OpenKairo Solar Dashboard",
-  description: "Advanced Energy Flow Dashboard with Visual Editor.",
-  preview: true
-});
+const cardExists = window.customCards.find(c => c.type === "openkairo-solar-card");
+if (!cardExists) {
+  window.customCards.push({
+    type: "openkairo-solar-card",
+    name: "OpenKairo Solar Dashboard",
+    description: "Advanced Energy Flow Dashboard with Visual Editor.",
+    preview: true
+  });
+}
