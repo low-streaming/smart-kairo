@@ -218,10 +218,13 @@ class OpenKairoHistoryCard extends HTMLElement {
           font-family: 'Inter', sans-serif;
         }
         ha-card {
-          background: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          padding: 0px;
+          background: rgba(10, 20, 28, 0.45) !important;
+          backdrop-filter: blur(15px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+          border-radius: 28px !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          box-shadow: 0 15px 45px rgba(0,0,0,0.7) !important;
+          padding: 25px;
           color: white;
         }
         .header-container {

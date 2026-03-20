@@ -395,9 +395,10 @@ class OpenKairoSolarCard extends HTMLElement {
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;800&display=swap');
         
         ha-card {
-           background: rgba(10, 20, 28, 0.98); border-radius: 28px; padding: 25px;
+           background: rgba(10, 20, 28, 0.45); border-radius: 28px; padding: 25px;
+           backdrop-filter: blur(15px) saturate(180%); -webkit-backdrop-filter: blur(15px) saturate(180%);
            position: relative; box-shadow: 0 15px 45px rgba(0,0,0,0.7);
-           overflow: hidden !important; border: 1px solid rgba(255,255,255,0.05);
+           overflow: hidden !important; border: 1px solid rgba(255,255,255,0.1);
            color: #fff; font-family: 'Inter', sans-serif;
            contain: paint;
         }
