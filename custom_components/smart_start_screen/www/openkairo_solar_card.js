@@ -342,46 +342,59 @@ class OpenKairoSolarCard extends HTMLElement {
           position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
-        .header { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 5px; letter-spacing: 2px;}
+        .header { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 20px; letter-spacing: 3px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);}
         
         .status-bar {
           display: flex; justify-content: space-between; align-items: center;
-          padding: 8px 15px; background: rgba(255,255,255,0.03); border-radius: 12px;
-          margin-bottom: 15px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.05);
+          padding: 10px 18px; background: rgba(255,255,255,0.03); border-radius: 12px;
+          margin-bottom: 25px; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.05);
+          backdrop-filter: blur(5px);
         }
-        .status-group { display: flex; gap: 12px; align-items: center; }
-        .status-item { display: flex; align-items: center; gap: 4px; color: rgba(255,255,255,0.7); }
-        .status-item ha-icon { --mdc-icon-size: 16px; color: #10b981; }
-        .status-item .val { font-weight: 800; color: #fff; }
+        .status-group { display: flex; gap: 15px; align-items: center; }
+        .status-item { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.6); }
+        .status-item ha-icon { --mdc-icon-size: 14px; color: #10b981; }
+        .status-item .val { font-weight: 600; color: #fff; font-family: 'Orbitron', sans-serif;}
 
         .flow-container { position: relative; width: 100%; aspect-ratio: 1.5; min-height: 550px; display: flex; align-items: center; justify-content: center;}
         
         .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
-        .svg-path { fill: none; stroke-width: 4; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
+        .svg-path { fill: none; stroke-width: 1.5; stroke-linecap: round; transition: 0.5s; opacity: 0.15; }
         
-        /* Animation Types */
-        .anim-dots { stroke-dasharray: 4 20; animation: dashAnim linear infinite; stroke-linecap: round;}
-        .anim-dash { stroke-dasharray: 20 20; animation: dashAnim linear infinite; }
-        .anim-neon { stroke-dasharray: 100 200; animation: dashAnim linear infinite; filter: drop-shadow(0 0 8px currentColor); stroke-width: 3;}
+        /* Animation Types - Premium Refined */
+        .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
+        .anim-dash { stroke-dasharray: 10 20; animation: dashAnim linear infinite; }
+        .anim-neon { stroke-dasharray: 40 100; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 2;}
         
         @keyframes dashAnim { to { stroke-dashoffset: -100; } }
 
         .node {
-           position: absolute; width: 65px; height: 65px; border-radius: 50%;
-           background: rgba(0,0,0,0.5); border: 2px solid; display: flex; flex-direction: column;
+           position: absolute; width: 68px; height: 68px; border-radius: 50%;
+           background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5)); 
+           border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column;
            justify-content: center; align-items: center; transform: translate(-50%, -50%); z-index: 10;
-           box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-           transition: 0.3s;
+           box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 0 15px rgba(255,255,255,0.05); 
+           backdrop-filter: blur(12px) saturate(180%);
+           transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .node * { z-index: 12; }
-        .node::before {
-           content: ''; position: absolute; inset: 0; border-radius: 50%;
-           box-shadow: inset 0 0 20px currentColor; opacity: 0.2;
+        
+        /* Inner Glowing Border */
+        .node::after {
+           content: ''; position: absolute; inset: -1px; border-radius: 50%;
+           border: 1px solid currentColor; opacity: 0.3; pointer-events: none;
         }
 
-        .node-icon { --mdc-icon-size: 24px; margin-bottom: 2px; color: currentColor; }
-        .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 900; color: #fff;}
-        .node-label { font-size: 0.5rem; text-transform: uppercase; color: rgba(255,255,255,0.5); letter-spacing: 1px;}
+        .node-icon { --mdc-icon-size: 24px; margin-bottom: 3px; color: currentColor; opacity: 0.9; filter: drop-shadow(0 0 5px currentColor);}
+        .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+        .node-label { font-size: 0.5rem; text-transform: uppercase; color: rgba(255,255,255,0.5); letter-spacing: 1.2px; font-weight: 300;}
+
+        /* Pulsing Home Node */
+        @keyframes pulseHome {
+            0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { transform: translate(-50%, -50%) scale(1.03); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+            100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .pulse-active { animation: pulseHome 2s infinite ease-in-out; }
       </style>
       <ha-card>
         <div class="header">ENERGY OS</div>
@@ -396,7 +409,17 @@ class OpenKairoSolarCard extends HTMLElement {
            </div>
         </div>
         <div class="flow-container" id="flow-container">
-           <svg class="svg-layer" id="svg-layer"></svg>
+           <svg class="svg-layer" id="svg-layer">
+              <defs>
+                <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+           </svg>
         </div>
       </ha-card>
     `;
@@ -473,7 +496,19 @@ class OpenKairoSolarCard extends HTMLElement {
           paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 30, 90, 60, false));
       }
 
-      const svgHtml = `<svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">${paths.join('')}</svg>`;
+      const svgHtml = `
+      <svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">
+         <defs>
+            <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+         </defs>
+         ${paths.join('')}
+      </svg>`;
       container.innerHTML = svgHtml + nodes.join('');
   }
 
@@ -536,6 +571,12 @@ class OpenKairoSolarCard extends HTMLElement {
             n.style.color = colorOverride;
             const icon = n.querySelector('ha-icon');
             if (icon) icon.style.color = colorOverride;
+        }
+        
+        // Pulse effects for Home and Solar/Battery when active
+        if (id === 'home') {
+            if (val > 500) n.classList.add('pulse-active');
+            else n.classList.remove('pulse-active');
         }
     };
     
