@@ -287,7 +287,7 @@ class OpenKairoSolarCard extends HTMLElement {
         
         .header { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 20px; letter-spacing: 2px;}
         
-        .flow-container { position: relative; width: 100%; aspect-ratio: 1.5; min-height: 480px; display: flex; align-items: center; justify-content: center;}
+        .flow-container { position: relative; width: 100%; aspect-ratio: 1.5; min-height: 550px; display: flex; align-items: center; justify-content: center;}
         
         .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
         .svg-path { fill: none; stroke-width: 4; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
@@ -336,8 +336,8 @@ class OpenKairoSolarCard extends HTMLElement {
   }
 
   // Generate SVG Path relative to percentages (rough bounding box math)
-  drawPath(id, color, x1, y1, x2, y2) {
-      // Use relatively scaled coordinates via SVG viewBox
+  drawPath(id, color, x1, y1, x2, y2, curved = true) {
+      if (!curved) return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} L ${x2} ${y2}" stroke="${color}"></path>`;
       return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}" stroke="${color}"></path>`;
   }
 
@@ -356,44 +356,44 @@ class OpenKairoSolarCard extends HTMLElement {
       const nodes = [];
       const paths = [];
 
-      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 40));
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 30));
       if (this.getValStr('solar_entity')) {
-          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 10));
-          paths.push(this.drawPath('solar-home', cSolar, 50, 10, 50, 40));
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 7));
+          paths.push(this.drawPath('solar-home', cSolar, 50, 7, 50, 30));
       }
       if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
-          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 15, 40));
-          paths.push(this.drawPath('grid-home', cGrid, 15, 40, 50, 40));
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 12, 30));
+          paths.push(this.drawPath('grid-home', cGrid, 12, 30, 50, 30));
       }
       if (this.getValStr('battery_power_entity')) {
-          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 85, 40));
-          paths.push(this.drawPath('batt-home', cBatt, 85, 40, 50, 40));
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 88, 30));
+          paths.push(this.drawPath('batt-home', cBatt, 88, 30, 50, 30));
       }
       
       // Options in arc layout below
       if (this.getValStr('pool_entity')) {
-          nodes.push(this.drawNode('pool', 'mdi:pool', 'Pool', this.getValStr('pool_color', '#00d1ff'), 10, 65));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 40, 10, 65));
+          nodes.push(this.drawNode('pool', 'mdi:pool', 'Pool', this.getValStr('pool_color', '#00d1ff'), 10, 60));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 30, 10, 60, false));
       }
       if (this.getValStr('miner_entity')) {
-          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 25, 75));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 40, 25, 75));
+          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 25, 80));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 30, 25, 80, false));
       }
       if (this.getValStr('heatpump_entity')) {
-          nodes.push(this.drawNode('heatpump', 'mdi:heat-pump', 'Heizung', cHeat, 40, 90));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 40, 40, 90));
+          nodes.push(this.drawNode('heatpump', 'mdi:heat-pump', 'Heizung', cHeat, 40, 95));
+          paths.push(this.drawPath('home-heatpump', cHeat, 50, 30, 40, 95, false));
       }
       if (this.getValStr('ev_entity')) {
-          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 60, 90));
-          paths.push(this.drawPath('home-ev', cEv, 50, 40, 60, 90));
+          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 60, 95));
+          paths.push(this.drawPath('home-ev', cEv, 50, 30, 60, 95, false));
       }
       if (this.getValStr('ac_entity')) {
-          nodes.push(this.drawNode('ac', 'mdi:air-conditioner', 'Klima', this.getValStr('ac_color', '#3b82f6'), 75, 75));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 40, 75, 75));
+          nodes.push(this.drawNode('ac', 'mdi:air-conditioner', 'Klima', this.getValStr('ac_color', '#3b82f6'), 75, 80));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 30, 75, 80, false));
       }
       if (this.getValStr('washer_entity')) {
-          nodes.push(this.drawNode('washer', 'mdi:washing-machine', 'Waschm.', this.getValStr('washer_color', '#f43f5e'), 90, 65));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 40, 90, 65));
+          nodes.push(this.drawNode('washer', 'mdi:washing-machine', 'Waschm.', this.getValStr('washer_color', '#f43f5e'), 90, 60));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 30, 90, 60, false));
       }
 
       const svgHtml = `<svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">${paths.join('')}</svg>`;
