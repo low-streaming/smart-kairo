@@ -626,46 +626,42 @@ class OpenKairoSolarCard extends HTMLElement {
           this._layoutBuilt = true;
       }
 
-      const getPower = (entityId, isKw) => {
-          if (!entityId) return 0;
-          const state = hass.states[entityId];
-          let val = state ? parseFloat(state.state) || 0 : 0;
-          return isKw ? val * 1000 : val;
-      };
+    const getPower = (entityId, isKw) => {
+        if (!entityId) return 0;
+        const state = hass.states[entityId];
+        let val = state ? parseFloat(state.state) || 0 : 0;
+        return isKw ? val * 1000 : val;
+    };
 
-      const formatPower = (val) => {
-          const abs = Math.abs(val);
-          if (abs >= 1000) return (val / 1000).toFixed(1) + ' kW';
-          return Math.round(val) + ' W';
-      };
+    const formatPower = (val) => {
+        const abs = Math.abs(val);
+        if (abs >= 1000) return (val / 1000).toFixed(1) + ' kW';
+        return Math.round(val) + ' W';
+    };
 
-      let solarW = getPower(this._config.solar_entity, this._config.solar_entity_kw);
-      let gridInW = getPower(this._config.grid_import_entity, this._config.grid_import_entity_kw);
-      let gridOutW = getPower(this._config.grid_export_entity, this._config.grid_export_entity_kw);
-      let battW = getPower(this._config.battery_power_entity, this._config.battery_power_entity_kw); 
-      if (this.getValStr('battery_invert')) battW = battW * -1; 
-      
-      let minerW = getPower(this._config.miner_entity, this._config.miner_entity_kw);
-      let heatW = getPower(this._config.heatpump_entity, this._config.heatpump_entity_kw);
-      let evW = getPower(this._config.ev_entity, this._config.ev_entity_kw);
-      let acW = getPower(this._config.ac_entity, this._config.ac_entity_kw);
-      let poolW = getPower(this._config.pool_entity, this._config.pool_entity_kw);
-      let washerW = getPower(this._config.washer_entity, this._config.washer_entity_kw);
+    const animType = this.getValStr('animation_type', 'dots');
+    const animSpeedStr = this.getValStr('animation_speed', 'normal');
+    const speedMult = animSpeedStr === 'fast' ? 0.5 : animSpeedStr === 'slow' ? 2 : 1;
 
-      const getValRaw = (entityId) => {
-          if (!entityId) return 0;
-          const state = hass.states[entityId];
-          return state ? parseFloat(state.state) || 0 : 0;
-      };
-
-    let extraConsumers = minerW + heatW + evW + acW + poolW + washerW;
-    let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
-    if (homeW < 0) homeW = 0;
-    
-    let totalHomeW = homeW + extraConsumers; 
-
-    // Battery Level (%)
-    const battLevel = getValRaw(this._config.battery_level_entity);
+    const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
+        const p = this.querySelector(`#path-${pathId}`);
+        if (!p) return;
+        if (Math.abs(flowW) < 5) {
+            p.style.opacity = '0.1';
+            p.style.animation = 'none';
+        } else {
+            p.style.opacity = '0.8';
+            p.setAttribute('class', `svg-path anim-${animType}`);
+            p.style.animation = '';
+            if (colorOverride) p.setAttribute('stroke', colorOverride);
+            let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
+            if (duration > 3) duration = 3; 
+            if (duration < 0.2) duration = 0.2; 
+            
+            p.style.animationDuration = duration + 's';
+            p.style.animationDirection = reverse ? 'reverse' : 'normal';
+        }
+    };
 
     const upd = (id, val, colorOverride = null) => {
         const el = this.querySelector(`#val-${id}`);
@@ -680,11 +676,40 @@ class OpenKairoSolarCard extends HTMLElement {
         
         // Pulse effects for Home and Solar/Battery when active
         if (id === 'home') {
-            if (val > 500) n.classList.add('pulse-active');
+            const absVal = Math.abs(val);
+            if (absVal > 500) n.classList.add('pulse-active');
             else n.classList.remove('pulse-active');
         }
     };
     
+    let solarW = getPower(this._config.solar_entity, this._config.solar_entity_kw);
+    let gridInW = getPower(this._config.grid_import_entity, this._config.grid_import_entity_kw);
+    let gridOutW = getPower(this._config.grid_export_entity, this._config.grid_export_entity_kw);
+    let battW = getPower(this._config.battery_power_entity, this._config.battery_power_entity_kw); 
+    if (this.getValStr('battery_invert')) battW = battW * -1; 
+    
+    let minerW = getPower(this._config.miner_entity, this._config.miner_entity_kw);
+    let heatW = getPower(this._config.heatpump_entity, this._config.heatpump_entity_kw);
+    let evW = getPower(this._config.ev_entity, this._config.ev_entity_kw);
+    let acW = getPower(this._config.ac_entity, this._config.ac_entity_kw);
+    let poolW = getPower(this._config.pool_entity, this._config.pool_entity_kw);
+    let washerW = getPower(this._config.washer_entity, this._config.washer_entity_kw);
+
+    const getValRaw = (entityId) => {
+        if (!entityId) return 0;
+        const state = hass.states[entityId];
+        return state ? parseFloat(state.state) || 0 : 0;
+    };
+
+    let extraConsumers = minerW + heatW + evW + acW + poolW + washerW;
+    let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
+    if (homeW < 0) homeW = 0;
+    
+    let totalHomeW = homeW + extraConsumers; 
+
+    // Battery Level (%)
+    const battLevel = getValRaw(this._config.battery_level_entity);
+
     const cEx = this.getValStr('grid_export_color', '#00d1ff');
     const cGr = this.getValStr('grid_color', '#ff4a4a');
 
@@ -713,30 +738,6 @@ class OpenKairoSolarCard extends HTMLElement {
     upd('ac', acW);
     upd('pool', poolW);
     upd('washer', washerW);
-
-    const animType = this.getValStr('animation_type', 'dots');
-    const animSpeedStr = this.getValStr('animation_speed', 'normal');
-    const speedMult = animSpeedStr === 'fast' ? 0.5 : animSpeedStr === 'slow' ? 2 : 1;
-
-    const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
-        const p = this.querySelector(`#path-${pathId}`);
-        if (!p) return;
-        if (Math.abs(flowW) < 5) {
-            p.style.opacity = '0.1';
-            p.style.animation = 'none';
-        } else {
-            p.style.opacity = '0.8';
-            p.setAttribute('class', `svg-path anim-${animType}`);
-            p.style.animation = '';
-            if (colorOverride) p.setAttribute('stroke', colorOverride);
-            let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
-            if (duration > 3) duration = 3; 
-            if (duration < 0.2) duration = 0.2; 
-            
-            p.style.animationDuration = duration + 's';
-            p.style.animationDirection = reverse ? 'reverse' : 'normal';
-        }
-    };
 
     animatePath('solar-home', solarW, 5000, false);
     // Grid animation handled above in color logic
