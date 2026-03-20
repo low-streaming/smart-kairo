@@ -134,10 +134,10 @@ class OpenKairoSolarCardEditor extends HTMLElement {
 
     // Dynamically mount Entity Pickers to prevent ConnectedCallback crash in HA
     const mountPicker = (id) => {
-        const picker = document.createElement('ha-entity-picker');
+        const picker = document.createElement('ha-selector');
         picker.hass = this._hass;
+        picker.selector = { entity: {} };
         picker.value = this.getVal(id);
-        picker.allowCustomEntity = true;
         picker.addEventListener('value-changed', (ev) => { this.updateConfig(id, ev.detail.value); });
         
         const container = this.querySelector(`#${id}_picker`);
