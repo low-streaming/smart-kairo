@@ -1,8 +1,17 @@
 class OpenKairoHistoryCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = Object.assign({}, config);
-    if (this._hass && !this._initialized) {
+    if (!this._initialized && this._hass) {
         this.renderForm();
+    }
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (!this._initialized) {
+        this.renderForm();
+    } else {
+        this.updatePickers();
     }
   }
 
@@ -26,20 +35,56 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
     this._initialized = true;
     this.innerHTML = `
       <style>
-        .group { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        .row { margin-bottom: 12px; display: flex; gap: 10px; align-items: center; }
+        .group { 
+            background: rgba(10, 20, 28, 0.4); 
+            border: 1px solid rgba(5, 240, 160, 0.1); 
+            padding: 18px; 
+            border-radius: 16px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .row { margin-bottom: 15px; display: flex; gap: 12px; align-items: center; }
         .row-col { display: flex; flex-direction: column; flex: 1; }
-        label { display: block; font-size: 11px; margin-bottom: 4px; color: var(--secondary-text-color); font-weight: bold; text-transform: uppercase; }
-        ha-entity-picker { width: 100%; }
-        h3 { margin-top: 0; margin-bottom: 15px; color: #05f0a0; border-bottom: 1px solid var(--divider-color); padding-bottom: 8px; font-family: sans-serif; }
+        label { 
+            display: block; 
+            font-size: 10px; 
+            margin-bottom: 6px; 
+            color: rgba(255,255,255,0.5); 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px;
+            font-family: 'Orbitron', sans-serif;
+        }
+        h3 { 
+            margin-top: 0; 
+            margin-bottom: 20px; 
+            color: #05f0a0; 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 0.9rem; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(5, 240, 160, 0.2); 
+            padding-bottom: 10px; 
+            text-shadow: 0 0 10px rgba(5, 240, 160, 0.3);
+        }
+        input { 
+            background: rgba(0,0,0,0.2) !important; 
+            color: white !important; 
+            border: 1px solid rgba(255,255,255,0.1) !important; 
+            padding: 10px !important; 
+            border-radius: 8px !important; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        ha-entity-picker { width: 100%; --paper-input-container-focus-color: #05f0a0; }
       </style>
       <div class="card-config">
         <div class="group">
           <h3>Haupteinstellungen</h3>
           <div class="row">
             <div class="row-col">
-              <label>Titel</label>
-              <input type="text" id="card_title" value="${this.getVal('title', 'ENERGY HISTORY')}" style="padding:8px; border-radius:4px; border:1px solid rgba(255,255,255,0.2); background:none; color:#fff;">
+              <label>Karten-Titel</label>
+              <input type="text" id="card_title" value="${this.getVal('title', 'ENERGY HISTORY')}">
             </div>
           </div>
         </div>
@@ -48,18 +93,20 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
           <h3>Verlaufs-Daten (Diagramm)</h3>
           <div class="row">
             <div class="row-col">
-              <label>Produktion (kWh)</label>
+              <label>Solar Produktion (Gesamt-Sensor)</label>
               <div id="solar_total_picker"></div>
             </div>
+          </div>
+          <div class="row">
             <div class="row-col">
-              <label>Verbrauch (kWh)</label>
+              <label>Verbrauch (Gesamt-Sensor)</label>
               <div id="consumption_total_picker"></div>
             </div>
           </div>
         </div>
 
         <div class="group">
-          <h3>Solar Statistiken</h3>
+          <h3>Statistiken: Solar</h3>
           <div class="row">
             <div class="row-col"><label>Tag</label><div id="solar_day_picker"></div></div>
             <div class="row-col"><label>Woche</label><div id="solar_week_picker"></div></div>
@@ -71,7 +118,7 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
         </div>
 
         <div class="group">
-          <h3>Verbrauch Statistiken</h3>
+          <h3>Statistiken: Verbrauch</h3>
           <div class="row">
             <div class="row-col"><label>Tag</label><div id="consumption_day_picker"></div></div>
             <div class="row-col"><label>Woche</label><div id="consumption_week_picker"></div></div>
@@ -84,12 +131,13 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
       </div>
     `;
 
-    this.createPickers();
-    
+    this.updatePickers();
     this.querySelector('#card_title').addEventListener('change', (e) => this.updateConfig('title', e.target.value));
   }
 
-  createPickers() {
+  updatePickers() {
+    if (!this._hass) return;
+    
     const fields = [
         ['solar_total_picker', 'solar_total_entity'],
         ['consumption_total_picker', 'consumption_total_entity'],
@@ -106,19 +154,17 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
     fields.forEach(([divId, configKey]) => {
         const div = this.querySelector(`#${divId}`);
         if (!div) return;
-        const picker = document.createElement("ha-entity-picker");
+        
+        let picker = div.querySelector('ha-entity-picker');
+        if (!picker) {
+            picker = document.createElement("ha-entity-picker");
+            picker.addEventListener("value-changed", (e) => this.updateConfig(configKey, e.detail.value));
+            div.appendChild(picker);
+        }
+        
         picker.hass = this._hass;
         picker.value = this.getVal(configKey);
-        picker.addEventListener("value-changed", (e) => this.updateConfig(configKey, e.detail.value));
-        div.appendChild(picker);
     });
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    if (this._initialized) {
-        // Update pickers if needed
-    }
   }
 }
 
