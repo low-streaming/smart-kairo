@@ -569,57 +569,57 @@ class OpenKairoSolarCard extends HTMLElement {
       const nodes = [];
       const paths = [];
 
-      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 40));
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 36));
       
       if (this.getValStr('solar_entity')) {
-          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 12));
-          paths.push(this.drawPath('solar-home', cSolar, 50, 12, 50, 40));
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 10));
+          paths.push(this.drawPath('solar-home', cSolar, 50, 10, 50, 36));
       }
       if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
-          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 18, 40));
-          paths.push(this.drawPath('grid-home', cGrid, 18, 40, 50, 40));
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 18, 36));
+          paths.push(this.drawPath('grid-home', cGrid, 18, 36, 50, 36));
       }
       if (this.getValStr('battery_power_entity')) {
-          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 82, 40));
-          paths.push(this.drawPath('batt-home', cBatt, 82, 40, 50, 40));
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 82, 36));
+          paths.push(this.drawPath('batt-home', cBatt, 82, 36, 50, 36));
       }
       
       // Consumers in a wide arc below
       if (this.getValStr('pool_entity')) {
           const name = this.getValStr('pool_name', 'Pool');
           const icon = this.getValStr('pool_icon', 'mdi:pool');
-          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 15, 68));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 40, 15, 68, false));
+          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 15, 62));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 36, 15, 62, false));
       }
       if (this.getValStr('miner_entity')) {
           const name = this.getValStr('miner_name', 'Miner');
           const icon = this.getValStr('miner_icon', 'mdi:bitcoin');
-          nodes.push(this.drawNode('miner', icon, name, cMiner, 30, 84));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 40, 30, 84, false));
+          nodes.push(this.drawNode('miner', icon, name, cMiner, 30, 78));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 36, 30, 78, false));
       }
       if (this.getValStr('heatpump_entity')) {
           const name = this.getValStr('heatpump_name', 'Heizung');
           const icon = this.getValStr('heatpump_icon', 'mdi:heat-pump');
-          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 45, 92));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 40, 45, 92, false));
+          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 45, 87));
+          paths.push(this.drawPath('home-heatpump', cHeat, 50, 36, 45, 87, false));
       }
       if (this.getValStr('ev_entity')) {
           const name = this.getValStr('ev_name', 'Auto');
           const icon = this.getValStr('ev_icon', 'mdi:car-electric');
-          nodes.push(this.drawNode('ev', icon, name, cEv, 55, 92));
-          paths.push(this.drawPath('home-ev', cEv, 50, 40, 55, 92, false));
+          nodes.push(this.drawNode('ev', icon, name, cEv, 55, 87));
+          paths.push(this.drawPath('home-ev', cEv, 50, 36, 55, 87, false));
       }
       if (this.getValStr('ac_entity')) {
           const name = this.getValStr('ac_name', 'Klima');
           const icon = this.getValStr('ac_icon', 'mdi:air-conditioner');
-          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 70, 84));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 40, 70, 84, false));
+          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 70, 78));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 36, 70, 78, false));
       }
       if (this.getValStr('washer_entity')) {
           const name = this.getValStr('washer_name', 'Waschm.');
           const icon = this.getValStr('washer_icon', 'mdi:washing-machine');
-          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 85, 68));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 40, 85, 68, false));
+          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 85, 62));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 36, 85, 62, false));
       }
 
       const svgHtml = `
