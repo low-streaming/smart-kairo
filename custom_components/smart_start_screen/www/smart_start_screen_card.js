@@ -537,8 +537,9 @@ class OpenKairoCard extends HTMLElement {
       this.querySelector('#ent-btn').onclick = () => { window.location.href = '/config/entities'; };
     }
 
-    // --- Update Checker & Sci-Fi Logs ---
-    this._hass = hass; // Save the reference so the interval always grabs the LIVE data and not a stale first-render object
+    try {
+      if (!hass || !hass.states) return;
+      this._hass = hass; 
 
     const updateBanner = this.querySelector('#update-banner');
     const updateEntities = Object.keys(this._hass.states).filter(k => k.startsWith('update.') && this._hass.states[k].state === 'on');
@@ -682,10 +683,16 @@ class OpenKairoCard extends HTMLElement {
            };
         });
       }
+      }
+    } catch (err) {
+      console.error("OpenKairo OS Launchpad Error:", err);
     }
   }
 
-  setConfig(config) {}
+  setConfig(config) {
+    if (!config) throw new Error("Invalid configuration");
+    this._config = Object.assign({}, config);
+  }
   getCardSize() { return 10; }
 }
 
