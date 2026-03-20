@@ -342,28 +342,35 @@ class OpenKairoSolarCard extends HTMLElement {
           position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
-        .header { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 20px; letter-spacing: 3px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);}
+        .header { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: #10b981; text-align: center; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);}
         
-        .status-bar {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: 10px 18px; background: rgba(255,255,255,0.03); border-radius: 12px;
-          margin-bottom: 25px; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.05);
-          backdrop-filter: blur(5px);
+        .main-container { display: flex; gap: 30px; align-items: flex-start; padding: 0 10px;}
+        
+        .sidebar-stats {
+          display: flex; flex-direction: column; gap: 15px; width: 130px; 
+          flex-shrink: 0; padding-top: 10px;
         }
-        .status-group { display: flex; gap: 15px; align-items: center; }
-        .status-item { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.6); }
-        .status-item ha-icon { --mdc-icon-size: 14px; color: #10b981; }
-        .status-item .val { font-weight: 600; color: #fff; font-family: 'Orbitron', sans-serif;}
+        
+        .stat-box {
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 16px; padding: 12px; display: flex; flex-direction: column;
+          align-items: center; gap: 4px; backdrop-filter: blur(8px);
+          transition: 0.3s;
+        }
+        .stat-box:hover { background: rgba(255,255,255,0.06); border-color: rgba(16, 185, 129, 0.3);}
+        .stat-box ha-icon { --mdc-icon-size: 20px; color: #10b981; margin-bottom: 2px; filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.4));}
+        .stat-label { font-size: 0.55rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px; font-weight: 500;}
+        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 800; color: #fff;}
 
-        .flow-container { position: relative; width: 100%; aspect-ratio: 1.5; min-height: 550px; display: flex; align-items: center; justify-content: center;}
+        .flow-container { position: relative; flex: 1; aspect-ratio: 1.4; min-height: 550px; display: flex; align-items: center; justify-content: center;}
         
         .svg-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 1;}
         .svg-path { fill: none; stroke-width: 1.5; stroke-linecap: round; transition: 0.5s; opacity: 0.15; }
         
-        /* Animation Types - Premium Refined */
+        /* Animation Types - Premium Particles */
         .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
-        .anim-dash { stroke-dasharray: 10 20; animation: dashAnim linear infinite; }
-        .anim-neon { stroke-dasharray: 40 100; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 2;}
+        .anim-dash { stroke-dasharray: 8 20; animation: dashAnim linear infinite; }
+        .anim-neon { stroke-dasharray: 10 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.8;}
         
         @keyframes dashAnim { to { stroke-dashoffset: -100; } }
 
@@ -377,49 +384,59 @@ class OpenKairoSolarCard extends HTMLElement {
            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .node * { z-index: 12; }
-        
-        /* Inner Glowing Border */
         .node::after {
            content: ''; position: absolute; inset: -1px; border-radius: 50%;
-           border: 1px solid currentColor; opacity: 0.3; pointer-events: none;
+           border: 1px solid currentColor; opacity: 0.25; pointer-events: none;
         }
 
         .node-icon { --mdc-icon-size: 24px; margin-bottom: 3px; color: currentColor; opacity: 0.9; filter: drop-shadow(0 0 5px currentColor);}
-        .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+        .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
         .node-label { font-size: 0.5rem; text-transform: uppercase; color: rgba(255,255,255,0.5); letter-spacing: 1.2px; font-weight: 300;}
 
-        /* Pulsing Home Node */
         @keyframes pulseHome {
             0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
             70% { transform: translate(-50%, -50%) scale(1.03); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
             100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
-        .pulse-active { animation: pulseHome 2s infinite ease-in-out; }
+        .pulse-active { animation: pulseHome 2.5s infinite ease-in-out; }
+
+        .footer {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          margin-top: 10px; padding-bottom: 10px;
+          font-family: 'Orbitron', sans-serif; font-size: 0.5rem; 
+          color: rgba(255,255,255,0.25); letter-spacing: 3px;
+          text-shadow: 0 0 5px rgba(16, 185, 129, 0.15);
+          border-top: 1px solid rgba(255,255,255,0.03); padding-top: 15px;
+        }
+        .footer ha-icon { --mdc-icon-size: 14px; color: #10b981; opacity: 0.5; }
+        .footer .br-name { font-weight: 800; color: rgba(16, 185, 129, 0.6); margin-left: 2px;}
       </style>
       <ha-card>
         <div class="header">ENERGY OS</div>
-        <div class="status-bar" id="status-bar">
-           <div class="status-group">
-              <div class="status-item" id="stat-today"><ha-icon icon="mdi:calendar-today"></ha-icon><span class="val">--</span></div>
-              <div class="status-item" id="stat-week"><ha-icon icon="mdi:calendar-week"></ha-icon><span class="val">--</span></div>
-              <div class="status-item" id="stat-month"><ha-icon icon="mdi:calendar-month"></ha-icon><span class="val">--</span></div>
-           </div>
-           <div class="status-group">
-              <div class="status-item" id="stat-weather"><ha-icon icon="mdi:weather-sunny"></ha-icon><span class="val">--°C</span></div>
-           </div>
+        <div class="main-container">
+          <div class="sidebar-stats" id="sidebar-stats">
+            <div class="stat-box" id="stat-today"><ha-icon icon="mdi:calendar-today"></ha-icon><span class="stat-label">Heute</span><span class="stat-value">--</span></div>
+            <div class="stat-box" id="stat-week"><ha-icon icon="mdi:calendar-week"></ha-icon><span class="stat-label">Woche</span><span class="stat-value">--</span></div>
+            <div class="stat-box" id="stat-month"><ha-icon icon="mdi:calendar-month"></ha-icon><span class="stat-label">Monat</span><span class="stat-value">--</span></div>
+            <div class="stat-box" id="stat-weather"><ha-icon icon="mdi:weather-sunny"></ha-icon><span class="stat-label">Wetter</span><span class="stat-value">--</span></div>
+          </div>
+          <div class="flow-container" id="flow-container">
+             <svg class="svg-layer" id="svg-layer">
+                <defs>
+                  <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+             </svg>
+          </div>
         </div>
-        <div class="flow-container" id="flow-container">
-           <svg class="svg-layer" id="svg-layer">
-              <defs>
-                <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-           </svg>
+        <div class="footer">
+           <ha-icon icon="mdi:flash-circle"></ha-icon>
+           POWERED BY <span class="br-name">OPENKAIRO OS</span>
         </div>
       </ha-card>
     `;
@@ -638,55 +655,34 @@ class OpenKairoSolarCard extends HTMLElement {
     animatePath('home-pool', poolW, 5000, false);
     animatePath('home-washer', washerW, 3000, false);
     
-    // Update Stats Bar
+    // Stats & Weather
     const updateStat = (id, entityId, unit) => {
         const el = this.querySelector(`#stat-${id}`);
         if (!el) return;
         if (!entityId) { el.style.display = 'none'; return; }
         el.style.display = 'flex';
-        const val = getVal(entityId);
-        el.querySelector('.val').innerText = (Math.round(val * 10) / 10) + unit;
+        const state = hass.states[entityId];
+        const val = state ? parseFloat(state.state) || 0 : null;
+        const valEl = el.querySelector('.stat-value');
+        if (valEl) valEl.innerText = val !== null ? (Math.round(val * 10) / 10) + unit : '--';
     };
 
     updateStat('today', this._config.solar_yield_today_entity, ' kWh');
     updateStat('week', this._config.solar_yield_week_entity, ' kWh');
     updateStat('month', this._config.solar_yield_month_entity, ' kWh');
-
+    
     // Weather
-    const weatherEl = this.querySelector('#stat-weather');
-    const weatherEntity = this._config.weather_entity;
-    if (weatherEl) {
-        if (!weatherEntity) {
-            weatherEl.style.display = 'none';
-        } else {
-            weatherEl.style.display = 'flex';
-            const w = hass.states[weatherEntity];
-            if (w) {
-                const temp = w.attributes.temperature;
-                const state = w.state;
-                weatherEl.querySelector('.val').innerText = (temp || '--') + '°C';
-                
-                // Map state to icon
-                const iconMap = {
-                    'sunny': 'mdi:weather-sunny',
-                    'clear-night': 'mdi:weather-night',
-                    'cloudy': 'mdi:weather-cloudy',
-                    'fog': 'mdi:weather-fog',
-                    'hail': 'mdi:weather-hail',
-                    'lightning': 'mdi:weather-lightning',
-                    'lightning-rainy': 'mdi:weather-lightning-rainy',
-                    'partlycloudy': 'mdi:weather-partly-cloudy',
-                    'pouring': 'mdi:weather-pouring',
-                    'rainy': 'mdi:weather-rainy',
-                    'snowy': 'mdi:weather-snowy',
-                    'snowy-rainy': 'mdi:weather-snowy-rainy',
-                    'sunny': 'mdi:weather-sunny',
-                    'windy': 'mdi:weather-windy',
-                    'windy-variant': 'mdi:weather-windy-variant'
-                };
-                const icon = iconMap[state] || 'mdi:weather-cloudy';
-                weatherEl.querySelector('ha-icon').setAttribute('icon', icon);
-            }
+    const weatherEnt = this._config.weather_entity;
+    if (weatherEnt && hass.states[weatherEnt]) {
+        const wS = hass.states[weatherEnt];
+        const temp = wS.attributes.temperature;
+        const state = wS.state;
+        const wEl = this.querySelector(`#stat-weather .stat-value`);
+        const wIcon = this.querySelector(`#stat-weather ha-icon`);
+        if (wEl) wEl.innerText = temp !== undefined ? temp + '°C' : '--°C';
+        if (wIcon) {
+            const iconMap = { 'sunny': 'mdi:weather-sunny', 'cloudy': 'mdi:weather-cloudy', 'partlycloudy': 'mdi:weather-partly-cloudy', 'rainy': 'mdi:weather-rainy', 'snowy': 'mdi:weather-snowy', 'clear-night': 'mdi:weather-night' };
+            wIcon.setAttribute('icon', iconMap[state] || 'mdi:weather-cloudy');
         }
     }
     
