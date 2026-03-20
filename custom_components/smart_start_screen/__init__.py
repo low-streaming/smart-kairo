@@ -17,6 +17,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     www_dir = os.path.join(os.path.dirname(__file__), "www")
     js_path = os.path.join(www_dir, "smart_start_screen_card.js")
     solar_js_path = os.path.join(www_dir, "openkairo_solar_card.js")
+    history_js_path = os.path.join(www_dir, "openkairo_history_card.js")
     
     paths_to_register = []
     
@@ -25,6 +26,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     
     if os.path.exists(solar_js_path):
         paths_to_register.append(StaticPathConfig("/smart_start_screen/openkairo_solar_card.js", solar_js_path, False))
+    
+    if os.path.exists(history_js_path):
+        paths_to_register.append(StaticPathConfig("/smart_start_screen/openkairo_history_card.js", history_js_path, False))
 
     if paths_to_register:
         cache_buster = str(time.time())
@@ -34,6 +38,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             add_extra_js_url(hass, f"/smart_start_screen/smart_start_screen_card.js?v={cache_buster}")
         if os.path.exists(solar_js_path):
             add_extra_js_url(hass, f"/smart_start_screen/openkairo_solar_card.js?v={cache_buster}")
+        if os.path.exists(history_js_path):
+            add_extra_js_url(hass, f"/smart_start_screen/openkairo_history_card.js?v={cache_buster}")
             
         _LOGGER.info("SmartStartScreen: UIs registered successfully (Cache Busted)")
     else:
