@@ -179,6 +179,7 @@ class OpenKairoSolarCard extends HTMLElement {
   }
 
   setConfig(config) {
+    if (!config) throw new Error("Invalid configuration");
     this._config = Object.assign({}, config);
     if (!this.content) {
       this.setupDOM();
@@ -298,30 +299,26 @@ class OpenKairoSolarCard extends HTMLElement {
           paths.push(this.drawPath('home-ev', cEv, 50, 50, 85, 85));
       }
 
-      svg.setAttribute('viewBox', '0 0 100 100');
-      svg.setAttribute('preserveAspectRatio', 'none');
-      svg.innerHTML = paths.join('');
-      
-      const oldNodes = container.querySelectorAll('.node');
-      oldNodes.forEach(n => n.remove());
-      container.insertAdjacentHTML('beforeend', nodes.join(''));
+      const svgHtml = `<svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">${paths.join('')}</svg>`;
+      container.innerHTML = svgHtml + nodes.join('');
   }
 
   set hass(hass) {
-    if (!this._config) return;
-    
-    if (!this._layoutBuilt) {
-        this.updateLayout();
-        this._layoutBuilt = true;
-    }
+    try {
+      if (!this._config || !hass || !hass.states) return;
+      
+      if (!this._layoutBuilt) {
+          this.updateLayout();
+          this._layoutBuilt = true;
+      }
 
-    const getVal = (entityId) => {
-        if (!entityId) return 0;
-        const state = hass.states[entityId];
-        return state ? parseFloat(state.state) || 0 : 0;
-    };
+      const getVal = (entityId) => {
+          if (!entityId) return 0;
+          const state = hass.states[entityId];
+          return state ? parseFloat(state.state) || 0 : 0;
+      };
 
-    let solarW = getVal(this._config.solar_entity);
+      let solarW = getVal(this._config.solar_entity);
     let gridInW = getVal(this._config.grid_import_entity);
     let gridOutW = getVal(this._config.grid_export_entity);
     let battW = getVal(this._config.battery_power_entity); 
@@ -357,11 +354,12 @@ class OpenKairoSolarCard extends HTMLElement {
         const p = this.querySelector(`#path-${pathId}`);
         if (!p) return;
         if (Math.abs(flowW) < 5) {
-            p.style.opacity = 0.1;
+            p.style.opacity = '0.1';
             p.style.animation = 'none';
         } else {
-            p.style.opacity = 0.8;
+            p.style.opacity = '0.8';
             p.setAttribute('class', `svg-path anim-${animType}`);
+            p.style.animation = ''; // Important: clear inline "none" so class animation can resume
             let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
             if (duration > 3) duration = 3; 
             if (duration < 0.2) duration = 0.2; 
@@ -377,6 +375,10 @@ class OpenKairoSolarCard extends HTMLElement {
     animatePath('home-miner', minerW, 2000, false);
     animatePath('home-heatpump', heatW, 3000, false);
     animatePath('home-ev', evW, 11000, false);
+    
+    } catch(err) {
+      console.error("OpenKairo Solar Card Error:", err);
+    }
   }
 
   getCardSize() { return 5; }
