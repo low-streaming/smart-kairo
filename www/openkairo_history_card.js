@@ -220,19 +220,20 @@ class OpenKairoHistoryCard extends HTMLElement {
           background: transparent !important;
           border: none !important;
           box-shadow: none !important;
-          padding: 10px;
+          padding: 0px;
           color: white;
         }
         .header-container {
           display: flex;
           justify-content: center;
           align-items: center;
-          margin-bottom: 20px;
+          margin-bottom: 10px;
           position: relative;
+          height: 40px;
         }
         .title {
           font-family: 'Orbitron', sans-serif;
-          font-size: 1.1rem;
+          font-size: 1rem;
           letter-spacing: 4px;
           color: #05f0a0;
           text-shadow: 0 0 10px rgba(5, 240, 160, 0.4);
@@ -240,39 +241,49 @@ class OpenKairoHistoryCard extends HTMLElement {
         }
         .view-toggle {
           position: absolute;
-          right: 0;
+          right: 10px;
           display: flex;
-          gap: 10px;
+          gap: 15px;
           font-family: 'Orbitron', sans-serif;
-          font-size: 0.6rem;
+          font-size: 0.65rem;
           letter-spacing: 1px;
-          opacity: 0.6;
+          opacity: 0.5;
         }
-        .view-toggle span { cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: 0.3s; }
-        .view-toggle span.active { color: #05f0a0; background: rgba(5, 240, 160, 0.1); opacity: 1; }
+        .view-toggle span { cursor: pointer; transition: 0.3s; padding: 2px 4px; border-radius: 4px; }
+        .view-toggle span.active { color: #05f0a0; opacity: 1; background: rgba(5, 240, 160, 0.15); }
 
         .chart-container {
-          height: 250px;
-          margin-bottom: 30px;
+          height: 220px;
+          margin-bottom: 5px;
         }
         
         .stats-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 25px;
+          padding: 0 10px;
         }
         .stat-section {
-          padding-left: 15px;
+          position: relative;
         }
-        .stat-section.prod { border-left: 3px solid #05f0a0; }
-        .stat-section.cons { border-left: 3px solid #f43f5e; }
+        .stat-section::before {
+          content: "";
+          position: absolute;
+          left: -10px;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          border-radius: 2px;
+        }
+        .stat-section.prod::before { background: #05f0a0; box-shadow: 0 0 8px rgba(5, 240, 160, 0.5); }
+        .stat-section.cons::before { background: #f43f5e; box-shadow: 0 0 8px rgba(244, 63, 94, 0.5); }
 
         .stat-title {
           font-family: 'Orbitron', sans-serif;
-          font-size: 0.8rem;
+          font-size: 0.85rem;
           letter-spacing: 3px;
-          margin-bottom: 12px;
-          opacity: 0.9;
+          margin-bottom: 15px;
+          font-weight: 500;
         }
         .stat-section.prod .stat-title { color: #05f0a0; }
         .stat-section.cons .stat-title { color: #f43f5e; }
@@ -280,23 +291,28 @@ class OpenKairoHistoryCard extends HTMLElement {
         .values-row {
           display: flex;
           justify-content: space-between;
-          gap: 10px;
+          align-items: flex-end;
+          gap: 5px;
         }
         .value-box {
           display: flex;
           flex-direction: column;
+          flex: 1;
         }
         .label {
           font-family: 'Orbitron', sans-serif;
           font-size: 0.5rem;
-          color: rgba(255,255,255,0.4);
+          color: rgba(255,255,255,0.3);
           text-transform: uppercase;
-          margin-bottom: 3px;
+          margin-bottom: 4px;
+          letter-spacing: 1px;
         }
         .value {
           font-family: 'Orbitron', sans-serif;
-          font-size: 0.8rem;
+          font-size: 0.85rem;
           font-weight: 700;
+          color: #fff;
+          white-space: nowrap;
         }
       </style>
       <ha-card>
@@ -340,6 +356,7 @@ class OpenKairoHistoryCard extends HTMLElement {
     this.shadowRoot.querySelector('#v7d').onclick = () => { this._view = '7d'; this.render(); };
 
     this.renderChart();
+    this.updateData();
   }
 
   updateData() {

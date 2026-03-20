@@ -397,8 +397,9 @@ class OpenKairoSolarCard extends HTMLElement {
         ha-card {
            background: rgba(10, 20, 28, 0.98); border-radius: 28px; padding: 25px;
            position: relative; box-shadow: 0 15px 45px rgba(0,0,0,0.7);
-           overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+           overflow: hidden !important; border: 1px solid rgba(255,255,255,0.05);
            color: #fff; font-family: 'Inter', sans-serif;
+           contain: paint;
         }
         
         .header { 
@@ -437,6 +438,7 @@ class OpenKairoSolarCard extends HTMLElement {
         .svg-layer { 
           position: absolute; top:0; left:0; width:100%; height:100%; 
           pointer-events:none; z-index: 1; display: block;
+          overflow: hidden !important;
         }
         .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
         
