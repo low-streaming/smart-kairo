@@ -11,7 +11,7 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
     if (!this._initialized) {
         this.renderForm();
     } else {
-        this.updatePickers();
+        this.updateSelectors();
     }
   }
 
@@ -76,7 +76,7 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
             width: 100%;
             box-sizing: border-box;
         }
-        ha-entity-picker { width: 100%; --paper-input-container-focus-color: #05f0a0; }
+        ha-selector { width: 100%; }
       </style>
       <div class="card-config">
         <div class="group">
@@ -131,11 +131,11 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
       </div>
     `;
 
-    this.updatePickers();
+    this.updateSelectors();
     this.querySelector('#card_title').addEventListener('change', (e) => this.updateConfig('title', e.target.value));
   }
 
-  updatePickers() {
+  updateSelectors() {
     if (!this._hass) return;
     
     const fields = [
@@ -155,15 +155,16 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
         const div = this.querySelector(`#${divId}`);
         if (!div) return;
         
-        let picker = div.querySelector('ha-entity-picker');
-        if (!picker) {
-            picker = document.createElement("ha-entity-picker");
-            picker.addEventListener("value-changed", (e) => this.updateConfig(configKey, e.detail.value));
-            div.appendChild(picker);
+        let sel = div.querySelector('ha-selector');
+        if (!sel) {
+            sel = document.createElement("ha-selector");
+            sel.selector = { entity: {} };
+            sel.addEventListener("value-changed", (e) => this.updateConfig(configKey, e.detail.value));
+            div.appendChild(sel);
         }
         
-        picker.hass = this._hass;
-        picker.value = this.getVal(configKey);
+        sel.hass = this._hass;
+        sel.value = this.getVal(configKey);
     });
   }
 }
@@ -280,10 +281,10 @@ class OpenKairoHistoryCard extends HTMLElement {
 
         .stat-title {
           font-family: 'Orbitron', sans-serif;
-          font-size: 0.85rem;
-          letter-spacing: 3px;
-          margin-bottom: 15px;
-          font-weight: 500;
+          font-size: 1.15rem;
+          letter-spacing: 4px;
+          margin-bottom: 20px;
+          font-weight: 900;
         }
         .stat-section.prod .stat-title { color: #05f0a0; }
         .stat-section.cons .stat-title { color: #f43f5e; }
@@ -292,7 +293,7 @@ class OpenKairoHistoryCard extends HTMLElement {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          gap: 5px;
+          gap: 10px;
         }
         .value-box {
           display: flex;
@@ -301,18 +302,19 @@ class OpenKairoHistoryCard extends HTMLElement {
         }
         .label {
           font-family: 'Orbitron', sans-serif;
-          font-size: 0.5rem;
-          color: rgba(255,255,255,0.3);
+          font-size: 0.65rem;
+          color: rgba(255,255,255,0.4);
           text-transform: uppercase;
-          margin-bottom: 4px;
-          letter-spacing: 1px;
+          margin-bottom: 6px;
+          letter-spacing: 2px;
         }
         .value {
           font-family: 'Orbitron', sans-serif;
-          font-size: 0.85rem;
-          font-weight: 700;
+          font-size: 1.35rem;
+          font-weight: 900;
           color: #fff;
           white-space: nowrap;
+          text-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
       </style>
       <ha-card>
@@ -386,67 +388,57 @@ class OpenKairoHistoryCard extends HTMLElement {
 
     const entities = [];
     if (this._config.solar_total_entity) {
-        entities.push({ entity: this._config.solar_total_entity, name: 'Solar', color: '#facc15' });
+        entities.push({ entity: this._config.solar_total_entity, name: 'Produktion', color: '#05f0a0' });
     }
     if (this._config.consumption_total_entity) {
         entities.push({ entity: this._config.consumption_total_entity, name: 'Verbrauch', color: '#f43f5e' });
     }
 
     if (entities.length === 0) {
-        chartDiv.innerHTML = '<div style="display:flex; height:100%; align-items:center; justify-content:center; opacity:0.3; font-size:12px;">Keine Sensoren ausgewählt</div>';
+        chartDiv.innerHTML = '<div style="display:flex; height:100%; align-items:center; justify-content:center; opacity:0.3; font-size:12px;">Keine Sensoren für Tagesverlauf ausgewählt</div>';
         return;
     }
 
-    // Creating internal HA history graph component
-    const graph = document.createElement('state-history-charts');
-    graph.hass = this._hass;
-    graph.historyData = {
-        loading: false,
-        timeline: [],
-        line: entities.map(e => ({
-            entity_id: e.entity,
-            name: e.name,
-            unit: 'kWh',
-            color: e.color
-        }))
+    const cardConfig = {
+        type: 'history-graph',
+        hours_to_show: this._view === '24h' ? 24 : 168,
+        entities: entities.map(e => ({ entity: e.entity, name: e.name, color: e.color })),
+        logarithmic_scale: false
     };
-    
-    // Determining time range
-    const endTime = new Date();
-    const startTime = new Date();
-    if (this._view === '24h') startTime.setHours(startTime.getHours() - 24);
-    else startTime.setDate(startTime.getDate() - 7);
 
-    // Fetching actual data from HASS
-    try {
-        const history = await this._hass.callApi('GET', `history/period/${startTime.toISOString()}?filter_entity_id=${entities.map(e => e.entity).join(',')}&end_time=${endTime.toISOString()}&minimal_response`);
-        
-        // Polishing the internal HA graph component
+    let card = chartDiv.querySelector('hui-history-graph-card');
+    
+    if (!card) {
         chartDiv.innerHTML = '';
-        const historyGraph = document.createElement('ha-chart-base');
-        
-        // This is a complex part, as ha-chart-base expects specific data formats.
-        // For simplicity and to match the "Design First" rule, we will use a refined SVG mockup if the data fails,
-        // or we try to pass it to the standard history component.
-        
-        const internalGraph = document.createElement('state-history-chart-line');
-        internalGraph.hass = this._hass;
-        internalGraph.unit = 'kWh';
-        internalGraph.data = history[0] || []; // Simplified
-        internalGraph.identifier = entities[0].entity;
-        
-        // Re-injecting the polished CSS for the internal chart
         const style = document.createElement('style');
         style.textContent = `
-          .chart-container canvas { filter: drop-shadow(0 0 5px rgba(5, 240, 160, 0.2)); }
+            hui-history-graph-card {
+                --ha-card-background: transparent !important;
+                --ha-card-border-width: 0 !important;
+                --ha-card-box-shadow: none !important;
+            }
+            .chart-container { margin-top: -10px; }
         `;
-        this.shadowRoot.appendChild(style);
+        chartDiv.appendChild(style);
 
-        chartDiv.appendChild(internalGraph);
-
-    } catch (e) {
-        chartDiv.innerText = "Fehler beim Laden der Daten";
+        try {
+            if (window.loadCardHelpers) {
+                const helpers = await window.loadCardHelpers();
+                card = await helpers.createCardElement(cardConfig);
+            } else {
+                card = document.createElement('hui-history-graph-card');
+                card.setConfig(cardConfig);
+            }
+            chartDiv.appendChild(card);
+        } catch (e) {
+            chartDiv.innerHTML = '<div style="color:#f43f5e; font-size:12px; text-align:center;">Laden des Tagesverlaufs fehlgeschlagen.</div>';
+            return;
+        }
+    } else {
+        card.setConfig(cardConfig);
     }
+    
+    card.hass = this._hass;
   }
 }
 
