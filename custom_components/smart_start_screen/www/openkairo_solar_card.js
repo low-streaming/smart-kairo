@@ -67,21 +67,30 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Solarproduktion (W)</label>
-              <div id="solar_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="solar_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Netzbezug (W)</label>
-              <div id="grid_import_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="grid_import_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="grid_import_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="grid_color" value="${this.getVal('grid_color', '#ff4a4a')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Netzeinspeisung (W)</label>
-              <div id="grid_export_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="grid_export_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="grid_export_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Export-Farbe</label><input type="color" id="grid_export_color" value="${this.getVal('grid_export_color', '#00d1ff')}"></div>
           </div>
@@ -95,14 +104,20 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Batterieleistung (W)</label>
-              <div id="battery_power_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="battery_power_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="battery_power_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="battery_color" value="${this.getVal('battery_color', '#05f0a0')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Batterieladung (%)</label>
-              <div id="battery_level_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="battery_level_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="battery_level_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col" style="justify-content:center;">
                <label>Batt. Invertieren?</label>
@@ -116,42 +131,60 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Crypto Miner (W)</label>
-              <div id="miner_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="miner_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="miner_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="miner_color" value="${this.getVal('miner_color', '#a855f7')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Wärmepumpe / Heizung (W)</label>
-              <div id="heatpump_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="heatpump_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="heatpump_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>E-Auto / Wallbox (W)</label>
-              <div id="ev_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="ev_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="ev_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
-              <label>Kliamanlage (W)</label>
-              <div id="ac_entity_picker"></div>
+              <label>Klimaanlage (W)</label>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="ac_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="ac_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="ac_color" value="${this.getVal('ac_color', '#3b82f6')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Pool / Teich (W)</label>
-              <div id="pool_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="pool_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="pool_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="pool_color" value="${this.getVal('pool_color', '#00d1ff')}"></div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Waschm. / Spülm. (W)</label>
-              <div id="washer_entity_picker"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="washer_entity_picker" style="flex:1;"></div>
+                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="washer_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+              </div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="washer_color" value="${this.getVal('washer_color', '#f43f5e')}"></div>
           </div>
@@ -170,6 +203,14 @@ class OpenKairoSolarCardEditor extends HTMLElement {
         
         const container = this.querySelector(`#${id}_picker`);
         if(container) container.appendChild(picker);
+
+        // Clear button logic
+        const clearBtn = this.querySelector(`.clear-btn[data-id="${id}"]`);
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.updateConfig(id, ""); 
+            });
+        }
     };
 
     [
