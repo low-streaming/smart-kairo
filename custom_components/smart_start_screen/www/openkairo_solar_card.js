@@ -83,6 +83,13 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               <label>Netzeinspeisung (W)</label>
               <div id="grid_export_entity_picker"></div>
             </div>
+            <div class="row-col"><label>Export-Farbe</label><input type="color" id="grid_export_color" value="${this.getVal('grid_export_color', '#00d1ff')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Haus / Eigenverbrauch</label>
+              <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:5px;">(Wird automatisch aus Saldo berechnet)</div>
+            </div>
             <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
           </div>
           <div class="row">
@@ -105,7 +112,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
         </div>
 
         <div class="group">
-          <h3>Optionale Extra-Verbraucher</h3>
+          <h3>Optionale Sonderverbraucher</h3>
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Crypto Miner (W)</label>
@@ -115,7 +122,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
-              <label>Wärmepumpe (W)</label>
+              <label>Wärmepumpe / Heizung (W)</label>
               <div id="heatpump_entity_picker"></div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
@@ -126,6 +133,27 @@ class OpenKairoSolarCardEditor extends HTMLElement {
               <div id="ev_entity_picker"></div>
             </div>
             <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Kliamanlage (W)</label>
+              <div id="ac_entity_picker"></div>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="ac_color" value="${this.getVal('ac_color', '#3b82f6')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Pool / Teich (W)</label>
+              <div id="pool_entity_picker"></div>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="pool_color" value="${this.getVal('pool_color', '#00d1ff')}"></div>
+          </div>
+          <div class="row">
+            <div class="row-col" style="flex:3;">
+              <label>Waschm. / Spülm. (W)</label>
+              <div id="washer_entity_picker"></div>
+            </div>
+            <div class="row-col"><label>Farbe</label><input type="color" id="washer_color" value="${this.getVal('washer_color', '#f43f5e')}"></div>
           </div>
         </div>
 
@@ -147,7 +175,8 @@ class OpenKairoSolarCardEditor extends HTMLElement {
     [
         'solar_entity', 'grid_import_entity', 'grid_export_entity',
         'battery_power_entity', 'battery_level_entity',
-        'miner_entity', 'heatpump_entity', 'ev_entity'
+        'miner_entity', 'heatpump_entity', 'ev_entity',
+        'ac_entity', 'pool_entity', 'washer_entity'
     ].forEach(mountPicker);
 
     // Bind generic inputs (Selects, Colors, Checkboxes)
@@ -181,11 +210,15 @@ class OpenKairoSolarCard extends HTMLElement {
       animation_speed: "normal",
       solar_color: "#ffb800",
       grid_color: "#ff4a4a",
+      grid_export_color: "#00d1ff",
       home_color: "#10b981",
       battery_color: "#05f0a0",
       miner_color: "#a855f7",
       heatpump_color: "#3b82f6",
-      ev_color: "#eab308"
+      ev_color: "#eab308",
+      ac_color: "#3b82f6",
+      pool_color: "#00d1ff",
+      washer_color: "#f43f5e"
     };
   }
 
@@ -297,17 +330,29 @@ class OpenKairoSolarCard extends HTMLElement {
       }
       
       // Options below
+      if (this.getValStr('pool_entity')) {
+          nodes.push(this.drawNode('pool', 'mdi:pool', 'Pool', this.getValStr('pool_color', '#00d1ff'), 15, 80));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 50, 15, 80));
+      }
       if (this.getValStr('miner_entity')) {
-          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 15, 85));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 50, 15, 85));
+          nodes.push(this.drawNode('miner', 'mdi:bitcoin', 'Miner', cMiner, 30, 90));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 50, 30, 90));
       }
       if (this.getValStr('heatpump_entity')) {
-          nodes.push(this.drawNode('heatpump', 'mdi:heat-pump', 'Heizung', cHeat, 50, 85));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 50, 50, 85));
+          nodes.push(this.drawNode('heatpump', 'mdi:heat-pump', 'Heizung', cHeat, 50, 95));
+          paths.push(this.drawPath('home-heatpump', cHeat, 50, 50, 50, 95));
       }
       if (this.getValStr('ev_entity')) {
-          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 85, 85));
-          paths.push(this.drawPath('home-ev', cEv, 50, 50, 85, 85));
+          nodes.push(this.drawNode('ev', 'mdi:car-electric', 'Auto', cEv, 70, 90));
+          paths.push(this.drawPath('home-ev', cEv, 50, 50, 70, 90));
+      }
+      if (this.getValStr('ac_entity')) {
+          nodes.push(this.drawNode('ac', 'mdi:air-conditioner', 'Klima', this.getValStr('ac_color', '#3b82f6'), 85, 80));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 50, 85, 80));
+      }
+      if (this.getValStr('washer_entity')) {
+          nodes.push(this.drawNode('washer', 'mdi:washing-machine', 'Waschm.', this.getValStr('washer_color', '#f43f5e'), 95, 65));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 50, 95, 65));
       }
 
       const svgHtml = `<svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">${paths.join('')}</svg>`;
@@ -334,34 +379,60 @@ class OpenKairoSolarCard extends HTMLElement {
     let gridOutW = getVal(this._config.grid_export_entity);
     let battW = getVal(this._config.battery_power_entity); 
     if (this.getValStr('battery_invert')) battW = battW * -1; 
-    let minerW = getVal(this._config.miner_entity);
-    let heatW = getVal(this._config.heatpump_entity);
-    let evW = getVal(this._config.ev_entity);
+    let acW = getVal(this._config.ac_entity);
+    let poolW = getVal(this._config.pool_entity);
+    let washerW = getVal(this._config.washer_entity);
 
-    let extraConsumers = minerW + heatW + evW;
+    let extraConsumers = minerW + heatW + evW + acW + poolW + washerW;
     let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
     if (homeW < 0) homeW = 0;
     
     let totalHomeW = homeW + extraConsumers; 
 
-    const upd = (id, val, textSuffix) => {
+    // Battery Level (%)
+    const battLevel = getVal(this._config.battery_level_entity);
+
+    const upd = (id, val, textSuffix, colorOverride = null) => {
         const el = this.querySelector(`#val-${id}`);
+        const n = this.querySelector(`#node-${id}`);
         if (el) el.innerText = Math.round(val) + textSuffix;
+        if (n && colorOverride) {
+            n.style.borderColor = colorOverride;
+            n.style.color = colorOverride;
+            const icon = n.querySelector('ha-icon');
+            if (icon) icon.style.color = colorOverride;
+        }
     };
     
+    const cEx = this.getValStr('grid_export_color', '#00d1ff');
+    const cGr = this.getValStr('grid_color', '#ff4a4a');
+
     upd('solar', solarW, ' W');
-    if (gridOutW > 0) upd('grid', -gridOutW, ' W'); else upd('grid', gridInW, ' W');
-    upd('batt', battW, ' W');
+    if (gridOutW > 0) {
+        upd('grid', -gridOutW, ' W', cEx);
+    } else {
+        upd('grid', gridInW, ' W', cGr);
+    }
+    
+    // Custom label for Battery to include SOC
+    const battEl = this.querySelector(`#val-batt`);
+    if (battEl) {
+        battEl.innerHTML = `<div>${Math.round(battW)} W</div><div style="font-size:0.6rem; opacity:0.7;">${Math.round(battLevel)}%</div>`;
+    }
+
     upd('home', totalHomeW, ' W');
     upd('miner', minerW, ' W');
     upd('heatpump', heatW, ' W');
     upd('ev', evW, ' W');
+    upd('ac', acW, ' W');
+    upd('pool', poolW, ' W');
+    upd('washer', washerW, ' W');
 
     const animType = this.getValStr('animation_type', 'dots');
     const animSpeedStr = this.getValStr('animation_speed', 'normal');
     const speedMult = animSpeedStr === 'fast' ? 0.5 : animSpeedStr === 'slow' ? 2 : 1;
 
-    const animatePath = (pathId, flowW, maxExpected, reverse = false) => {
+    const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
         const p = this.querySelector(`#path-${pathId}`);
         if (!p) return;
         if (Math.abs(flowW) < 5) {
@@ -370,7 +441,8 @@ class OpenKairoSolarCard extends HTMLElement {
         } else {
             p.style.opacity = '0.8';
             p.setAttribute('class', `svg-path anim-${animType}`);
-            p.style.animation = ''; // Important: clear inline "none" so class animation can resume
+            p.style.animation = '';
+            if (colorOverride) p.setAttribute('stroke', colorOverride);
             let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
             if (duration > 3) duration = 3; 
             if (duration < 0.2) duration = 0.2; 
@@ -381,11 +453,14 @@ class OpenKairoSolarCard extends HTMLElement {
     };
 
     animatePath('solar-home', solarW, 5000, false);
-    animatePath('grid-home', gridInW > 0 ? gridInW : gridOutW, 5000, gridOutW > 0);
+    animatePath('grid-home', gridInW > 0 ? gridInW : gridOutW, 5000, gridOutW > 0, gridOutW > 0 ? cEx : cGr);
     animatePath('batt-home', battW, 3000, battW < 0); 
     animatePath('home-miner', minerW, 2000, false);
     animatePath('home-heatpump', heatW, 3000, false);
     animatePath('home-ev', evW, 11000, false);
+    animatePath('home-ac', acW, 3000, false);
+    animatePath('home-pool', poolW, 5000, false);
+    animatePath('home-washer', washerW, 3000, false);
     
     } catch(err) {
       console.error("OpenKairo Solar Card Error:", err);
