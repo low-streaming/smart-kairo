@@ -100,9 +100,9 @@ class OpenKairoButtonCardEditor extends HTMLElement {
             <div class="row-col">
               <label>Leucht-Dynamik (Aktiv-Status)</label>
               <select id="card_glow_style">
-                <option value="full" ${this.getVal('glow_style') === 'full' ? 'selected' : ''}>Voller Fokus-Glow (Neon)</option>
-                <option value="minimal" ${this.getVal('glow_style') === 'minimal' ? 'selected' : ''}>Dezent (Nur Icon & weicher Rahmen)</option>
-                <option value="pulse" ${this.getVal('glow_style') === 'pulse' ? 'selected' : ''}>Nur kurzer Puls beim Klick</option>
+                <option value="full" ${this.getVal('glow_style') === 'full' ? 'selected' : ''}>Voller Fokus-Glow</option>
+                <option value="minimal" ${this.getVal('glow_style') === 'minimal' ? 'selected' : ''}>Minimal (Passend zu Solar Card Bällen)</option>
+                <option value="pulse" ${this.getVal('glow_style') === 'pulse' ? 'selected' : ''}>Nur Puls Layer (Skripte)</option>
               </select>
             </div>
           </div>
@@ -209,15 +209,10 @@ class OpenKairoButtonCard extends HTMLElement {
     const alignItems = isHoriz ? 'center' : 'center';
     const justifyContent = isHoriz ? 'flex-start' : 'center';
     const textAlign = isHoriz ? 'left' : 'center';
-    const nameMargin = isHoriz ? '0 0 0 16px' : '12px 0 0 0';
-    const iconMargin = isHoriz ? '0' : '0 0 4px 0';
+    const nameMargin = isHoriz ? '0 0 0 16px' : '15px 0 0 0';
     const padding = isHoriz ? '16px 22px' : '22px 18px';
     const wrapperFlex = isHoriz ? '1' : 'none';
-    const cardRadius = isHoriz ? '18px' : '22px';
-
-    // Spotlight Gradient Origin
-    const spotOrigin = isHoriz ? 'left center' : 'top center';
-    const gradientType = isHoriz ? 'element at 0% 50%' : 'ellipse at 50% 0%';
+    const cardRadius = isHoriz ? '20px' : '24px';
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -225,13 +220,15 @@ class OpenKairoButtonCard extends HTMLElement {
           display: block;
           cursor: pointer;
         }
+        
         ha-card {
-           background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(0,0,0,0.6));
+           /* Clean Glassmorphism base identical to History and Solar main boards */
+           background: rgba(10, 20, 28, 0.45);
            backdrop-filter: blur(15px) saturate(180%);
            -webkit-backdrop-filter: blur(15px) saturate(180%);
            border-radius: ${cardRadius};
-           border: 1px solid rgba(255, 255, 255, 0.06);
-           box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 15px rgba(255,255,255,0.03);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
            padding: ${padding};
            position: relative;
            display: flex;
@@ -244,48 +241,51 @@ class OpenKairoButtonCard extends HTMLElement {
            box-sizing: border-box;
         }
 
+        ha-card::after {
+            content: ''; position: absolute; inset: -1px; border-radius: ${cardRadius};
+            border: 1px solid ${cStr}; opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
         /* Hover Effect */
         ha-card:hover {
             transform: translateY(-2px);
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), rgba(0,0,0,0.6));
+            background: rgba(20, 30, 38, 0.55);
             border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 14px 35px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.05);
         }
         ha-card:active {
             transform: scale(0.97);
         }
 
-        /* Seamless Spotlight Layer (replaces the old ugly circle) */
-        .glow-bg {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(${isHoriz ? 'ellipse at 0% 50%' : 'ellipse at 50% 0%'}, ${this.hexToRgba(cStr, glowStyle === 'full' ? 0.25 : 0.08)} 0%, transparent ${isHoriz ? '70%' : '75%'});
-            opacity: 0;
-            transition: opacity 0.6s ease-in-out;
-            pointer-events: none;
-            z-index: 0;
-        }
-
+        /* The Node-Like Icon Container */
         .icon-container {
             position: relative;
             z-index: 2;
-            width: ${isHoriz ? '46px' : '52px'};
-            height: ${isHoriz ? '46px' : '52px'};
+            width: ${isHoriz ? '46px' : '56px'};
+            height: ${isHoriz ? '46px' : '56px'};
             border-radius: 50%;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
+            /* Node Gradient exactly like solar card */
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5));
+            border: 1px solid rgba(255,255,255,0.15);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: ${iconMargin};
             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-            box-shadow: inset 0 2px 10px rgba(255,255,255,0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.05);
             flex-shrink: 0;
         }
 
+        /* The colored ring on the icon container (Node style) */
+        .icon-container::after {
+            content: ''; position: absolute; inset: -1px; border-radius: 50%;
+            border: 1px solid ${cStr}; opacity: 0; pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+
         ha-icon {
-            --mdc-icon-size: ${isHoriz ? '22px' : '26px'};
-            color: rgba(255,255,255,0.7);
+            --mdc-icon-size: ${isHoriz ? '22px' : '28px'};
+            color: rgba(255,255,255,0.4);
             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
@@ -300,14 +300,14 @@ class OpenKairoButtonCard extends HTMLElement {
 
         .name {
             font-family: 'Orbitron', 'Inter', sans-serif;
-            font-size: ${isHoriz ? '0.8rem' : '0.75rem'};
+            font-size: ${isHoriz ? '0.8rem' : '0.8rem'};
             color: #fff;
             letter-spacing: 1px;
             font-weight: 700;
-            transition: text-shadow 0.4s, color 0.4s;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
         .state-text {
@@ -323,54 +323,51 @@ class OpenKairoButtonCard extends HTMLElement {
         }
 
         /* ACTIVE STATE PROFILES */
-        
         ha-card.state-on {
-            border-color: ${glowStyle === 'pulse' ? 'rgba(255, 255, 255, 0.15)' : this.hexToRgba(cStr, 0.35)};
-            box-shadow: 0 15px 40px ${this.hexToRgba(cStr, 0.15)}, inset 0 0 25px ${this.hexToRgba(cStr, glowStyle==='full'?0.12:0.02)};
+            /* Faint ambient glow behind the entire card if FULL */
+            box-shadow: 0 15px 40px ${glowStyle === 'full' ? this.hexToRgba(cStr, 0.18) : '0 8px 32px 0 rgba(0, 0, 0, 0.6)'};
+            border-color: rgba(255, 255, 255, 0.15); 
         }
         
-        ha-card.state-on .glow-bg {
-            opacity: ${glowStyle === 'pulse' ? '0' : '1'};
+        /* Subtle outer border ring for full mode */
+        ha-card.state-on::after {
+            opacity: ${glowStyle === 'full' ? '0.2' : '0'};
         }
         
         ha-card.state-on .icon-container {
-            background: ${glowStyle === 'pulse' ? 'rgba(255,255,255,0.05)' : this.hexToRgba(cStr, 0.15)};
-            border-color: ${glowStyle === 'pulse' ? 'rgba(255,255,255,0.2)' : cStr};
-            box-shadow: 0 0 25px ${glowStyle !== 'pulse' ? this.hexToRgba(cStr, 0.6) : 'rgba(0,0,0,0)'}, inset 0 0 15px ${glowStyle !== 'pulse' ? this.hexToRgba(cStr, 0.4) : 'rgba(255,255,255,0.1)'};
+            /* The icon container glows deeply */
+            box-shadow: 0 5px 25px ${glowStyle !== 'pulse' ? this.hexToRgba(cStr, 0.5) : 'rgba(0,0,0,0.5)'}, inset 0 0 15px ${glowStyle !== 'pulse' ? this.hexToRgba(cStr, 0.2) : 'rgba(255,255,255,0.05)'};
             transform: ${glowStyle === 'pulse' ? 'scale(1)' : 'scale(1.05)'};
         }
         
-        ha-card.state-on ha-icon {
-            color: ${glowStyle === 'pulse' ? 'rgba(255,255,255,0.9)' : cStr};
-            filter: ${glowStyle === 'pulse' ? 'none' : `drop-shadow(0 0 8px ${cStr}) drop-shadow(0 0 2px #fff)`};
+        ha-card.state-on .icon-container::after {
+            opacity: ${glowStyle === 'pulse' ? '0' : '0.5'};
         }
         
-        ha-card.state-on .name {
-            color: ${glowStyle === 'full' ? '#fff' : (glowStyle === 'pulse' ? '#fff' : cStr)};
-            text-shadow: ${glowStyle === 'pulse' ? 'none' : `0 0 12px ${this.hexToRgba(cStr, 0.6)}`};
+        ha-card.state-on ha-icon {
+            color: ${glowStyle === 'pulse' ? 'rgba(255,255,255,0.8)' : cStr};
+            filter: ${glowStyle === 'pulse' ? 'none' : `drop-shadow(0 0 8px ${cStr}) drop-shadow(0 0 2px #fff)`};
         }
         
         ha-card.state-on .state-text {
             color: ${glowStyle === 'pulse' ? 'rgba(255,255,255,0.6)' : this.hexToRgba(cStr, 0.9)};
-            text-shadow: ${glowStyle === 'pulse' ? 'none' : `0 0 8px ${this.hexToRgba(cStr, 0.5)}`};
+            text-shadow: ${glowStyle === 'pulse' ? 'none' : `0 0 8px ${this.hexToRgba(cStr, 0.4)}`};
         }
         
         /* PULSE ANIMATION OVERRIDE */
-        .pulse-anim .glow-bg {
-             animation: spotlightPulse 1s ease-out;
-             opacity: 1 !important;
+        .pulse-anim .icon-container {
+             animation: iconPulse 1s ease-out;
         }
 
-        @keyframes spotlightPulse {
-            0% { opacity: 0; }
-            20% { opacity: 0.8; }
-            100% { opacity: 0; }
+        @keyframes iconPulse {
+            0% { box-shadow: 0 0 0 0 ${this.hexToRgba(cStr, 0.5)}; transform: scale(1); }
+            50% { box-shadow: 0 0 20px 10px ${this.hexToRgba(cStr, 0)}; transform: scale(1.1); }
+            100% { box-shadow: 0 0 0 0 ${this.hexToRgba(cStr, 0)}; transform: scale(1); }
         }
       </style>
       
       <ha-card id="button-card">
-         <div class="glow-bg" id="glow-anim"></div>
-         <div class="icon-container">
+         <div class="icon-container" id="icon-anim">
             <ha-icon id="button-icon" icon="mdi:help-circle-outline"></ha-icon>
          </div>
          <div class="text-wrapper">
@@ -416,11 +413,11 @@ class OpenKairoButtonCard extends HTMLElement {
         setTimeout(() => { card.style.transform = ''; }, 120);
 
         if (this.getValStr('glow_style', 'full') === 'pulse') {
-             const animDiv = this.shadowRoot.getElementById('glow-anim');
-             card.classList.remove('pulse-anim');
+             const animDiv = this.shadowRoot.getElementById('button-card');
+             animDiv.classList.remove('pulse-anim');
              void animDiv.offsetWidth; 
-             card.classList.add('pulse-anim');
-             setTimeout(() => { card.classList.remove('pulse-anim') }, 1000);
+             animDiv.classList.add('pulse-anim');
+             setTimeout(() => { animDiv.classList.remove('pulse-anim') }, 1000);
         }
 
         const action = this.getValStr('click_action', 'toggle');
