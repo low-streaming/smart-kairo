@@ -155,9 +155,6 @@ class OpenKairoAlertCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.entity) {
-      throw new Error("Du musst eine Entität zur Überwachung auswählen!");
-    }
     this._config = Object.assign({}, OpenKairoAlertCard.getStubConfig(), config);
     if (!this._rendered) {
         this.render();

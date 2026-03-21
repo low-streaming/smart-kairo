@@ -168,9 +168,6 @@ class OpenKairoButtonCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.entity) {
-      throw new Error("Du musst eine Entität für den Button auswählen!");
-    }
     this._config = Object.assign({}, OpenKairoButtonCard.getStubConfig(), config);
     if (!this._rendered) {
         this.render();
