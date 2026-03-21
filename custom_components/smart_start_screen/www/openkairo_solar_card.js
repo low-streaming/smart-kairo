@@ -102,10 +102,17 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="row">
             <div class="row-col" style="flex:3;">
               <label>Haus / Eigenverbrauch</label>
-              <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:5px;">(Wird automatisch aus Saldo berechnet)</div>
+              <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:5px;">(Basissaldo: Solar + Netz - Export + Akku)</div>
             </div>
             <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"></div>
+            <div class="row-col" style="flex:1;">
+               <label>Haus-Berechnung</label>
+               <select id="home_calc_mode">
+                 <option value="subtract" ${this.getVal('home_calc_mode', 'subtract') === 'subtract' ? 'selected' : ''}>Smartmeter (Abziehen)</option>
+                 <option value="add" ${this.getVal('home_calc_mode') === 'add' ? 'selected' : ''}>Kein Smartmeter (Addieren)</option>
+                 <option value="none" ${this.getVal('home_calc_mode') === 'none' ? 'selected' : ''}>Unverändert lassen</option>
+               </select>
+            </div>
           </div>
           <div class="row">
             <div class="row-col" style="flex:3;">
@@ -735,10 +742,19 @@ class OpenKairoSolarCard extends HTMLElement {
     };
 
     let extraConsumers = minerW + heatW + evW + acW + poolW + washerW;
-    let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
-    if (homeW < 0) homeW = 0;
+    let baseBalance = solarW + gridInW - gridOutW + battW;
     
-    let totalHomeW = homeW + extraConsumers; 
+    let totalHomeW = baseBalance;
+    const calcMode = this.getValStr('home_calc_mode', 'subtract');
+    
+    if (calcMode === 'subtract') {
+        totalHomeW = baseBalance - extraConsumers;
+        if (totalHomeW < 0) totalHomeW = 0;
+    } else if (calcMode === 'add') {
+        totalHomeW = baseBalance + extraConsumers;
+    } else {
+        totalHomeW = baseBalance;
+    }
 
     // Battery Level (%)
     const battLevel = getValRaw(this._config.battery_level_entity);

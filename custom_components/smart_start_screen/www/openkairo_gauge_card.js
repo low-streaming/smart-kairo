@@ -111,11 +111,32 @@ class OpenKairoGaugeCardEditor extends HTMLElement {
           </div>
           
           <div class="row">
-            <div class="row-col">
-              <label>Farbe (Hex, z.B. #05f0a0 oder #05a0f0)</label>
+            <div class="row-col" style="justify-content:center;">
+               <label>Mehrfarbig? (Segmente)</label>
+               <input type="checkbox" id="card_use_segments" ${this.getVal('use_segments') ? 'checked' : ''}>
+            </div>
+            <div class="row-col main-color-col" style="${this.getVal('use_segments') ? 'display:none;' : ''}">
+              <label>Farbe (Einfarbig, Hex)</label>
               <input type="text" id="card_color" value="${this.getVal('color', '#05f0a0')}">
             </div>
           </div>
+          
+          <div id="segments_config" style="${this.getVal('use_segments') ? 'display:block;' : 'display:none;'} margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+            <h4 style="font-size:11px; margin-top:0; color:rgba(255,255,255,0.6); font-family:sans-serif; text-transform:uppercase;">Segment-Farben (von Unten nach Oben)</h4>
+            <div class="row">
+              <div class="row-col"><label>Startwert 1</label><input type="number" id="card_seg1_from" value="${this.getVal('seg1_from', 0)}"></div>
+              <div class="row-col"><label>Farbe 1</label><input type="text" id="card_seg1_color" value="${this.getVal('seg1_color', '#f43f5e')}"></div>
+            </div>
+            <div class="row">
+              <div class="row-col"><label>Startwert 2</label><input type="number" id="card_seg2_from" value="${this.getVal('seg2_from', 20)}"></div>
+              <div class="row-col"><label>Farbe 2</label><input type="text" id="card_seg2_color" value="${this.getVal('seg2_color', '#05f0a0')}"></div>
+            </div>
+            <div class="row">
+              <div class="row-col"><label>Startwert 3</label><input type="number" id="card_seg3_from" value="${this.getVal('seg3_from', 80)}"></div>
+              <div class="row-col"><label>Farbe 3</label><input type="text" id="card_seg3_color" value="${this.getVal('seg3_color', '#a855f7')}"></div>
+            </div>
+          </div>
+
         </div>
       </div>
     `;
@@ -127,6 +148,18 @@ class OpenKairoGaugeCardEditor extends HTMLElement {
     this.querySelector('#card_min').addEventListener('change', (e) => this.updateConfig('min', Number(e.target.value)));
     this.querySelector('#card_max').addEventListener('change', (e) => this.updateConfig('max', Number(e.target.value)));
     this.querySelector('#card_color').addEventListener('change', (e) => this.updateConfig('color', e.target.value));
+    
+    this.querySelector('#card_use_segments').addEventListener('change', (e) => {
+        this.updateConfig('use_segments', e.target.checked);
+        this.querySelector('#segments_config').style.display = e.target.checked ? 'block' : 'none';
+        this.querySelector('.main-color-col').style.display = e.target.checked ? 'none' : 'flex';
+    });
+    this.querySelector('#card_seg1_from').addEventListener('change', (e) => this.updateConfig('seg1_from', Number(e.target.value)));
+    this.querySelector('#card_seg1_color').addEventListener('change', (e) => this.updateConfig('seg1_color', e.target.value));
+    this.querySelector('#card_seg2_from').addEventListener('change', (e) => this.updateConfig('seg2_from', Number(e.target.value)));
+    this.querySelector('#card_seg2_color').addEventListener('change', (e) => this.updateConfig('seg2_color', e.target.value));
+    this.querySelector('#card_seg3_from').addEventListener('change', (e) => this.updateConfig('seg3_from', Number(e.target.value)));
+    this.querySelector('#card_seg3_color').addEventListener('change', (e) => this.updateConfig('seg3_color', e.target.value));
   }
 
   updateSelectors() {
@@ -167,7 +200,14 @@ class OpenKairoGaugeCard extends HTMLElement {
       unit: "%",
       min: 0,
       max: 100,
-      color: "#05f0a0"
+      color: "#05f0a0",
+      use_segments: false,
+      seg1_from: 0,
+      seg1_color: "#f43f5e",
+      seg2_from: 20,
+      seg2_color: "#05f0a0",
+      seg3_from: 80,
+      seg3_color: "#a855f7"
     }
   }
 
@@ -184,6 +224,28 @@ class OpenKairoGaugeCard extends HTMLElement {
     if (this._gaugeObj) {
         this._gaugeObj.hass = hass;
     }
+    this.updateDynamicColor();
+  }
+
+  updateDynamicColor() {
+     if (!this._config || !this._hass) return;
+     const stateObj = this._hass.states[this._config.entity];
+     const val = stateObj ? parseFloat(stateObj.state) || 0 : 0;
+     
+     let c = this._config.color || '#05f0a0';
+     if (this._config.use_segments) {
+         const sf3 = this._config.seg3_from !== undefined ? this._config.seg3_from : 80;
+         const sf2 = this._config.seg2_from !== undefined ? this._config.seg2_from : 20;
+         if (val >= sf3) c = this._config.seg3_color || '#a855f7';
+         else if (val >= sf2) c = this._config.seg2_color || '#05f0a0';
+         else c = this._config.seg1_color || '#f43f5e';
+     }
+
+     const container = this.shadowRoot.getElementById('gauge-container-wrap');
+     if (container) {
+         container.style.setProperty('--dynamic-color', c);
+         container.style.setProperty('--dynamic-glow-color', this.hexToRgba(c, 0.4));
+     }
   }
 
   async render() {
@@ -211,11 +273,11 @@ class OpenKairoGaugeCard extends HTMLElement {
            --ha-card-background: transparent !important;
            --ha-card-border-width: 0 !important;
            --ha-card-box-shadow: none !important;
-           --gauge-color: ${colorStr} !important;
+           --gauge-color: var(--dynamic-color) !important;
            --primary-text-color: #fff !important;
         }
       </style>
-      <div class="container">
+      <div class="container" id="gauge-container-wrap" style="--dynamic-color: ${colorStr}; --dynamic-glow-color: ${this.hexToRgba(colorStr, 0.4)};">
          <div class="wrapper" id="gauge-container"></div>
       </div>
     `;
@@ -229,6 +291,14 @@ class OpenKairoGaugeCard extends HTMLElement {
       max: this._config.max !== undefined ? this._config.max : 100,
       needle: true
     };
+    
+    if (this._config.use_segments) {
+         gaugeConfig.segments = [
+            { from: this._config.seg1_from !== undefined ? this._config.seg1_from : 0, color: this._config.seg1_color || '#f43f5e' },
+            { from: this._config.seg2_from !== undefined ? this._config.seg2_from : 20, color: this._config.seg2_color || '#05f0a0' },
+            { from: this._config.seg3_from !== undefined ? this._config.seg3_from : 80, color: this._config.seg3_color || '#a855f7' }
+         ];
+    }
 
     const containerDiv = this.shadowRoot.getElementById('gauge-container');
 
@@ -256,12 +326,13 @@ class OpenKairoGaugeCard extends HTMLElement {
                       }
                       .name {
                           font-family: 'Orbitron', sans-serif !important;
-                          color: ${colorStr} !important;
+                          color: var(--dynamic-color) !important;
                           letter-spacing: 2px !important;
-                          text-shadow: 0 0 10px ${this.hexToRgba(colorStr, 0.4)};
+                          text-shadow: 0 0 10px var(--dynamic-glow-color);
                           font-size: 0.85rem !important;
                           font-weight: 700 !important;
                           padding-top: 10px;
+                          transition: color 0.5s ease-in-out, text-shadow 0.5s ease-in-out;
                       }
                   `;
                   haCard.appendChild(style);
