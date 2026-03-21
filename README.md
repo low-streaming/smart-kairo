@@ -1,41 +1,63 @@
-# ☀️ OpenKairo Solar Card (Energy OS) 💎
+# ☀️ OpenKAIRO OS - Smart Home Dashboard 💎
 
-Die **OpenKairo Solar Card** ist eine exklusive, hochperformante Energie-Flow-Karte für Home Assistant, die speziell für das **OpenKairo OS** Ökosystem entwickelt wurde. Sie kombiniert modernstes **Glassmorphism 2.0** Design mit flüssigen **Liquid Neon** Animationen und einem professionellen Dashboard-Layout.
+Das **OpenKAIRO OS** Dashboard-Paket ist eine exklusive, hochperformante Frontend-Erweiterung für Home Assistant. Sie kombiniert modernstes **Glassmorphism** Design mit flüssigen Animationen und einem professionellen Layout, das dein Smarthome wie ein echtes Premium-Betriebssystem aussehen lässt.
 
-![OpenKairo Solar Card Preview](https://github.com/wait_whois_low/smart-kairo/raw/main/preview.png) *(Beispielbild)*
+Dieses Repository enthält eine komplette Custom Component (`smart_start_screen`), die automatisiert eine Reihe luxuriöser Lovelace-Karten für dein Dashboard registriert.
 
-## ✨ Exklusive Highlights
+## 🚀 Neue Features & Meilensteine (Aktuelles Release)
 
-### 🎨 Premium Design & Animation
-- **Liquid Neon Flow**: Keine klobigen Linien – stattdessen feine, glühende Partikelimpulse, die die Energiefluss-Richtung dynamisch visualisieren.
-- **Glassmorphism 2.0**: Knotenpunkte mit Echtzeit-Backdrop-Blur, radialen Verläufen und Inner-Glow-Effekten für einen plastischen App-Look.
-- **Pulse-Animationen**: Das Haus-Icon pulsiert sanft, wenn der aktuelle Verbrauch einen Schwellenwert überschreitet.
+Wir haben das Portfolio signifikant erweitert und das Design perfektioniert!
 
-### 📐 Ultra-Wide Dashboard Layout
-- **Side-by-Side View**: Die Karte nutzt die volle Breite moderner Dashboards aus. Links eine vertikale **Statistik-Sidebar**, rechts das interaktive Energie-Flow-Zentrum.
-- **Statistik-Sidebar**: Direkter Überblick über Ertrag Heute, Woche, Monat und das aktuelle Wetter – perfekt skaliert auch für sechsstellige Werte.
+### 1. ☀️ OpenKairo Solar Card (Energy OS)
+Die zentrale Kommandozentrale für deine Energie-Flüsse!
+- **Neues Editor-Design:** Der visuelle Editor wurde komplett übersichtlich überarbeitet. Jede Entität (Solar, Batterie, Wärmepumpe) hat nun ihre eigene aufgeräumte "Box" im UI-Editor.
+- **Native Color-Picker:** Farben wählst du jetzt im Editor bequem über ein echtes interaktives Farbrad aus, statt mühsam Hex-Codes einzutippen!
+- **Smartmeter / Kaskaden-Logik:** Wähle flexibel aus, ob Sonderverbraucher (z.B. WP, Wallbox) vom Haussaldo *abgezogen* (bei gemeinsamem Smartmeter) oder *addiert* (bei getrennten Zählern) werden sollen. Nie wieder doppelt gezählte Wattzahlen!
+- **Plastisches Node-Design:** Die "Bälle" (Knoten) leuchten intensiv durch radiale Gradienten, Inner-Glows und einen pulsierenden Drop-Shadow.
 
-### 🛠️ Professional Visual Editor
-- **Echter Icon-Picker**: Wähle Icons grafisch über die Home Assistant Suche aus – kein lästiges Tippen von `mdi:` Namen mehr.
-- **Individuelle Identität**: Jeder Sonderverbraucher (Pool, Miner, E-Auto, etc.) kann einen **eigenen Namen** und ein **eigenes Icon** erhalten.
-- **Auto-Scaling**: Wähle zwischen Watt (W) und Kilowatt (kW) für jede Entität einzeln. Die Karte skaliert die Anzeige automatisch für maximale Lesbarkeit.
+### 2. ⚡ OpenKairo Gauge Card (NEU)
+Die perfekte Ergänzung für einzelne Detailwerte (z.B. Akku-Ladung, Miner-Last).
+- **Segmentierte Farben:** Erstelle im Visuellen Editor bis zu 3 Farbzonen (z.B. 0-20% Rot, 20-80% Grün, 80-100% Lila).
+- **Dynamic Glow:** Wenn der Zeiger in ein neues Farb-Segment wandert, ändert sich nicht nur die Füllung des Bogens – auch der Info-Text und das Leuchten der gesamten Karte wechseln extrem fließend (animiert) in die neue Signalfarbe!
+- **Glassmorphism-Gehäuse:** Die Gauge fügt sich mit ihrem dunklen Acrylglas-Look nahtlos und bündig neben das Solar Dashboard ein.
 
-## 🚀 Installation via HACS
+### 3. 📈 OpenKairo History Card
+Macht langweilige HA-Graphen zu einem echten Premium-Feature.
+- **Auto-Skalierung:** Graphen für unterschiedliche Einheiten (W vs. kWh) schrumpfen bei vielen Werten nicht mehr unschön zusammen, sondern haben nun ein smartes `max-height` (gecappt bei 400px) samt Scrollbar.
+- **Stats-Grid:** Unter dem Graphen befindet sich ein aufgeräumtes Panel mit aufbereiteten Tages-/Wochen-/Jahresstatistiken im echten OpenKAIRO-Design.
+
+---
+
+## 🛠️ Installation via HACS
 
 1. Öffne **HACS** in deinem Home Assistant.
 2. Gehe auf **Integrations** und klicke oben rechts auf die drei Punkte -> **Custom repositories**.
 3. Füge die URL dieses Repositories hinzu und wähle die Kategorie **Integration**.
-4. Installiere die Integration und **starte Home Assistant neu**.
-5. Leere nach der Installation einmal gründlich deinen Browser-Cache (**STRG + F5**), damit die neuen JavaScript-Dateien geladen werden.
+4. Installiere die Integration (Suchbegriff: *Smart Start Screen* oder *OpenKairo*).
+5. **WICHTIG:** Starte Home Assistant einmal komplett neu! Die `__init__.py` meldet die neuen Karten tief im Backend deines Systems an.
+6. Leere im Zweifel nach der Konfiguration deinen Browser-Cache (**F12 -> Netzwerk -> Cache deaktivieren -> F5**).
 
-## ⚙️ Konfiguration
+## ⚙️ Nutzung
 
-Nach der Installation findest Du im Dashboard-Editor unter "Hinzufügen" die **OpenKairo Solar Card**. Der visuelle Editor führt Dich durch alle Einstellungen:
-- **Entitäten**: Ordne deine Sensoren für Solar, Netz, Batterie und Haus zu.
-- **Sonderverbraucher**: Füge bis zu 6 optionale Geräte hinzu und passe Name, Icon und Farbe an.
-- **Einheiten**: Aktiviere den "kW?" Schalter, falls deine Sensoren bereits Kilowatt-Werte liefern.
+Im Dashboard-Editor kannst du nach dem Neustart direkt nach folgenden neuen Karten suchen:
+- `OpenKairo Solar Card`
+- `OpenKairo Gauge Card`
+- `OpenKairo History Card`
 
-## 🏆 Powered by OpenKairo OS
-Dieses Projekt ist Teil der **OpenKairo** Vision – ein smartes Zuhause, das nicht nur funktional, sondern auch ästhetisch und exklusiv ist.
+Jede Karte bringt ihren eigenen, stark visuell aufgeräumten Editor mit. Du kommst ohne eine einzige Zeile YAML-Code aus!
 
-Besuchen Sie uns auf [openkairo.de](https://openkairo.de) für Support und weitere Informationen.
+---
+
+## 🗺️ Roadmap (Was in Zukunft noch kommen könnte)
+
+Die Vision von OpenKAIRO OS ist noch lange nicht am Ende. Hier ist ein Ausblick auf mögliche künftige Features, Erweiterungen und Meilensteine:
+
+- [ ] **OpenKAIRO Climate Card:** Eine hochvisuelle Steuerung für Klimaanlagen und Heizkörper mit animierten Luftströmen, Lüfter-Rotoren und einem dynamischen Temperatur-Glow-Slider.
+- [ ] **OpenKAIRO EV-Charger Card:** Ein dediziertes Widget für die Wallbox, das den Ladefluss, genutzte Phasen und die voraussichtliche Restdauer elegant als Lade-Ring darstellt.
+- [ ] **Smart Alerts & Banner:** Intelligente und ansprechende Pop-ups oben im Dashboard (z.B. "Akku ist voll", "Günstiger Börsenstrompreis jetzt!"), die sich in das weiche Acryl-Design einfügen.
+- [ ] **Responsive Drag & Drop Layouts:** Frei verschiebbare Nodes innerhalb der Solar Card, um die Anordnung optisch perfekt an das eigene Hausnetz anzupassen.
+- [ ] **Komplettes Lovelace-Theme:** Ein übergreifendes Home Assistant Overlay-Theme (`themes.yaml`), das den Glassmorphism-Look auf *jeden* Standard-Schalter im Haus ausweitet.
+- [ ] **Erweiterte History-Analytics:** Integration von Langzeit-Statistiken (InfluxDB-Abfragen) direkt als optisch ansprechende Heatmaps und Bar-Charts innerhalb der Energy Cards.
+
+---
+*Powered by OpenKAIRO OS – Smarthome in Exklusiv.*
