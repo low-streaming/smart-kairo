@@ -257,8 +257,8 @@ class OpenKairoHistoryCard extends HTMLElement {
         .view-toggle span.active { color: #05f0a0; opacity: 1; background: rgba(5, 240, 160, 0.15); }
 
         .chart-container {
-          height: 220px;
-          margin-bottom: 5px;
+          min-height: 280px;
+          margin-bottom: 15px;
         }
         
         .stats-grid {
