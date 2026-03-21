@@ -76,6 +76,11 @@ class OpenKairoGaugeCardEditor extends HTMLElement {
             width: 100%;
             box-sizing: border-box;
         }
+        input[type="color"] {
+            padding: 2px !important;
+            height: 40px;
+            cursor: pointer;
+        }
         ha-selector { width: 100%; }
       </style>
       <div class="card-config">
@@ -117,7 +122,7 @@ class OpenKairoGaugeCardEditor extends HTMLElement {
             </div>
             <div class="row-col main-color-col" style="${this.getVal('use_segments') ? 'display:none;' : ''}">
               <label>Farbe (Einfarbig, Hex)</label>
-              <input type="text" id="card_color" value="${this.getVal('color', '#05f0a0')}">
+              <input type="color" id="card_color" value="${this.getVal('color', '#05f0a0')}">
             </div>
           </div>
           
@@ -125,15 +130,15 @@ class OpenKairoGaugeCardEditor extends HTMLElement {
             <h4 style="font-size:11px; margin-top:0; color:rgba(255,255,255,0.6); font-family:sans-serif; text-transform:uppercase;">Segment-Farben (von Unten nach Oben)</h4>
             <div class="row">
               <div class="row-col"><label>Startwert 1</label><input type="number" id="card_seg1_from" value="${this.getVal('seg1_from', 0)}"></div>
-              <div class="row-col"><label>Farbe 1</label><input type="text" id="card_seg1_color" value="${this.getVal('seg1_color', '#f43f5e')}"></div>
+              <div class="row-col"><label>Farbe 1</label><input type="color" id="card_seg1_color" value="${this.getVal('seg1_color', '#f43f5e')}"></div>
             </div>
             <div class="row">
               <div class="row-col"><label>Startwert 2</label><input type="number" id="card_seg2_from" value="${this.getVal('seg2_from', 20)}"></div>
-              <div class="row-col"><label>Farbe 2</label><input type="text" id="card_seg2_color" value="${this.getVal('seg2_color', '#05f0a0')}"></div>
+              <div class="row-col"><label>Farbe 2</label><input type="color" id="card_seg2_color" value="${this.getVal('seg2_color', '#05f0a0')}"></div>
             </div>
             <div class="row">
               <div class="row-col"><label>Startwert 3</label><input type="number" id="card_seg3_from" value="${this.getVal('seg3_from', 80)}"></div>
-              <div class="row-col"><label>Farbe 3</label><input type="text" id="card_seg3_color" value="${this.getVal('seg3_color', '#a855f7')}"></div>
+              <div class="row-col"><label>Farbe 3</label><input type="color" id="card_seg3_color" value="${this.getVal('seg3_color', '#a855f7')}"></div>
             </div>
           </div>
 

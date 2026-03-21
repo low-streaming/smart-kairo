@@ -30,16 +30,35 @@ class OpenKairoSolarCardEditor extends HTMLElement {
     this.innerHTML = `
       <style>
         .group { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary-color); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; font-family: sans-serif; font-size: 14px; }
         .row { margin-bottom: 12px; display: flex; gap: 10px; align-items: center; }
         .row-col { display: flex; flex-direction: column; flex: 1; }
         label { display: block; font-size: 11px; margin-bottom: 4px; color: var(--secondary-text-color); font-weight: bold; text-transform: uppercase; }
-        ha-entity-picker { width: 100%; }
-        input[type="color"] { background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; height: 36px; padding: 2px; cursor:pointer;}
-        select { background: var(--card-background-color); color: var(--primary-text-color); border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 4px; width: 100%; }
-        h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary-color); border-bottom: 1px solid var(--divider-color); padding-bottom: 8px; font-family: sans-serif; }
+        select, input[type="text"], input[type="number"] { background: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        
+        /* New Clean Layout Box */
+        .item-box { background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .item-header label { margin: 0; color: #05f0a0; font-size: 10px; letter-spacing: 1px;}
+        .clear-btn { --mdc-icon-size: 16px; color: rgba(255,255,255,0.3); cursor: pointer; transition: 0.2s; }
+        .clear-btn:hover { color: #f43f5e; }
+        .item-selector { margin-bottom: 10px; }
+        .item-options { display: flex; gap: 20px; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; flex-wrap: wrap; }
+        .opt { display: flex; align-items: center; gap: 8px; }
+        .opt label { margin: 0; font-size: 10px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+        
+        /* Beautiful Circular Color Picker */
+        input[type="color"] { 
+            -webkit-appearance: none; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; 
+            width: 26px; height: 26px; padding: 0; cursor: pointer; overflow: hidden; background: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
+        input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; }
       </style>
       <div class="card-config">
         
+        <!-- MAIN SETTINGS -->
         <div class="group">
           <h3>Haupteinstellungen & Aussehen</h3>
           <div class="row">
@@ -56,239 +75,179 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col">
               <label>Geschwindigkeit (${this.getVal('animation_speed', '5')})</label>
               <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Zen (Langsam)</span>
+                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Langsam</span>
                 <input type="range" id="animation_speed" min="1" max="10" step="1" value="${isNaN(this.getVal('animation_speed')) ? (this.getVal('animation_speed')==='fast'?8:this.getVal('animation_speed')==='slow'?2:5) : this.getVal('animation_speed')}">
-                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Super (Schnell)</span>
+                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Schnell</span>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- ENERGY SOURCES -->
         <div class="group">
           <h3>Energiequellen</h3>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Solarproduktion (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="solar_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
+
+          <div class="item-box">
+            <div class="item-header"><label>Solarproduktion (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_entity"></ha-icon></div>
+            <div class="item-selector"><div id="solar_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="solar_entity_kw" ${this.getVal('solar_entity_kw') ? 'checked' : ''}></div>
+            </div>
+          </div>
+
+          <div class="item-box">
+            <div class="item-header"><label>Netzbezug (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="grid_import_entity"></ha-icon></div>
+            <div class="item-selector"><div id="grid_import_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Farbe</label><input type="color" id="grid_color" value="${this.getVal('grid_color', '#ff4a4a')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="grid_import_entity_kw" ${this.getVal('grid_import_entity_kw') ? 'checked' : ''}></div>
+            </div>
+          </div>
+
+          <div class="item-box">
+            <div class="item-header"><label>Netzeinspeisung (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="grid_export_entity"></ha-icon></div>
+            <div class="item-selector"><div id="grid_export_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Export Farbe</label><input type="color" id="grid_export_color" value="${this.getVal('grid_export_color', '#00d1ff')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="grid_export_entity_kw" ${this.getVal('grid_export_entity_kw') ? 'checked' : ''}></div>
+            </div>
+          </div>
+
+          <div class="item-box" style="border-color: rgba(16, 185, 129, 0.3);">
+            <div class="item-header"><label style="color:#10b981;">Haus / Eigenverbrauch</label></div>
+            <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:10px;">Basissaldo berechnet sich automatisch aus: Solar + Netz - Export + Akku.</div>
+            <div class="item-options" style="border:none; padding:0;">
+              <div class="opt"><label>Haus Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
+              <div class="opt" style="flex:1;">
+                 <label>Haus-Berechnung</label>
+                 <select id="home_calc_mode">
+                   <option value="subtract" ${this.getVal('home_calc_mode', 'subtract') === 'subtract' ? 'selected' : ''}>Smartmeter (Geräte Abziehen)</option>
+                   <option value="add" ${this.getVal('home_calc_mode') === 'add' ? 'selected' : ''}>Kein Smartmeter (Addieren)</option>
+                   <option value="none" ${this.getVal('home_calc_mode') === 'none' ? 'selected' : ''}>Unverändert lassen</option>
+                 </select>
               </div>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_entity_kw" ${this.getVal('solar_entity_kw') ? 'checked' : ''}></div>
           </div>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Netzbezug (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="grid_import_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="grid_import_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="grid_color" value="${this.getVal('grid_color', '#ff4a4a')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="grid_import_entity_kw" ${this.getVal('grid_import_entity_kw') ? 'checked' : ''}></div>
-          </div>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Netzeinspeisung (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="grid_export_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="grid_export_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
-            <div class="row-col"><label>Export-Farbe</label><input type="color" id="grid_export_color" value="${this.getVal('grid_export_color', '#00d1ff')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="grid_export_entity_kw" ${this.getVal('grid_export_entity_kw') ? 'checked' : ''}></div>
-          </div>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Haus / Eigenverbrauch</label>
-              <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:5px;">(Wird automatisch aus Saldo berechnet)</div>
-            </div>
-            <div class="row-col"><label>Haus-Farbe</label><input type="color" id="home_color" value="${this.getVal('home_color', '#10b981')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"></div>
-          </div>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Batterieleistung (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="battery_power_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="battery_power_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="battery_color" value="${this.getVal('battery_color', '#05f0a0')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="battery_power_entity_kw" ${this.getVal('battery_power_entity_kw') ? 'checked' : ''}></div>
-          </div>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Batterieladung (%)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="battery_level_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="battery_level_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
-            <div class="row-col" style="justify-content:center;">
-               <label>Batt. Invertieren?</label>
-               <input type="checkbox" id="battery_invert" ${this.getVal('battery_invert') ? 'checked' : ''}>
+
+          <div class="item-box">
+            <div class="item-header"><label>Batterieleistung (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="battery_power_entity"></ha-icon></div>
+            <div class="item-selector"><div id="battery_power_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Farbe</label><input type="color" id="battery_color" value="${this.getVal('battery_color', '#05f0a0')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="battery_power_entity_kw" ${this.getVal('battery_power_entity_kw') ? 'checked' : ''}></div>
             </div>
           </div>
+
+          <div class="item-box">
+            <div class="item-header"><label>Batterieladung (%)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="battery_level_entity"></ha-icon></div>
+            <div class="item-selector"><div id="battery_level_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Batt. Invertieren?</label><input type="checkbox" id="battery_invert" ${this.getVal('battery_invert') ? 'checked' : ''}></div>
+            </div>
+          </div>
+
         </div>
 
+        <!-- SPECIAL CONSUMERS -->
         <div class="group">
           <h3>Optionale Sonderverbraucher</h3>
-          <!-- CRYPTO MINER -->
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Crypto Miner (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="miner_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="miner_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
+
+          <div class="item-box">
+            <div class="item-header"><label>Crypto Miner (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="miner_entity"></ha-icon></div>
+            <div class="item-selector"><div id="miner_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Name</label><input type="text" id="miner_name" value="${this.getVal('miner_name', 'Miner')}"></div>
+              <div class="opt"><label>Icon</label><div id="miner_icon_picker"></div></div>
+              <div class="opt"><label>Farbe</label><input type="color" id="miner_color" value="${this.getVal('miner_color', '#a855f7')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="miner_entity_kw" ${this.getVal('miner_entity_kw') ? 'checked' : ''}></div>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="miner_color" value="${this.getVal('miner_color', '#a855f7')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="miner_entity_kw" ${this.getVal('miner_entity_kw') ? 'checked' : ''}></div>
           </div>
-          <div class="row">
-            <div class="row-col"><label>Anzeigename</label><input type="text" id="miner_name" value="${this.getVal('miner_name', 'Miner')}"></div>
-            <div class="row-col"><label>Icon (MDI)</label><div id="miner_icon_picker"></div></div>
-          </div>
-          
-          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
 
-          <!-- WÄRMEPUMPE -->
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Wärmepumpe / Heizung (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="heatpump_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="heatpump_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
+          <div class="item-box">
+            <div class="item-header"><label>Wärmepumpe / Heizung (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="heatpump_entity"></ha-icon></div>
+            <div class="item-selector"><div id="heatpump_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Name</label><input type="text" id="heatpump_name" value="${this.getVal('heatpump_name', 'Heizung')}"></div>
+              <div class="opt"><label>Icon</label><div id="heatpump_icon_picker"></div></div>
+              <div class="opt"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="heatpump_entity_kw" ${this.getVal('heatpump_entity_kw') ? 'checked' : ''}></div>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="heatpump_color" value="${this.getVal('heatpump_color', '#3b82f6')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="heatpump_entity_kw" ${this.getVal('heatpump_entity_kw') ? 'checked' : ''}></div>
-          </div>
-          <div class="row">
-            <div class="row-col"><label>Anzeigename</label><input type="text" id="heatpump_name" value="${this.getVal('heatpump_name', 'Heizung')}"></div>
-            <div class="row-col"><label>Icon (MDI)</label><div id="heatpump_icon_picker"></div></div>
           </div>
 
-          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
-
-          <!-- E-AUTO -->
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>E-Auto / Wallbox (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="ev_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="ev_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
+          <div class="item-box">
+            <div class="item-header"><label>E-Auto / Wallbox (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="ev_entity"></ha-icon></div>
+            <div class="item-selector"><div id="ev_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Name</label><input type="text" id="ev_name" value="${this.getVal('ev_name', 'Auto')}"></div>
+              <div class="opt"><label>Icon</label><div id="ev_icon_picker"></div></div>
+              <div class="opt"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="ev_entity_kw" ${this.getVal('ev_entity_kw') ? 'checked' : ''}></div>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="ev_color" value="${this.getVal('ev_color', '#eab308')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="ev_entity_kw" ${this.getVal('ev_entity_kw') ? 'checked' : ''}></div>
-          </div>
-          <div class="row">
-            <div class="row-col"><label>Anzeigename</label><input type="text" id="ev_name" value="${this.getVal('ev_name', 'Auto')}"></div>
-            <div class="row-col"><label>Icon (MDI)</label><div id="ev_icon_picker"></div></div>
           </div>
 
-          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
-
-          <!-- KLIMAANLAGE -->
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Klimaanlage (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="ac_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="ac_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
+          <div class="item-box">
+            <div class="item-header"><label>Klimaanlage (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="ac_entity"></ha-icon></div>
+            <div class="item-selector"><div id="ac_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Name</label><input type="text" id="ac_name" value="${this.getVal('ac_name', 'Klima')}"></div>
+              <div class="opt"><label>Icon</label><div id="ac_icon_picker"></div></div>
+              <div class="opt"><label>Farbe</label><input type="color" id="ac_color" value="${this.getVal('ac_color', '#3b82f6')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="ac_entity_kw" ${this.getVal('ac_entity_kw') ? 'checked' : ''}></div>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="ac_color" value="${this.getVal('ac_color', '#3b82f6')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="ac_entity_kw" ${this.getVal('ac_entity_kw') ? 'checked' : ''}></div>
-          </div>
-          <div class="row">
-            <div class="row-col"><label>Anzeigename</label><input type="text" id="ac_name" value="${this.getVal('ac_name', 'Klima')}"></div>
-            <div class="row-col"><label>Icon (MDI)</label><div id="ac_icon_picker"></div></div>
           </div>
 
-          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
-
-          <!-- POOL -->
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Pool / Teich (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="pool_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="pool_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
+          <div class="item-box">
+            <div class="item-header"><label>Pool / Teich (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="pool_entity"></ha-icon></div>
+            <div class="item-selector"><div id="pool_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Name</label><input type="text" id="pool_name" value="${this.getVal('pool_name', 'Pool')}"></div>
+              <div class="opt"><label>Icon</label><div id="pool_icon_picker"></div></div>
+              <div class="opt"><label>Farbe</label><input type="color" id="pool_color" value="${this.getVal('pool_color', '#00d1ff')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="pool_entity_kw" ${this.getVal('pool_entity_kw') ? 'checked' : ''}></div>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="pool_color" value="${this.getVal('pool_color', '#00d1ff')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="pool_entity_kw" ${this.getVal('pool_entity_kw') ? 'checked' : ''}></div>
-          </div>
-          <div class="row">
-            <div class="row-col"><label>Anzeigename</label><input type="text" id="pool_name" value="${this.getVal('pool_name', 'Pool')}"></div>
-            <div class="row-col"><label>Icon (MDI)</label><div id="pool_icon_picker"></div></div>
           </div>
 
-          <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:15px 0;">
-
-          <!-- WASCHMASCHINE -->
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Waschm. / Spülm. (W)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="washer_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="washer_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
+          <div class="item-box">
+            <div class="item-header"><label>Waschmaschine / Spülmaschine (W)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="washer_entity"></ha-icon></div>
+            <div class="item-selector"><div id="washer_entity_picker"></div></div>
+            <div class="item-options">
+              <div class="opt"><label>Name</label><input type="text" id="washer_name" value="${this.getVal('washer_name', 'Waschm.')}"></div>
+              <div class="opt"><label>Icon</label><div id="washer_icon_picker"></div></div>
+              <div class="opt"><label>Farbe</label><input type="color" id="washer_color" value="${this.getVal('washer_color', '#f43f5e')}"></div>
+              <div class="opt"><label>kW?</label><input type="checkbox" id="washer_entity_kw" ${this.getVal('washer_entity_kw') ? 'checked' : ''}></div>
             </div>
-            <div class="row-col"><label>Farbe</label><input type="color" id="washer_color" value="${this.getVal('washer_color', '#f43f5e')}"></div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="washer_entity_kw" ${this.getVal('washer_entity_kw') ? 'checked' : ''}></div>
           </div>
-          <div class="row">
-            <div class="row-col"><label>Anzeigename</label><input type="text" id="washer_name" value="${this.getVal('washer_name', 'Waschm.')}"></div>
-            <div class="row-col"><label>Icon (MDI)</label><div id="washer_icon_picker"></div></div>
-          </div>
+
         </div>
 
+        <!-- STATS -->
         <div class="group">
           <h3>Statistiken & Wetter</h3>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Ertrag Heute (kWh)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="solar_yield_today_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_today_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_yield_today_entity_kw" ${this.getVal('solar_yield_today_entity_kw') ? 'checked' : ''}></div>
+          
+          <div class="item-box">
+            <div class="item-header"><label>Ertrag Heute (kWh)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_today_entity"></ha-icon></div>
+            <div class="item-selector"><div id="solar_yield_today_entity_picker"></div></div>
+            <div class="item-options"><div class="opt"><label>Wird in kW gemeldet?</label><input type="checkbox" id="solar_yield_today_entity_kw" ${this.getVal('solar_yield_today_entity_kw') ? 'checked' : ''}></div></div>
           </div>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Ertrag Woche (kWh)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="solar_yield_week_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_week_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_yield_week_entity_kw" ${this.getVal('solar_yield_week_entity_kw') ? 'checked' : ''}></div>
+
+          <div class="item-box">
+            <div class="item-header"><label>Ertrag Woche (kWh)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_week_entity"></ha-icon></div>
+            <div class="item-selector"><div id="solar_yield_week_entity_picker"></div></div>
+            <div class="item-options"><div class="opt"><label>Wird in kW gemeldet?</label><input type="checkbox" id="solar_yield_week_entity_kw" ${this.getVal('solar_yield_week_entity_kw') ? 'checked' : ''}></div></div>
           </div>
-          <div class="row">
-            <div class="row-col" style="flex:3;">
-              <label>Ertrag Monat (kWh)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="solar_yield_month_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_month_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
-            <div class="row-col" style="flex:0.5; min-width:45px;"><label>kW?</label><input type="checkbox" id="solar_yield_month_entity_kw" ${this.getVal('solar_yield_month_entity_kw') ? 'checked' : ''}></div>
+
+          <div class="item-box">
+            <div class="item-header"><label>Ertrag Monat (kWh)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="solar_yield_month_entity"></ha-icon></div>
+            <div class="item-selector"><div id="solar_yield_month_entity_picker"></div></div>
+            <div class="item-options"><div class="opt"><label>Wird in kW gemeldet?</label><input type="checkbox" id="solar_yield_month_entity_kw" ${this.getVal('solar_yield_month_entity_kw') ? 'checked' : ''}></div></div>
           </div>
-          <div class="row">
-            <div class="row-col">
-              <label>Wetter (Entity)</label>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div id="weather_entity_picker" style="flex:1;"></div>
-                <ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="weather_entity" style="--mdc-icon-size:20px; opacity:0.3; cursor:pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></ha-icon>
-              </div>
-            </div>
+
+          <div class="item-box">
+             <div class="item-header"><label>Wetter (Entity)</label><ha-icon icon="mdi:close" title="Löschen" class="clear-btn" data-id="weather_entity"></ha-icon></div>
+             <div class="item-selector"><div id="weather_entity_picker"></div></div>
           </div>
+
         </div>
 
       </div>
@@ -735,10 +694,19 @@ class OpenKairoSolarCard extends HTMLElement {
     };
 
     let extraConsumers = minerW + heatW + evW + acW + poolW + washerW;
-    let homeW = solarW + gridInW - gridOutW + battW - extraConsumers;
-    if (homeW < 0) homeW = 0;
+    let baseBalance = solarW + gridInW - gridOutW + battW;
     
-    let totalHomeW = homeW + extraConsumers; 
+    let totalHomeW = baseBalance;
+    const calcMode = this.getValStr('home_calc_mode', 'subtract');
+    
+    if (calcMode === 'subtract') {
+        totalHomeW = baseBalance - extraConsumers;
+        if (totalHomeW < 0) totalHomeW = 0;
+    } else if (calcMode === 'add') {
+        totalHomeW = baseBalance + extraConsumers;
+    } else {
+        totalHomeW = baseBalance;
+    }
 
     // Battery Level (%)
     const battLevel = getValRaw(this._config.battery_level_entity);
