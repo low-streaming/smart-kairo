@@ -264,14 +264,20 @@ class OpenKairoGaugeCard extends HTMLElement {
           display: block;
         }
         .container {
-           background: rgba(10, 20, 28, 0.45);
+           background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(0,0,0,0.6));
            backdrop-filter: blur(15px) saturate(180%);
            -webkit-backdrop-filter: blur(15px) saturate(180%);
-           border-radius: 24px;
-           border: 1px solid rgba(255, 255, 255, 0.1);
-           box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+           border-radius: 28px;
+           border: 1px solid rgba(255, 255, 255, 0.15);
+           box-shadow: 0 12px 30px rgba(0,0,0,0.65), inset 0 0 15px rgba(255,255,255,0.05);
            padding: 20px;
            position: relative;
+           transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .container::after {
+           content: ''; position: absolute; inset: -1px; border-radius: 28px;
+           border: 1px solid var(--dynamic-color); opacity: 0.25; pointer-events: none;
+           transition: border-color 0.5s ease-in-out;
         }
         /* Override internal styles of gauge card via CSS variables */
         .wrapper {
@@ -328,6 +334,10 @@ class OpenKairoGaugeCard extends HTMLElement {
                           background: transparent !important;
                           border: none !important;
                           box-shadow: none !important;
+                      }
+                      svg {
+                          filter: drop-shadow(0 0 8px var(--dynamic-glow-color));
+                          transition: filter 0.5s ease-in-out;
                       }
                       .name {
                           font-family: 'Orbitron', sans-serif !important;
