@@ -257,9 +257,16 @@ class OpenKairoHistoryCard extends HTMLElement {
         .view-toggle span.active { color: #05f0a0; opacity: 1; background: rgba(5, 240, 160, 0.15); }
 
         .chart-container {
-          min-height: 280px;
+          width: 100%;
+          min-height: 180px;
+          max-height: 400px;
           margin-bottom: 15px;
+          overflow-y: auto;
+          overflow-x: hidden;
         }
+        
+        /* Unsichtbare Scrollbar für den Graphen */
+        .chart-container::-webkit-scrollbar { width: 0; }
         
         .stats-grid {
           display: flex;
