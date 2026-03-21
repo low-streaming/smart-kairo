@@ -264,60 +264,96 @@ class OpenKairoHistoryCard extends HTMLElement {
         .stats-grid {
           display: flex;
           flex-direction: column;
-          gap: 25px;
-          padding: 0 10px;
+          gap: 20px;
+          margin-top: 15px;
+          padding: 0;
         }
         .stat-section {
+          background: rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 20px;
+          padding: 20px;
           position: relative;
+          overflow: hidden;
         }
-        .stat-section::before {
-          content: "";
-          position: absolute;
-          left: -10px;
-          top: 0;
-          bottom: 0;
-          width: 3px;
-          border-radius: 2px;
-        }
-        .stat-section.prod::before { background: #05f0a0; box-shadow: 0 0 8px rgba(5, 240, 160, 0.5); }
-        .stat-section.cons::before { background: #f43f5e; box-shadow: 0 0 8px rgba(244, 63, 94, 0.5); }
+        .stat-section.prod { border-left: 4px solid #05f0a0; background: linear-gradient(90deg, rgba(5,240,160,0.05) 0%, transparent 60%); }
+        .stat-section.cons { border-left: 4px solid #f43f5e; background: linear-gradient(90deg, rgba(244,63,94,0.05) 0%, transparent 60%); }
 
         .stat-title {
           font-family: 'Orbitron', sans-serif;
-          font-size: 1.15rem;
-          letter-spacing: 4px;
-          margin-bottom: 20px;
-          font-weight: 900;
+          font-size: 1rem;
+          letter-spacing: 3px;
+          margin-bottom: 15px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
-        .stat-section.prod .stat-title { color: #05f0a0; }
-        .stat-section.cons .stat-title { color: #f43f5e; }
+        .stat-section.prod .stat-title { color: #05f0a0; text-shadow: 0 0 10px rgba(5,240,160,0.4); }
+        .stat-section.cons .stat-title { color: #f43f5e; text-shadow: 0 0 10px rgba(244,63,94,0.4); }
+
+        .stat-title::before {
+          content: "";
+          display: block;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+        .stat-section.prod .stat-title::before { background: #05f0a0; box-shadow: 0 0 10px #05f0a0; }
+        .stat-section.cons .stat-title::before { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
 
         .values-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 10px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 15px;
         }
         .value-box {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 15px;
           display: flex;
           flex-direction: column;
-          flex: 1;
+          align-items: flex-start;
+          transition: all 0.3s ease;
+        }
+        .value-box:hover {
+          background: rgba(255, 255, 255, 0.08);
+          transform: translateY(-2px);
+          border-color: rgba(255, 255, 255, 0.15);
         }
         .label {
-          font-family: 'Orbitron', sans-serif;
-          font-size: 0.65rem;
-          color: rgba(255,255,255,0.4);
+          font-family: 'Inter', sans-serif;
+          font-size: 0.7rem;
+          color: rgba(255,255,255,0.6);
           text-transform: uppercase;
-          margin-bottom: 6px;
-          letter-spacing: 2px;
+          margin-bottom: 8px;
+          letter-spacing: 1px;
+          font-weight: 600;
+        }
+        .value-wrapper {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
         }
         .value {
           font-family: 'Orbitron', sans-serif;
-          font-size: 1.35rem;
-          font-weight: 900;
+          font-size: 1.25rem;
+          font-weight: 700;
           color: #fff;
-          white-space: nowrap;
-          text-shadow: 0 0 10px rgba(255,255,255,0.1);
+          text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .unit {
+          font-family: 'Inter', sans-serif;
+          font-size: 0.8rem;
+          color: rgba(255,255,255,0.5);
+          font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+          .values-row {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
       </style>
       <ha-card>
@@ -337,20 +373,20 @@ class OpenKairoHistoryCard extends HTMLElement {
            <div class="stat-section prod">
              <div class="stat-title">PRODUKTION</div>
              <div class="values-row">
-               <div class="value-box"><span class="label">Tag</span><span class="value" id="s_day">-</span></div>
-               <div class="value-box"><span class="label">Woche</span><span class="value" id="s_week">-</span></div>
-               <div class="value-box"><span class="label">Monat</span><span class="value" id="s_month">-</span></div>
-               <div class="value-box"><span class="label">Jahr</span><span class="value" id="s_year">-</span></div>
+               <div class="value-box"><span class="label">Tag</span><div class="value-wrapper"><span class="value" id="s_day">-</span><span class="unit" id="s_day_unit"></span></div></div>
+               <div class="value-box"><span class="label">Woche</span><div class="value-wrapper"><span class="value" id="s_week">-</span><span class="unit" id="s_week_unit"></span></div></div>
+               <div class="value-box"><span class="label">Monat</span><div class="value-wrapper"><span class="value" id="s_month">-</span><span class="unit" id="s_month_unit"></span></div></div>
+               <div class="value-box"><span class="label">Jahr</span><div class="value-wrapper"><span class="value" id="s_year">-</span><span class="unit" id="s_year_unit"></span></div></div>
              </div>
            </div>
            
            <div class="stat-section cons">
              <div class="stat-title">VERBRAUCH</div>
              <div class="values-row">
-               <div class="value-box"><span class="label">Tag</span><span class="value" id="c_day">-</span></div>
-               <div class="value-box"><span class="label">Woche</span><span class="value" id="c_week">-</span></div>
-               <div class="value-box"><span class="label">Monat</span><span class="value" id="c_month">-</span></div>
-               <div class="value-box"><span class="label">Jahr</span><span class="value" id="c_year">-</span></div>
+               <div class="value-box"><span class="label">Tag</span><div class="value-wrapper"><span class="value" id="c_day">-</span><span class="unit" id="c_day_unit"></span></div></div>
+               <div class="value-box"><span class="label">Woche</span><div class="value-wrapper"><span class="value" id="c_week">-</span><span class="unit" id="c_week_unit"></span></div></div>
+               <div class="value-box"><span class="label">Monat</span><div class="value-wrapper"><span class="value" id="c_month">-</span><span class="unit" id="c_month_unit"></span></div></div>
+               <div class="value-box"><span class="label">Jahr</span><div class="value-wrapper"><span class="value" id="c_year">-</span><span class="unit" id="c_year_unit"></span></div></div>
              </div>
            </div>
         </div>
@@ -368,9 +404,26 @@ class OpenKairoHistoryCard extends HTMLElement {
     if (!this._hass || !this._config) return;
 
     const upd = (id, entityId) => {
-        const el = this.shadowRoot.getElementById(id);
-        if (el && entityId && this._hass.states[entityId]) {
-            el.innerText = this._hass.states[entityId].state + ' ' + (this._hass.states[entityId].attributes.unit_of_measurement || 'kWh');
+        const valEl = this.shadowRoot.getElementById(id);
+        const unitEl = this.shadowRoot.getElementById(id + '_unit');
+        
+        if (valEl && entityId && this._hass.states[entityId]) {
+            const stateObj = this._hass.states[entityId];
+            let val = stateObj.state;
+            const unit = stateObj.attributes.unit_of_measurement || 'kWh';
+            
+            if (!isNaN(parseFloat(val))) {
+                val = parseFloat(val).toFixed(2);
+            }
+            if (val === "unavailable" || val === "unknown") {
+                val = "-";
+            }
+            
+            valEl.innerText = val;
+            if (unitEl) unitEl.innerText = val !== "-" ? unit : "";
+        } else if (valEl) {
+            valEl.innerText = "-";
+            if (unitEl) unitEl.innerText = "";
         }
     };
 
