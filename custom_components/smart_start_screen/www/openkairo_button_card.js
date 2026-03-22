@@ -110,7 +110,7 @@ class OpenKairoButtonCardEditor extends HTMLElement {
           <div class="row">
             <div style="display:flex; gap:10px; align-items:center;">
                <input type="checkbox" id="card_hold_to_unlock" ${this.getVal('hold_to_unlock') ? 'checked' : ''}>
-               <div style="font-size:12px; color:white;"><b>Sicherheitssperre:</b> Button muss 1,5s gehalten werden, um Klick auszulösen.</div>
+               <div style="font-size:12px; color: var(--primary-text-color, white);"><b>Sicherheitssperre:</b> Button muss 1,5s gehalten werden, um Klick auszulösen.</div>
             </div>
           </div>
         </div>
@@ -126,19 +126,19 @@ class OpenKairoButtonCardEditor extends HTMLElement {
           <div class="row" style="flex-wrap: wrap; gap: 20px;">
              <div style="display:flex; gap:10px; align-items:center; width:100%;">
                <input type="checkbox" id="card_show_state" ${this.getVal('show_state') ? 'checked' : ''}>
-               <div style="font-size:12px; color:white;">Status-Text anzeigen (An/Aus)</div>
+               <div style="font-size:12px; color: var(--primary-text-color, white);">Status-Text anzeigen (An/Aus)</div>
              </div>
              <div style="display:flex; gap:10px; align-items:center; width:100%;">
                <input type="checkbox" id="card_show_switch" ${this.getVal('show_switch') ? 'checked' : ''}>
-               <div style="font-size:12px; color:white;">Sci-Fi Schalter-Toggle rechts anzeigen</div>
+               <div style="font-size:12px; color: var(--primary-text-color, white);">Sci-Fi Schalter-Toggle rechts anzeigen</div>
              </div>
              <div style="display:flex; gap:10px; align-items:center; width:100%;">
                <input type="checkbox" id="card_live_animation" ${this.getVal('live_animation') ? 'checked' : ''}>
-               <div style="font-size:12px; color:white;"><b>Live-Icon Animation:</b> Ventilatoren drehen sich, wenn eingeschaltet.</div>
+               <div style="font-size:12px; color: var(--primary-text-color, white);"><b>Live-Icon Animation:</b> Ventilatoren drehen sich, wenn eingeschaltet.</div>
              </div>
              <div style="display:flex; gap:10px; align-items:center; width:100%;">
                <input type="checkbox" id="card_slide_to_dim" ${this.getVal('slide_to_dim') ? 'checked' : ''}>
-               <div style="font-size:12px; color:white;"><b>Wisch-Gesten:</b> Nach links/rechts wischen, um z.B. Helligkeit von Lampen zu dimmen.</div>
+               <div style="font-size:12px; color: var(--primary-text-color, white);"><b>Wisch-Gesten:</b> Nach links/rechts wischen, um z.B. Helligkeit von Lampen zu dimmen.</div>
              </div>
           </div>
         </div>
