@@ -35,16 +35,17 @@ class OpenKairoButtonCardEditor extends HTMLElement {
     this._initialized = true;
     this.innerHTML = `
       <style>
-        .group { background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        h3 { margin-top: 0; margin-bottom: 15px; color: #05f0a0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; font-family: sans-serif; font-size: 12px; text-transform: uppercase; }
+      <style>
+        .group { background: var(--secondary-background-color, rgba(0,0,0,0.05)); border: 1px solid var(--divider-color, rgba(255,255,255,0.1)); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary-color, #05f0a0); border-bottom: 1px solid var(--divider-color, rgba(255,255,255,0.1)); padding-bottom: 8px; font-family: sans-serif; font-size: 12px; text-transform: uppercase; }
         .row { margin-bottom: 15px; display: flex; gap: 15px; align-items: flex-start; }
         .row-col { display: flex; flex-direction: column; flex: 1; }
-        label { display: block; font-size: 10px; margin-bottom: 6px; color: rgba(255,255,255,0.6); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;}
+        label { display: block; font-size: 10px; margin-bottom: 6px; color: var(--secondary-text-color, rgba(255,255,255,0.6)); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;}
         ha-selector { width: 100%; }
-        input[type="color"] { -webkit-appearance: none; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; width: 32px; height: 32px; padding: 0; cursor: pointer; overflow: hidden; background: none;}
+        input[type="color"] { -webkit-appearance: none; border: 1px solid var(--divider-color, rgba(255,255,255,0.3)); border-radius: 50%; width: 32px; height: 32px; padding: 0; cursor: pointer; overflow: hidden; background: none;}
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
-        input[type="text"], select { background: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box; font-family: sans-serif; }
+        input[type="text"], select { background: var(--card-background-color, rgba(0,0,0,0.2)); color: var(--primary-text-color, white); border: 1px solid var(--divider-color, rgba(255,255,255,0.1)); padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box; font-family: sans-serif; }
         input[type="checkbox"] { cursor: pointer; width: 18px; height: 18px; margin-top: 5px; }
       </style>
       <div class="card-config">
@@ -609,6 +610,17 @@ class OpenKairoButtonCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    
+    // Dynamic Layout (Light/Dark Mode) Detection (Moved to top so it works even without entity!)
+    if (hass.themes) {
+        const isDark = hass.themes.darkMode === undefined ? true : hass.themes.darkMode;
+        const cardWrap = this.shadowRoot.querySelector('ha-card');
+        if (cardWrap) {
+            if (isDark) cardWrap.classList.remove('light-mode');
+            else cardWrap.classList.add('light-mode');
+        }
+    }
+
     if (!this._config || !this._config.entity) return;
 
     const stateObj = hass.states[this._config.entity];
@@ -693,16 +705,6 @@ class OpenKairoButtonCard extends HTMLElement {
             cardWrap.classList.add('state-on');
         } else {
             cardWrap.classList.remove('state-on');
-        }
-    }
-
-    // Dynamic Layout (Light/Dark Mode) Detection
-    if (hass.themes) {
-        const isDark = hass.themes.darkMode === undefined ? true : hass.themes.darkMode;
-        if (isDark) {
-            cardWrap.classList.remove('light-mode');
-        } else {
-            cardWrap.classList.add('light-mode');
         }
     }
 

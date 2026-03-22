@@ -36,12 +36,12 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
     this.innerHTML = `
       <style>
         .group { 
-            background: rgba(10, 20, 28, 0.4); 
-            border: 1px solid rgba(5, 240, 160, 0.1); 
+            background: var(--secondary-background-color, rgba(10, 20, 28, 0.05)); 
+            border: 1px solid var(--divider-color, rgba(5, 240, 160, 0.1)); 
             padding: 18px; 
             border-radius: 16px; 
             margin-bottom: 25px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         .row { margin-bottom: 15px; display: flex; gap: 12px; align-items: center; }
         .row-col { display: flex; flex-direction: column; flex: 1; }
@@ -49,7 +49,7 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
             display: block; 
             font-size: 10px; 
             margin-bottom: 6px; 
-            color: rgba(255,255,255,0.5); 
+            color: var(--secondary-text-color, rgba(255,255,255,0.5)); 
             font-weight: 700; 
             text-transform: uppercase; 
             letter-spacing: 1.5px;
@@ -58,19 +58,19 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
         h3 { 
             margin-top: 0; 
             margin-bottom: 20px; 
-            color: #05f0a0; 
+            color: var(--primary-color, #05f0a0); 
             font-family: 'Orbitron', sans-serif; 
             font-size: 0.9rem; 
             letter-spacing: 2px;
             text-transform: uppercase;
-            border-bottom: 1px solid rgba(5, 240, 160, 0.2); 
+            border-bottom: 1px solid var(--divider-color, rgba(5, 240, 160, 0.2)); 
             padding-bottom: 10px; 
-            text-shadow: 0 0 10px rgba(5, 240, 160, 0.3);
+            text-shadow: none;
         }
         input { 
-            background: rgba(0,0,0,0.2) !important; 
-            color: white !important; 
-            border: 1px solid rgba(255,255,255,0.1) !important; 
+            background: var(--card-background-color, rgba(0,0,0,0.2)) !important; 
+            color: var(--primary-text-color, white) !important; 
+            border: 1px solid var(--divider-color, rgba(255,255,255,0.1)) !important; 
             padding: 10px !important; 
             border-radius: 8px !important; 
             width: 100%;
