@@ -206,6 +206,21 @@ class OpenKairoHistoryCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     this.updateData();
+
+    if (this.shadowRoot && this._config) {
+      const chartDiv = this.shadowRoot.getElementById('chart');
+      if (chartDiv) {
+        const card = chartDiv.querySelector('hui-history-graph-card');
+        if (card) {
+          card.hass = hass;
+        } else if (!this._renderingChart) {
+          this._renderingChart = true;
+          this.renderChart().finally(() => {
+            this._renderingChart = false;
+          });
+        }
+      }
+    }
   }
 
   render() {
