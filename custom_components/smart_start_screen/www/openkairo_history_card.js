@@ -207,6 +207,17 @@ class OpenKairoHistoryCard extends HTMLElement {
     this._hass = hass;
     this.updateData();
 
+    if (this._hass && this._hass.themes) {
+        const isDark = this._hass.themes.darkMode === undefined ? true : this._hass.themes.darkMode;
+        if (this.shadowRoot) {
+            const cardWrap = this.shadowRoot.querySelector('ha-card');
+            if (cardWrap) {
+                 if (isDark) cardWrap.classList.remove('light-mode');
+                 else cardWrap.classList.add('light-mode');
+            }
+        }
+    }
+
     if (this.shadowRoot && this._config) {
       const chartDiv = this.shadowRoot.getElementById('chart');
       if (chartDiv) {
@@ -377,6 +388,27 @@ class OpenKairoHistoryCard extends HTMLElement {
             grid-template-columns: repeat(2, 1fr);
           }
         }
+
+        /* LIGHT MODE OVERRIDES */
+        ha-card.light-mode {
+          background: rgba(255, 255, 255, 0.65) !important;
+          border: 1px solid rgba(0, 0, 0, 0.05) !important;
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1) !important;
+          color: #1a1a1a;
+        }
+        ha-card.light-mode .title { color: #1a1a1a; text-shadow: none; font-weight: 800; }
+        ha-card.light-mode .view-toggle { opacity: 0.8; }
+        ha-card.light-mode .view-toggle span { color: rgba(0,0,0,0.6); }
+        ha-card.light-mode .view-toggle span.active { color: #fff; background: rgba(0,0,0,0.8); }
+        ha-card.light-mode .stat-section { background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0, 0, 0, 0.05); }
+        ha-card.light-mode .stat-section.prod { border-left: 4px solid #05f0a0; background: linear-gradient(90deg, rgba(5,240,160,0.1) 0%, transparent 60%); }
+        ha-card.light-mode .stat-section.cons { border-left: 4px solid #f43f5e; background: linear-gradient(90deg, rgba(244,63,94,0.1) 0%, transparent 60%); }
+        ha-card.light-mode .stat-title { color: #1a1a1a !important; text-shadow: none !important; }
+        ha-card.light-mode .value-box { background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.05); }
+        ha-card.light-mode .value-box:hover { background: rgba(255, 255, 255, 0.9); }
+        ha-card.light-mode .label { color: rgba(0,0,0,0.6); }
+        ha-card.light-mode .value { color: #1a1a1a; text-shadow: none; }
+        ha-card.light-mode .unit { color: rgba(0,0,0,0.6); }
       </style>
       <ha-card>
         <div class="header-container">

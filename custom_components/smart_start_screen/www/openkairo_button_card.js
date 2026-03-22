@@ -379,6 +379,55 @@ class OpenKairoButtonCard extends HTMLElement {
         /* OVERRIDE FOR SECURITY SUCCESS */
         ha-card.unlock-success .icon-container { background: rgba(5, 240, 160, 0.3) !important; border-color: #05f0a0 !important; }
         ha-card.unlock-success ha-icon { color: #05f0a0 !important; filter: drop-shadow(0 0 10px #05f0a0) !important; }
+
+        /* LIGHT MODE OVERRIDES */
+        ha-card.light-mode {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+        ha-card.light-mode .name {
+            color: #1a1a1a;
+            text-shadow: none;
+            font-weight: 900;
+        }
+        ha-card.light-mode .state-text {
+            color: rgba(0,0,0,0.6);
+        }
+        ha-card.light-mode .icon-container {
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,1), rgba(0,0,0,0.03));
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1), inset 0 0 10px rgba(255,255,255,1);
+        }
+        ha-card.light-mode ha-icon {
+            color: rgba(0,0,0,0.4);
+        }
+        ha-card.light-mode .kairo-switch {
+            background: rgba(0,0,0,0.1);
+            border-color: rgba(0,0,0,0.15);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        ha-card.light-mode.state-on .kairo-switch {
+            background: ${this.hexToRgba(cStr, 0.15)};
+            border-color: ${this.hexToRgba(cStr, 0.5)};
+        }
+        ha-card.light-mode.state-on .state-text {
+            color: ${glowStyle === 'pulse' ? 'rgba(0,0,0,0.6)' : cStr};
+        }
+        ha-card.light-mode.state-on .icon-container {
+            box-shadow: 0 5px 25px ${this.hexToRgba(cStr, 0.3)}, inset 0 0 15px ${this.hexToRgba(cStr, 0.1)};
+            border-color: ${this.hexToRgba(cStr, 0.3)};
+        }
+        ha-card.light-mode .slider-bg {
+            background: linear-gradient(90deg, ${this.hexToRgba(cStr, 0.1)}, ${this.hexToRgba(cStr, 0.4)});
+        }
+        ha-card.light-mode .sensor-badge {
+            background: rgba(255,255,255,0.9);
+            color: #1a1a1a;
+            border-color: rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-shadow: none;
+        }
       </style>
       
       <ha-card id="button-card">
@@ -644,6 +693,16 @@ class OpenKairoButtonCard extends HTMLElement {
             cardWrap.classList.add('state-on');
         } else {
             cardWrap.classList.remove('state-on');
+        }
+    }
+
+    // Dynamic Layout (Light/Dark Mode) Detection
+    if (hass.themes) {
+        const isDark = hass.themes.darkMode === undefined ? true : hass.themes.darkMode;
+        if (isDark) {
+            cardWrap.classList.remove('light-mode');
+        } else {
+            cardWrap.classList.add('light-mode');
         }
     }
 
