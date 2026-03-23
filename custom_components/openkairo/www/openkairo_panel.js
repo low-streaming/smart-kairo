@@ -431,13 +431,16 @@ class OpenKairoBuilder extends HTMLElement {
     canvas.addEventListener('drop', e => {
       e.preventDefault();
       const moveId = e.dataTransfer.getData('move_id');
+      const sourceType = e.dataTransfer.getData('source_type');
+      const sourceEntity = e.dataTransfer.getData('source_entity');
       const canvasRect = canvas.getBoundingClientRect();
       const gridSize = 20;
 
+      // 1. MOVE EXISTING BLOCK
       if (moveId) {
         const el = this.querySelector('#' + moveId);
-        const ox = parseFloat(e.dataTransfer.getData('offsetX'));
-        const oy = parseFloat(e.dataTransfer.getData('offsetY'));
+        const ox = parseFloat(e.dataTransfer.getData('offsetX')) || 0;
+        const oy = parseFloat(e.dataTransfer.getData('offsetY')) || 0;
         let dropX = Math.round((e.clientX - canvasRect.left - ox) / gridSize) * gridSize;
         let dropY = Math.round((e.clientY - canvasRect.top - oy) / gridSize) * gridSize;
         
@@ -449,7 +452,6 @@ class OpenKairoBuilder extends HTMLElement {
           el.style.left = dropX + 'px';
           el.style.top = dropY + 'px';
           
-          // Move children
           this.canvasBlocks.filter(x => x.parentId === moveId).forEach(child => {
             child.x += dx; child.y += dy;
             const childEl = this.querySelector('#' + child.id);
@@ -457,13 +459,22 @@ class OpenKairoBuilder extends HTMLElement {
           });
         }
         this.selectBlock(moveId);
-      } else {
-        const type = e.dataTransfer.getData('source_type');
-        const entity = e.dataTransfer.getData('source_entity');
+      } 
+      // 2. ASSIGN ENTITY TO EXISTING BLOCK
+      else if (sourceEntity && e.target.closest('.canvas-element')) {
+        const targetEl = e.target.closest('.canvas-element');
+        const b = this.canvasBlocks.find(x => x.id === targetEl.id);
+        if(b) {
+            b.entity = sourceEntity;
+            if(!b.text || b.text === b.type) b.text = sourceEntity.split('.')[1];
+            this.selectBlock(b.id);
+        }
+      }
+      // 3. ADD NEW BLOCK
+      else if (sourceType) {
         let dropX = Math.round((e.clientX - canvasRect.left - 40) / gridSize) * gridSize;
         let dropY = Math.round((e.clientY - canvasRect.top - 20) / gridSize) * gridSize;
         
-        // Find potential parent container
         const targetBlock = e.target.closest('.canvas-element');
         let pId = null;
         if (targetBlock) {
@@ -471,7 +482,8 @@ class OpenKairoBuilder extends HTMLElement {
           if (tb && (tb.type === 'Container' || tb.type === 'Card')) pId = tb.id;
         }
         
-        this.addBlockToCanvas(type, dropX, dropY, entity, pId);
+        const type = sourceType === 'Entity State' ? 'Badge' : sourceType;
+        this.addBlockToCanvas(type, dropX, dropY, sourceEntity, pId);
       }
       this.renderLinks();
     });
@@ -657,12 +669,24 @@ class OpenKairoBuilder extends HTMLElement {
           this.querySelector('#p-blur').addEventListener('input', e => { b.blur = e.target.value; updateUI(); });
           this.querySelector('#p-opacity').addEventListener('input', e => { b.opacity = e.target.value; updateUI(); });
       } else {
+          // Generate entity list for dropdown
+          let entityOptions = '<option value="">Keine Entität</option>';
+          if(this._hass && this._hass.states) {
+            Object.keys(this._hass.states).sort().forEach(eid => {
+                entityOptions += `<option value="${eid}" ${b.entity === eid ? 'selected' : ''}>${eid}</option>`;
+            });
+          }
+
           right.innerHTML = `
             <div class="prop-group">
                 <div class="prop-header">Element Properties</div>
                 <div class="prop-row"><span class="prop-label">Anzeige-Text</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:120px;"></div>
                 <div class="prop-row"><span class="prop-label">Schriftgröße</span><input type="number" class="prop-input" id="p-size" value="${b.fontSize || 13}"></div>
-                <div class="prop-row"><span class="prop-label">HA-Entität</span><input type="text" class="prop-input" id="p-entity" value="${b.entity || ''}" style="width:120px;"></div>
+                <div class="prop-row"><span class="prop-label">HA-Entität</span>
+                    <select class="prop-input" id="p-entity" style="width:120px; font-size:10px;">
+                        ${entityOptions}
+                    </select>
+                </div>
             </div>
             <div class="prop-group">
                 <div class="prop-header">Interaktion (Actions)</div>
@@ -681,7 +705,11 @@ class OpenKairoBuilder extends HTMLElement {
           `;
           this.querySelector('#p-text').addEventListener('input', e => { b.text = e.target.value; updateUI(); });
           this.querySelector('#p-size').addEventListener('input', e => { b.fontSize = e.target.value; updateUI(); });
-          this.querySelector('#p-entity').addEventListener('input', e => { b.entity = e.target.value; updateUI(); });
+          this.querySelector('#p-entity').addEventListener('change', e => { 
+                b.entity = e.target.value; 
+                if(!b.text || b.text === b.type) b.text = b.entity.split('.')[1];
+                updateUI(); 
+          });
           this.querySelector('#p-action').addEventListener('change', e => { b.action = e.target.value; });
           this.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
       }
@@ -799,16 +827,38 @@ class OpenKairoBuilder extends HTMLElement {
     const container = this.querySelector('#left-sidebar-container');
     if(!container) return;
     
+    const allBlocks = [
+      { name: 'Box', icon: 'mdi:square-outline', cat: 'BASIC' },
+      { name: 'Circle', icon: 'mdi:circle-outline', cat: 'BASIC' },
+      { name: 'Badge', icon: 'mdi:badge-account-outline', cat: 'BASIC' },
+      { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
+      { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
+      { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
+      { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
+      { name: 'Button', icon: 'mdi:gesture-tap-button', cat: 'UI' },
+      { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', cat: 'UI' },
+      { name: 'Modus-Schalter', icon: 'mdi:view-grid-outline', cat: 'UI' },
+      { name: 'Slider', icon: 'mdi:tune-variant', cat: 'UI' },
+      { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' },
+      { name: 'Weather-Card', icon: 'mdi:weather-sunny', cat: 'UI' },
+      { name: 'Media-Player', icon: 'mdi:play-circle-outline', cat: 'UI' }
+    ];
+
     if (this.activeLeftTab === 'LAYERS') {
         let html = `<div class="block-category">Struktur & Ebenen</div>`;
         const renderLayer = (parentId = null, level = 0) => {
             const children = this.canvasBlocks.filter(b => b.parentId === parentId);
             children.forEach(b => {
                 const isSelected = this.selectedBlockId === b.id;
+                const blockInfo = allBlocks.find(ab => ab.name === b.type) || { icon: 'mdi:cube-outline' };
+                const label = b.text && b.text !== b.type ? b.text : b.type;
                 html += `
-                    <div class="layer-item ${isSelected ? 'active' : ''}" style="padding-left:${level * 15 + 10}px;" id="layer-${b.id}">
-                        <ha-icon icon="${b.type === 'Container' ? 'mdi:folder-outline' : 'mdi:cube-outline'}" style="--mdc-icon-size:14px; opacity:0.6;"></ha-icon>
-                        <span style="font-size:11px;">${b.text || b.type}</span>
+                    <div class="layer-item ${isSelected ? 'active' : ''}" style="padding-left:${level * 15 + 10}px; display:flex; align-items:center; gap:8px;" id="layer-${b.id}">
+                        <ha-icon icon="${blockInfo.icon}" style="--mdc-icon-size:14px; opacity:0.6; color:#10b981;"></ha-icon>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:11px; font-weight:bold; color:#fff;">${label}</span>
+                            <span style="font-size:9px; opacity:0.4; text-transform:uppercase;">${b.type}</span>
+                        </div>
                     </div>
                 `;
                 renderLayer(b.id, level + 1);
@@ -827,28 +877,12 @@ class OpenKairoBuilder extends HTMLElement {
     }
 
     let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Search..." value="${this.sidebarSearchQuery}">`;
-    
-    const allBlocks = [
-      { name: 'Box', icon: 'mdi:square-outline', cat: 'BASIC' },
-      { name: 'Circle', icon: 'mdi:circle-outline', cat: 'BASIC' },
-      { name: 'Badge', icon: 'mdi:badge-account-outline', cat: 'BASIC' },
-      { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
-      { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
-      { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
-      { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
-      { name: 'Button', icon: 'mdi:gesture-tap-button', cat: 'UI' },
-      { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', cat: 'UI' },
-      { name: 'Modus-Schalter', icon: 'mdi:view-grid-outline', cat: 'UI' },
-      { name: 'Slider', icon: 'mdi:tune-variant', cat: 'UI' },
-      { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' }
-    ];
-
     const searchVal = (this.sidebarSearchQuery || '').toLowerCase();
     
     // 1. ALWAYS show BASIC blocks (persistent tools)
     const basicBlocks = allBlocks.filter(b => b.cat === 'BASIC' || b.name === 'Card' || b.name === 'Container');
     html += `<div class="block-category">Bausteine</div><div class="block-grid">`;
-    basicBlocks.slice(0, 4).forEach(b => {
+    basicBlocks.forEach(b => {
       if (searchVal && !b.name.toLowerCase().includes(searchVal)) return;
       html += `<div class="block-item" data-type="${b.name}">
           <ha-icon icon="${b.icon}"></ha-icon>
