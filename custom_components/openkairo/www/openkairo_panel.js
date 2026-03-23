@@ -184,6 +184,35 @@ class OpenKairoBuilder extends HTMLElement {
         .btn-style { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #fff;}
         .btn-style.active { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
 
+        /* Draggable Elements on Canvas */
+        .canvas-element {
+          position: absolute;
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.4);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 8px;
+          cursor: grab;
+          min-width: 60px;
+          text-align: center;
+          user-select: none;
+          backdrop-filter: blur(5px);
+          font-size: 13px;
+          font-weight: 500;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .canvas-element:active { cursor: grabbing; }
+        .canvas-element:hover { border-color: #10b981; }
+        .canvas-element.selected {
+          border-color: #05f0a0;
+          box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+          background: rgba(16, 185, 129, 0.25);
+          z-index: 100; /* Bring to front */
+        }
+        .placeholder-text {
+          border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; height: 100px; display:flex; justify-content:center; align-items:center; color:rgba(255,255,255,0.3); font-size:12px; margin-top: 20px;
+        }
+
       </style>
 
       <div class="builder-layout">
@@ -248,11 +277,11 @@ class OpenKairoBuilder extends HTMLElement {
         <!-- CANVAS -->
         <div class="canvas-area">
           <div class="canvas-board" id="drop-target">
-            <div style="text-align:center; font-family:'Orbitron', sans-serif; color: #10b981; font-weight:800; font-size:1.2rem; margin-bottom:20px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);">
+            <div style="text-align:center; font-family:'Orbitron', sans-serif; color: #10b981; font-weight:800; font-size:1.2rem; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);">
               LIVING ROOM
             </div>
             <!-- Placeholder for dragged blocks -->
-            <div style="border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; height: 100px; display:flex; justify-content:center; align-items:center; color:rgba(255,255,255,0.3); font-size:12px;">
+            <div class="placeholder-text" id="canvas-placeholder">
               Block hier ablegen
             </div>
           </div>
@@ -329,7 +358,148 @@ class OpenKairoBuilder extends HTMLElement {
 
     this.content = true;
 
-    // TODO: Add complex Drag & Drop JS logic here
+    // --- DRAG & DROP LOGIC ---
+    this.canvasBlocks = [];
+    this.selectedBlockId = null;
+
+    const blocks = this.querySelectorAll('.block-item');
+    const canvas = this.querySelector('#drop-target');
+
+    // 1. Sidebar Blocks (Source)
+    blocks.forEach(block => {
+      block.setAttribute('draggable', 'true');
+      block.addEventListener('dragstart', (e) => {
+        const blockType = block.querySelector('span').innerText;
+        e.dataTransfer.setData('source_type', blockType);
+        block.style.opacity = '0.5';
+      });
+      block.addEventListener('dragend', (e) => {
+        block.style.opacity = '1';
+      });
+    });
+
+    // 2. Canvas Drop Zone
+    canvas.addEventListener('dragover', (e) => {
+      e.preventDefault(); // Berechtigt zum Droppen
+      canvas.style.borderColor = '#10b981';
+      canvas.style.boxShadow = '0 15px 45px rgba(16,185,129,0.3)';
+    });
+
+    canvas.addEventListener('dragleave', (e) => {
+      canvas.style.borderColor = 'rgba(255,255,255,0.1)';
+      canvas.style.boxShadow = '0 15px 45px rgba(0,0,0,0.7)';
+    });
+
+    canvas.addEventListener('drop', (e) => {
+      e.preventDefault();
+      canvas.style.borderColor = 'rgba(255,255,255,0.1)';
+      canvas.style.boxShadow = '0 15px 45px rgba(0,0,0,0.7)';
+      
+      const moveId = e.dataTransfer.getData('move_id');
+      const canvasRect = canvas.getBoundingClientRect();
+
+      if (moveId) {
+        // Block wird innerhalb des Canvas verschoben
+        const el = this.querySelector('#' + moveId);
+        const offsetX = parseFloat(e.dataTransfer.getData('offsetX'));
+        const offsetY = parseFloat(e.dataTransfer.getData('offsetY'));
+        
+        let dropX = e.clientX - canvasRect.left - offsetX;
+        let dropY = e.clientY - canvasRect.top - offsetY;
+
+        el.style.left = dropX + 'px';
+        el.style.top = dropY + 'px';
+        this.selectBlock(moveId);
+
+      } else {
+        // Neuer Block wird aus Sidebar aufs Canvas gezogen
+        const blockType = e.dataTransfer.getData('source_type');
+        if (blockType) {
+          // Ungefähre Mitte der Maus auf dem Block
+          const dropX = e.clientX - canvasRect.left - 40;
+          const dropY = e.clientY - canvasRect.top - 20;
+          this.addBlockToCanvas(blockType, dropX, dropY);
+        }
+      }
+    });
+
+    // Klick ins Leere auf dem Canvas hebt die Auswahl auf
+    canvas.addEventListener('click', () => {
+      this.selectBlock(null);
+    });
+  }
+
+  addBlockToCanvas(type, x, y) {
+    const canvas = this.querySelector('#drop-target');
+    const placeholder = canvas.querySelector('#canvas-placeholder');
+    if (placeholder) placeholder.remove();
+
+    const blockId = 'block_' + Date.now() + Math.floor(Math.random() * 100);
+    const el = document.createElement('div');
+    el.className = 'canvas-element';
+    el.id = blockId;
+    
+    // Icondarstellung passend zum Baustein (Optional erweiterbar)
+    let icon = 'mdi:cube-outline';
+    if(type === 'Text') icon = 'mdi:format-text';
+    if(type === 'Entity State') icon = 'mdi:thermometer';
+    if(type === 'Image') icon = 'mdi:image';
+    if(type === 'Button') icon = 'mdi:gesture-tap-button';
+    if(type === 'Icon') icon = 'mdi:star-outline';
+    
+    el.innerHTML = `<ha-icon icon="${icon}" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> ${type}`;
+    
+    el.style.left = x + 'px';
+    el.style.top = Math.max(0, y) + 'px'; // Verhindern, dass Blöcke nach oben verschwinden
+
+    // Klick auf Block -> Rechte Sidebar Properties anzeigen
+    el.addEventListener('click', (e) => {
+        e.stopPropagation(); // Verhindert, dass Canvas-Click auslöst
+        this.selectBlock(blockId);
+    });
+
+    // Block Drag-Logik (Verschieben auf dem Canvas)
+    el.setAttribute('draggable', 'true');
+    el.addEventListener('dragstart', (e) => {
+        e.stopPropagation();
+        e.dataTransfer.setData('move_id', blockId);
+        
+        // Maus-Position relativ zum Element für weiches, akkurates Dropping
+        const elRect = el.getBoundingClientRect();
+        e.dataTransfer.setData('offsetX', e.clientX - elRect.left);
+        e.dataTransfer.setData('offsetY', e.clientY - elRect.top);
+        
+        el.style.opacity = '0.5';
+    });
+    
+    el.addEventListener('dragend', (e) => {
+        el.style.opacity = '1';
+    });
+
+    canvas.appendChild(el);
+    this.canvasBlocks.push({ id: blockId, type: type, x: x, y: y });
+    this.selectBlock(blockId);
+  }
+
+  selectBlock(blockId) {
+    this.selectedBlockId = blockId;
+    
+    // Alle Markierungen resetten
+    this.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
+    
+    // Auswahl markieren + UI-Update rechts
+    const propsHeader = this.querySelector('.right-sidebar .prop-header');
+    
+    if (blockId) {
+      const el = this.querySelector('#' + blockId);
+      if (el) {
+        el.classList.add('selected');
+        const blockObj = this.canvasBlocks.find(b => b.id === blockId);
+        if(propsHeader) propsHeader.innerHTML = `Properties: ${blockObj.type} <ha-icon icon="mdi:chevron-up"></ha-icon>`;
+      }
+    } else {
+       if(propsHeader) propsHeader.innerHTML = `Layout (Board) <ha-icon icon="mdi:chevron-up"></ha-icon>`;
+    }
   }
 }
 
