@@ -1128,15 +1128,32 @@ class OpenKairoBuilder extends HTMLElement {
         { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' }
     ];
 
+    const searchVal = (this.sidebarSearchQuery || '').toLowerCase();
+
     if (this.activeToolbarMode === 'ENTITIES') {
-        html += `<div class="block-category">Entitäten Browser</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 4px;">`;
+        html += `<div class="block-category">Entitäten Browser</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 6px;">`;
         if (this._hass && this._hass.states) {
-            const eIds = Object.keys(this._hass.states).filter(id => id.toLowerCase().includes(this.sidebarSearchQuery.toLowerCase())).sort().slice(0, 50);
+            const eIds = Object.keys(this._hass.states)
+                .filter(id => id.toLowerCase().includes(searchVal))
+                .sort()
+                .slice(0, 100);
+            
+            if (eIds.length === 0) {
+                html += `<div style="padding:20px; text-align:center; color:rgba(255,255,255,0.3); font-size:11px;">Keine Entitäten gefunden</div>`;
+            }
+
             eIds.forEach(eid => {
+                const domain = eid.split('.')[0];
+                const name = eid.split('.')[1];
                 html += `
-                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:32px; padding:0 8px;">
-                        <ha-icon icon="mdi:database-outline" style="--mdc-icon-size:14px; margin-right:8px; opacity:0.5;"></ha-icon>
-                        <span style="font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eid}</span>
+                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:auto; padding:10px; flex-direction:row; align-items:center; gap:12px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="background:rgba(16, 185, 129, 0.1); padding:6px; border-radius:8px; display:flex; justify-content:center; align-items:center;">
+                            <ha-icon icon="mdi:database-outline" style="--mdc-icon-size:16px; color:#10b981;"></ha-icon>
+                        </div>
+                        <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
+                            <span style="font-size:11px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;">${name}</span>
+                            <span style="font-size:9px; color:rgba(255,255,255,0.4); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eid}</span>
+                        </div>
                     </div>
                 `;
             });
@@ -1146,13 +1163,16 @@ class OpenKairoBuilder extends HTMLElement {
         const cats = ['BASIC', 'LAYOUT', 'UI'];
         cats.forEach(cat => {
             const filtered = allBlocks.filter(b => {
-                if (search && !b.name.toLowerCase().includes(search.toLowerCase())) return false;
+                if (b.cat !== cat) return false;
+                if (searchVal && !b.name.toLowerCase().includes(searchVal)) return false;
+                
+                // Mode filters
                 if (this.activeToolbarMode === 'ACTIONS') return b.cat === 'UI';
                 if (this.activeToolbarMode === 'MEDIA') return b.name === 'Image';
                 if (this.activeToolbarMode === 'LAYOUT') return b.cat === 'LAYOUT';
                 if (this.activeToolbarMode === 'LINK') return b.cat === 'BASIC';
                 if (this.activeToolbarMode === 'TOGGLES') return b.cat === 'UI';
-                return b.cat === cat;
+                return true; 
             });
             
             if (filtered.length > 0) {
