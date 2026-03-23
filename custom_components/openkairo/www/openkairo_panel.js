@@ -225,7 +225,7 @@ class OpenKairoBuilder extends HTMLElement {
           width: 500px; max-width: 90%; color: white; display: flex; flex-direction: column; gap: 15px;
         }
         .modal-header { font-size: 18px; font-weight: 800; color: #10b981; display:flex; justify-content: space-between;}
-        .modal-code { background: #000; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; color: #a4b1cd; overflow-x: auto; white-space: pre-wrap;}
+        .modal-code { background: #000; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; color: #a4b1cd; overflow-x: auto; white-space: pre-wrap; user-select: text !important; cursor: text;}
         .modal-close { cursor: pointer; color: rgba(255,255,255,0.5); }
         .modal-close:hover { color: #f43f5e; }
 
@@ -507,9 +507,30 @@ class OpenKairoBuilder extends HTMLElement {
     
     this.querySelector('#btn-copy-code').addEventListener('click', () => {
        const txt = this.querySelector('#export-code-box').innerText;
-       navigator.clipboard.writeText(txt);
-       alert("Lovelace YAML Code erfolgreich kopiert!");
-       this.querySelector('#export-modal').style.display = 'none';
+       
+       // Fallback for local HTTP connections (which block modern Clipboard API)
+       try {
+           if (navigator.clipboard && window.isSecureContext) {
+               navigator.clipboard.writeText(txt).then(() => {
+                   alert("YAML erfolgreich kopiert!");
+                   this.querySelector('#export-modal').style.display = 'none';
+               });
+           } else {
+               const textArea = document.createElement("textarea");
+               textArea.value = txt;
+               textArea.style.position = "fixed";
+               textArea.style.opacity = "0";
+               document.body.appendChild(textArea);
+               textArea.focus();
+               textArea.select();
+               document.execCommand('copy');
+               document.body.removeChild(textArea);
+               alert("YAML erfolgreich kopiert (HTTP Fallback)!");
+               this.querySelector('#export-modal').style.display = 'none';
+           }
+       } catch (err) {
+           alert("Browser blockiert das Kopieren! Bitte markiere den YAML-Text manuell und drücke Strg+C.");
+       }
     });
   }
 
