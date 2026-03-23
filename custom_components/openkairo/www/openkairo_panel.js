@@ -1129,30 +1129,40 @@ class OpenKairoBuilder extends HTMLElement {
     ];
 
     const searchVal = (this.sidebarSearchQuery || '').toLowerCase();
+    
+    // 1. ALWAYS show BASIC blocks (Text, Icon, Image, Badge, Card)
+    const basicBlocks = allBlocks.filter(b => b.cat === 'BASIC' || b.name === 'Card' || b.name === 'Container');
+    html += `<div class="block-category">Karten-Elemente</div><div class="block-grid">`;
+    basicBlocks.forEach(b => {
+        if (searchVal && !b.name.toLowerCase().includes(searchVal)) return;
+        html += `<div class="block-item" data-type="${b.name}">
+            <ha-icon icon="${b.icon}"></ha-icon>
+            <span>${b.name}</span>
+        </div>`;
+    });
+    html += `</div>`;
 
+    // 2. Dynamic Section based on Toolbar Mode
     if (this.activeToolbarMode === 'ENTITIES') {
-        html += `<div class="block-category">Entitäten Browser</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 6px;">`;
+        html += `<div class="block-category" style="margin-top:20px; color:#10b981;">Home Assistant Entitäten</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 6px;">`;
         if (this._hass && this._hass.states) {
             const eIds = Object.keys(this._hass.states)
                 .filter(id => id.toLowerCase().includes(searchVal))
                 .sort()
-                .slice(0, 100);
+                .slice(0, 50);
             
             if (eIds.length === 0) {
                 html += `<div style="padding:20px; text-align:center; color:rgba(255,255,255,0.3); font-size:11px;">Keine Entitäten gefunden</div>`;
             }
 
             eIds.forEach(eid => {
-                const domain = eid.split('.')[0];
                 const name = eid.split('.')[1];
                 html += `
-                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:auto; padding:10px; flex-direction:row; align-items:center; gap:12px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
-                        <div style="background:rgba(16, 185, 129, 0.1); padding:6px; border-radius:8px; display:flex; justify-content:center; align-items:center;">
-                            <ha-icon icon="mdi:database-outline" style="--mdc-icon-size:16px; color:#10b981;"></ha-icon>
-                        </div>
+                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:auto; padding:8px; flex-direction:row; align-items:center; gap:10px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                        <ha-icon icon="mdi:database-outline" style="--mdc-icon-size:14px; color:#10b981; opacity:0.7;"></ha-icon>
                         <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
-                            <span style="font-size:11px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;">${name}</span>
-                            <span style="font-size:9px; color:rgba(255,255,255,0.4); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eid}</span>
+                            <span style="font-size:10px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;">${name}</span>
+                            <span style="font-size:8px; color:rgba(255,255,255,0.4); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eid}</span>
                         </div>
                     </div>
                 `;
@@ -1160,32 +1170,28 @@ class OpenKairoBuilder extends HTMLElement {
         }
         html += `</div>`;
     } else {
-        const cats = ['BASIC', 'LAYOUT', 'UI'];
-        cats.forEach(cat => {
-            const filtered = allBlocks.filter(b => {
-                if (b.cat !== cat) return false;
-                if (searchVal && !b.name.toLowerCase().includes(searchVal)) return false;
-                
-                // Mode filters
-                if (this.activeToolbarMode === 'ACTIONS') return b.cat === 'UI';
-                if (this.activeToolbarMode === 'MEDIA') return b.name === 'Image';
-                if (this.activeToolbarMode === 'LAYOUT') return b.cat === 'LAYOUT';
-                if (this.activeToolbarMode === 'LINK') return b.cat === 'BASIC';
-                if (this.activeToolbarMode === 'TOGGLES') return b.cat === 'UI';
-                return true; 
-            });
-            
-            if (filtered.length > 0) {
-                html += `<div class="block-category">${cat}</div><div class="block-grid">`;
-                filtered.forEach(b => {
-                    html += `<div class="block-item" data-type="${b.name}">
-                        <ha-icon icon="${b.icon}"></ha-icon>
-                        <span>${b.name}</span>
-                    </div>`;
-                });
-                html += `</div>`;
-            }
+        const catMap = { 'ACTIONS': 'UI', 'LAYOUT': 'LAYOUT', 'MEDIA': 'BASIC' };
+        const activeCat = catMap[this.activeToolbarMode] || 'UI';
+        
+        const filtered = allBlocks.filter(b => {
+            if (b.cat === 'BASIC' && b.name !== 'Image') return false; // Already shown
+            if (searchVal && !b.name.toLowerCase().includes(searchVal)) return false;
+            if (this.activeToolbarMode === 'ACTIONS') return b.cat === 'UI';
+            if (this.activeToolbarMode === 'MEDIA') return b.name === 'Image';
+            if (this.activeToolbarMode === 'LAYOUT') return b.cat === 'LAYOUT';
+            return b.cat === activeCat;
         });
+
+        if (filtered.length > 0) {
+            html += `<div class="block-category" style="margin-top:20px;">${this.activeToolbarMode}</div><div class="block-grid">`;
+            filtered.forEach(b => {
+                html += `<div class="block-item" data-type="${b.name}">
+                    <ha-icon icon="${b.icon}"></ha-icon>
+                    <span>${b.name}</span>
+                </div>`;
+            });
+            html += `</div>`;
+        }
     }
 
     container.innerHTML = html;
