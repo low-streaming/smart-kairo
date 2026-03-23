@@ -1,4 +1,4 @@
-class OpenKairoPanel extends HTMLElement {
+class OpenKairoBuilder extends HTMLElement {
   set panel(panel) {
     this._panel = panel;
     if (!this.content) {
@@ -8,134 +8,320 @@ class OpenKairoPanel extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    // Hier könnten Entitäten geladen werden
   }
 
   setupDOM() {
+    // Premium Dark Mode / Glassmorphism Styles passend zu OpenKAIRO
     this.innerHTML = `
       <style>
         :host {
           display: block;
           height: 100vh;
           width: 100%;
-          background: #0f172a; /* Premium Dark Background */
+          background: #0b1121; /* Sehr dunkler Premium Hintergrund */
           color: white;
           font-family: 'Inter', sans-serif;
-          overflow-y: auto;
+          overflow: hidden;
         }
+
+        /* --- LAYOUT GRID --- */
+        .builder-layout {
+          display: grid;
+          grid-template-rows: 60px 1fr;
+          grid-template-columns: 280px 1fr 320px;
+          grid-template-areas:
+            "header header header"
+            "left canvas right";
+          height: 100vh;
+          width: 100vw;
+        }
+
+        /* --- HEADER --- */
         .header {
-          padding: 24px 32px;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
+          grid-area: header;
+          background: rgba(15, 23, 42, 0.95);
+          border-bottom: 1px solid rgba(255,255,255,0.08);
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: rgba(15, 23, 42, 0.8);
+          padding: 0 20px;
           backdrop-filter: blur(10px);
-          position: sticky;
-          top: 0;
-          z-index: 100;
+          z-index: 10;
         }
-        .title {
-          font-size: 24px;
-          font-weight: 800;
-          letter-spacing: 2px;
-          color: #10b981;
-        }
-        .subtitle {
-          color: rgba(255,255,255,0.5);
-          font-size: 14px;
-        }
-        .container {
-          padding: 32px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 24px;
-          margin-top: 32px;
-        }
-        .card {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 16px;
-          padding: 24px;
+        
+        .header-logo {
           display: flex;
-          flex-direction: column;
-          gap: 16px;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          cursor: pointer;
-        }
-        .card:hover {
-          background: rgba(255,255,255,0.05);
-          border-color: #10b981;
-          transform: translateY(-4px);
-          box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-        }
-        .card-icon {
-          --mdc-icon-size: 48px;
-          color: #10b981;
-          margin-bottom: 8px;
-        }
-        .card-title {
+          align-items: center;
+          gap: 12px;
+          font-weight: 800;
           font-size: 18px;
-          font-weight: 600;
+          color: #fff;
+          letter-spacing: 1px;
         }
-        .card-desc {
-          font-size: 14px;
-          color: rgba(255,255,255,0.6);
-          line-height: 1.5;
-          flex-grow: 1;
+        .header-logo ha-icon { color: #10b981; }
+
+        .header-toolbar {
+          display: flex;
+          gap: 15px;
         }
-        .btn {
-          background: rgba(16, 185, 129, 0.1);
-          color: #10b981;
-          border: 1px solid rgba(16, 185, 129, 0.3);
-          padding: 10px 16px;
-          border-radius: 8px;
-          text-align: center;
+        .tool-btn {
+          background: transparent;
+          color: rgba(255,255,255,0.7);
+          border: 1px solid transparent;
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 13px;
           font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
           transition: 0.2s;
         }
-        .card:hover .btn {
-          background: #10b981;
-          color: #0f172a;
+        .tool-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .tool-btn.active { background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+
+        .header-actions { display: flex; gap: 10px; }
+        .btn-primary {
+          background: #10b981; color: #0b1121;
+          border: none; padding: 8px 16px; border-radius: 6px;
+          font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;
         }
+        .btn-primary:hover { background: #05f0a0; }
+
+        /* --- LEFT SIDEBAR (Blocks / Layers) --- */
+        .left-sidebar {
+          grid-area: left;
+          background: rgba(15, 23, 42, 0.6);
+          border-right: 1px solid rgba(255,255,255,0.05);
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+        }
+
+        .sidebar-tabs {
+          display: flex;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .s-tab {
+          flex: 1; text-align: center; padding: 12px; font-size: 12px;
+          font-weight: 600; color: rgba(255,255,255,0.5); cursor: pointer;
+          text-transform: uppercase; letter-spacing: 1px;
+        }
+        .s-tab.active { color: #10b981; border-bottom: 2px solid #10b981; background: rgba(16, 185, 129, 0.05); }
+
+        .sidebar-content { padding: 15px; }
+        .search-box {
+          background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+          color: white; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box;
+          margin-bottom: 15px; outline: none;
+        }
+        
+        .block-category { font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; letter-spacing: 1px; font-weight: bold; }
+        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .block-item {
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 6px; padding: 12px 5px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+          cursor: grab; transition: 0.2s;
+        }
+        .block-item:hover { background: rgba(16, 185, 129, 0.1); border-color: #10b981; }
+        .block-item ha-icon { color: rgba(255,255,255,0.7); --mdc-icon-size: 20px; }
+        .block-item span { font-size: 11px; font-weight: 500; }
+
+        /* --- CANVAS --- */
+        .canvas-area {
+          grid-area: canvas;
+          background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%), #0f172a;
+          position: relative;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          /* Raster Hintergrund */
+          background-image: 
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+          background-size: 40px 40px;
+        }
+
+        .canvas-board {
+          width: 400px;
+          height: 500px;
+          background: rgba(10, 20, 28, 0.45);
+          border-radius: 28px;
+          box-shadow: 0 15px 45px rgba(0,0,0,0.7);
+          border: 1px solid rgba(255,255,255,0.1);
+          backdrop-filter: blur(15px);
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          padding: 20px;
+        }
+
+        /* --- RIGHT SIDEBAR (Props / Styles / Actions) --- */
+        .right-sidebar {
+          grid-area: right;
+          background: rgba(15, 23, 42, 0.6);
+          border-left: 1px solid rgba(255,255,255,0.05);
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+        }
+
+        .prop-group { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 15px; }
+        .prop-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+        .prop-header ha-icon { --mdc-icon-size: 16px; color: rgba(255,255,255,0.5); }
+        
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .prop-label { font-size: 11px; color: rgba(255,255,255,0.6); }
+        .prop-input { 
+          background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); 
+          color: white; padding: 6px; border-radius: 4px; font-size: 11px; width: 60px; text-align: right;
+        }
+        select.prop-input { width: 100%; text-align: left; }
+
+        .btn-style { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #fff;}
+        .btn-style.active { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
+
       </style>
 
-      <div class="header">
-        <div>
-          <div class="title">OpenKAIRO OS</div>
-          <div class="subtitle">Custom Integrations & Visual Card Builder</div>
+      <div class="builder-layout">
+        
+        <!-- HEADER -->
+        <div class="header">
+          <div class="header-logo">
+            <ha-icon icon="mdi:flash"></ha-icon> OpenKAIRO Builder
+          </div>
+          
+          <div class="header-toolbar">
+            <div class="tool-btn active"><ha-icon icon="mdi:shape-outline"></ha-icon> Entities</div>
+            <div class="tool-btn"><ha-icon icon="mdi:gesture-tap"></ha-icon> Actions</div>
+            <div class="tool-btn"><ha-icon icon="mdi:image-outline"></ha-icon> Media</div>
+            <div class="tool-btn"><ha-icon icon="mdi:card-outline"></ha-icon> Container Selector</div>
+            <div class="tool-btn"><ha-icon icon="mdi:vector-line"></ha-icon> Link</div>
+            <div class="tool-btn"><ha-icon icon="mdi:toggle-switch-outline"></ha-icon> Toggles</div>
+          </div>
+
+          <div class="header-actions">
+            <div class="tool-btn"><ha-icon icon="mdi:undo"></ha-icon></div>
+            <div class="tool-btn"><ha-icon icon="mdi:redo"></ha-icon></div>
+            <button class="btn-primary"><ha-icon icon="mdi:content-save"></ha-icon> Speichern</button>
+          </div>
         </div>
-      </div>
 
-      <div class="container">
-        <h2>Willkommen im OpenKAIRO Control Center</h2>
-        <p style="color: rgba(255,255,255,0.6); max-width: 600px; line-height: 1.6;">
-          Von hier aus kannst du alle exklusiven OpenKAIRO Cards verwalten und mit dem visuellen Card Builder dein Home Assistant Dashboard perfektionieren.
-        </p>
+        <!-- LEFT SIDEBAR -->
+        <div class="left-sidebar">
+          <div class="sidebar-tabs">
+            <div class="s-tab active">Blocks</div>
+            <div class="s-tab">Layers</div>
+          </div>
+          <div class="sidebar-content">
+            <input type="text" class="search-box" placeholder="Search blocks...">
+            
+            <div class="block-category">Basic</div>
+            <div class="block-grid">
+              <div class="block-item"><ha-icon icon="mdi:format-text"></ha-icon><span>Text</span></div>
+              <div class="block-item"><ha-icon icon="mdi:star-outline"></ha-icon><span>Icon</span></div>
+              <div class="block-item"><ha-icon icon="mdi:image"></ha-icon><span>Image</span></div>
+              <div class="block-item"><ha-icon icon="mdi:badge-account-outline"></ha-icon><span>Badge</span></div>
+            </div>
 
-        <div class="grid">
-          <div class="card" id="btn-builder">
-            <ha-icon class="card-icon" icon="mdi:pencil-ruler"></ha-icon>
-            <div class="card-title">Card Builder (Neu)</div>
-            <div class="card-desc">Visueller Editor zum Erstellen und Anpassen deiner eigenen Custom Lovelace Cards per Drag-and-Drop.</div>
-            <div class="btn">Start Builder</div>
+            <div class="block-category">Layout</div>
+            <div class="block-grid">
+              <div class="block-item"><ha-icon icon="mdi:crop-square"></ha-icon><span>Container</span></div>
+              <div class="block-item"><ha-icon icon="mdi:grid"></ha-icon><span>Grid</span></div>
+              <div class="block-item"><ha-icon icon="mdi:format-list-bulleted"></ha-icon><span>Stack</span></div>
+              <div class="block-item"><ha-icon icon="mdi:card"></ha-icon><span>Card</span></div>
+            </div>
+
+            <div class="block-category">Entities & UI</div>
+            <div class="block-grid">
+              <div class="block-item"><ha-icon icon="mdi:thermometer"></ha-icon><span>Entity State</span></div>
+              <div class="block-item"><ha-icon icon="mdi:gesture-tap-button"></ha-icon><span>Button</span></div>
+              <div class="block-item"><ha-icon icon="mdi:tune-variant"></ha-icon><span>Slider</span></div>
+              <div class="block-item"><ha-icon icon="mdi:circle-slice-8"></ha-icon><span>Energie-Ring</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CANVAS -->
+        <div class="canvas-area">
+          <div class="canvas-board" id="drop-target">
+            <div style="text-align:center; font-family:'Orbitron', sans-serif; color: #10b981; font-weight:800; font-size:1.2rem; margin-bottom:20px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);">
+              LIVING ROOM
+            </div>
+            <!-- Placeholder for dragged blocks -->
+            <div style="border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; height: 100px; display:flex; justify-content:center; align-items:center; color:rgba(255,255,255,0.3); font-size:12px;">
+              Block hier ablegen
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <div class="right-sidebar">
+          <div class="sidebar-tabs">
+            <div class="s-tab">Properties</div>
+            <div class="s-tab active">Styles</div>
+            <div class="s-tab">Actions</div>
           </div>
 
-          <div class="card" id="btn-solar">
-            <ha-icon class="card-icon" icon="mdi:solar-power"></ha-icon>
-            <div class="card-title">Solar Dashboard</div>
-            <div class="card-desc">Konfiguriere das animierte Energiefluss-Dashboard inkl. Hausverbrauch, Netz, Akku und Sonderverbrauchern.</div>
-            <div class="btn">Dokumentation</div>
-          </div>
+          <div class="sidebar-content" style="padding:0;">
+            <div class="prop-group">
+              <div class="prop-header">Layout <ha-icon icon="mdi:chevron-up"></ha-icon></div>
+              <div class="prop-row">
+                <span class="prop-label">Position</span>
+                <div style="display:flex; gap:5px;">
+                  <button class="btn-style"><ha-icon icon="mdi:format-align-left" style="--mdc-icon-size:14px;"></ha-icon></button>
+                  <button class="btn-style active"><ha-icon icon="mdi:format-align-center" style="--mdc-icon-size:14px;"></ha-icon></button>
+                  <button class="btn-style"><ha-icon icon="mdi:format-align-right" style="--mdc-icon-size:14px;"></ha-icon></button>
+                </div>
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">Breite (W)</span>
+                <input type="text" class="prop-input" value="300" />
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">Höhe (H)</span>
+                <input type="text" class="prop-input" value="Auto" />
+              </div>
+            </div>
 
-          <div class="card" id="btn-system">
-            <ha-icon class="card-icon" icon="mdi:server-network"></ha-icon>
-            <div class="card-title">System Status</div>
-            <div class="card-desc">Überwache die Ressourcen (CPU, RAM, Temperatur) deines Smart-Kairo oder Home Assistant Systems.</div>
-            <div class="btn">Einstellungen</div>
+            <div class="prop-group">
+              <div class="prop-header">Appearance <ha-icon icon="mdi:chevron-up"></ha-icon></div>
+              <div class="prop-row">
+                <span class="prop-label">Background</span>
+                <select class="prop-input" style="width:120px;">
+                  <option>Color</option>
+                  <option>Gradient</option>
+                  <option>Blur</option>
+                </select>
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">Border Radius</span>
+                <div style="display:flex; gap:5px; align-items:center;">
+                  <input type="text" class="prop-input" value="16" style="width:40px;" /> <span style="font-size:10px; color:rgba(255,255,255,0.4);">px</span>
+                </div>
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">Padding</span>
+                <div style="display:flex; gap:5px;">
+                  <input type="text" class="prop-input" value="10" style="width:30px;" />
+                  <input type="text" class="prop-input" value="15" style="width:30px;" />
+                </div>
+              </div>
+            </div>
+            
+            <div class="prop-group">
+              <div class="prop-header" style="color:#10b981;">Bindings / Templates <ha-icon icon="mdi:chevron-up"></ha-icon></div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:10px; line-height:1.4;">
+                Verbinde diese Eigenschaft mit einer Home Assistant Entität, um sie dynamisch zu animieren.
+              </div>
+              <button class="btn-primary" style="width:100%; justify-content:center; background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); color:#10b981;">
+                <ha-icon icon="mdi:plus"></ha-icon> Entity Binding hinzufügen
+              </button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -143,12 +329,8 @@ class OpenKairoPanel extends HTMLElement {
 
     this.content = true;
 
-    // EVENT LISTENERS
-    this.querySelector('#btn-builder').addEventListener('click', () => {
-      alert("Der Visual Card Builder wird geladen...");
-      // Here we will mount the sophisticated builder interface natively!
-    });
+    // TODO: Add complex Drag & Drop JS logic here
   }
 }
 
-customElements.define("openkairo-panel", OpenKairoPanel);
+customElements.define("openkairo-panel", OpenKairoBuilder);
