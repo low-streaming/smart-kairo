@@ -505,25 +505,32 @@ class OpenKairoBuilder extends HTMLElement {
 
       // Simple YAML builder string
       let yamlStr = `type: custom:openkairo-custom-card\ntitle: LIVING ROOM\nheight: ${canvas.offsetHeight}\nlayout:\n`;
-      layoutData.forEach(l => {
-          yamlStr += `  - type: ${l.type}\n`;
-          if (l.entity) yamlStr += `    entity: ${l.entity}\n`;
-          if (l.text) yamlStr += `    text: "${l.text}"\n`;
-          yamlStr += `    x: ${l.x}\n    y: ${l.y}\n    width: ${l.width}\n    height: ${l.height}\n`;
-          yamlStr += `    color: "${l.color}"\n`;
+      this.canvasBlocks.forEach(b => {
+          const el = this.querySelector('#' + b.id);
+          if(!el) return;
           
-          let blockObj = this.canvasBlocks.find(b => b.x === l.x && b.y === l.y); // Fallback match
-          if(blockObj) {
-              if (blockObj.fontSize) yamlStr += `    fontSize: ${blockObj.fontSize}\n`;
-              if (blockObj.fontWeight) yamlStr += `    fontWeight: "${blockObj.fontWeight}"\n`;
-              if (blockObj.borderRadius !== undefined) yamlStr += `    borderRadius: ${blockObj.borderRadius}\n`;
-              if (blockObj.backgroundColor) yamlStr += `    backgroundColor: "${blockObj.backgroundColor}"\n`;
-              if (blockObj.backgroundImage) yamlStr += `    backgroundImage: "${blockObj.backgroundImage}"\n`;
-              if (blockObj.imageUrl) yamlStr += `    imageUrl: "${blockObj.imageUrl}"\n`;
-              if (blockObj.action && blockObj.action !== 'none') yamlStr += `    action: "${blockObj.action}"\n`;
-              if (blockObj.logicState) yamlStr += `    logicState: "${blockObj.logicState}"\n`;
-              if (blockObj.logicColor) yamlStr += `    logicColor: "${blockObj.logicColor}"\n`;
-          }
+          yamlStr += `  - type: ${b.type}\n`;
+          if (b.entity) yamlStr += `    entity: ${b.entity}\n`;
+          if (b.text) yamlStr += `    text: "${b.text}"\n`;
+          
+          const curX = parseInt(el.style.left) || 0;
+          const curY = parseInt(el.style.top) || 0;
+          const curW = el.offsetWidth;
+          const curH = el.offsetHeight;
+          yamlStr += `    x: ${curX}\n    y: ${curY}\n    width: ${curW}\n    height: ${curH}\n`;
+          
+          const finalColor = b.color || "#10b981";
+          yamlStr += `    color: "${finalColor}"\n`;
+          
+          if (b.fontSize) yamlStr += `    fontSize: ${b.fontSize}\n`;
+          if (b.fontWeight) yamlStr += `    fontWeight: "${b.fontWeight}"\n`;
+          if (b.borderRadius !== undefined) yamlStr += `    borderRadius: ${b.borderRadius}\n`;
+          if (b.backgroundColor) yamlStr += `    backgroundColor: "${b.backgroundColor}"\n`;
+          if (b.backgroundImage) yamlStr += `    backgroundImage: "${b.backgroundImage}"\n`;
+          if (b.imageUrl) yamlStr += `    imageUrl: "${b.imageUrl}"\n`;
+          if (b.action && b.action !== 'none') yamlStr += `    action: "${b.action}"\n`;
+          if (b.logicState) yamlStr += `    logicState: "${b.logicState}"\n`;
+          if (b.logicColor) yamlStr += `    logicColor: "${b.logicColor}"\n`;
       });
       
       codeBox.innerText = yamlStr;
@@ -804,11 +811,12 @@ class OpenKairoBuilder extends HTMLElement {
          el.style.borderRadius = (blockObj.borderRadius || 8) + 'px';
          
          if(blockObj.type === 'Card' || blockObj.type === 'Container') {
-             el.style.background = blockObj.backgroundColor || 'transparent';
+             el.style.backgroundColor = blockObj.backgroundColor || 'transparent';
              if (blockObj.backgroundImage) {
                  el.style.backgroundImage = `url('${blockObj.backgroundImage}')`;
                  el.style.backgroundSize = 'cover';
                  el.style.backgroundPosition = 'center';
+                 el.innerHTML = '';
              } else {
                  el.style.backgroundImage = 'none';
              }
