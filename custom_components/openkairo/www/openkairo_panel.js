@@ -16,7 +16,8 @@ class OpenKairoBuilder extends HTMLElement {
     this.innerHTML = `
       <style>
         :host {
-          display: block;
+          display: flex;
+          flex-direction: column;
           height: 100vh;
           width: 100%;
           background: #0b1121; /* Sehr dunkler Premium Hintergrund */
@@ -29,12 +30,12 @@ class OpenKairoBuilder extends HTMLElement {
         .builder-layout {
           display: grid;
           grid-template-rows: 60px 1fr;
-          grid-template-columns: 280px 1fr 320px;
+          grid-template-columns: 240px 1fr 300px; /* Layout repariert, Platz für alle Panels */
           grid-template-areas:
             "header header header"
             "left canvas right";
-          height: 100vh;
-          width: 100vw;
+          height: 100%;
+          width: 100%;
         }
 
         /* --- HEADER --- */
@@ -277,11 +278,11 @@ class OpenKairoBuilder extends HTMLElement {
         <!-- CANVAS -->
         <div class="canvas-area">
           <div class="canvas-board" id="drop-target">
-            <div style="text-align:center; font-family:'Orbitron', sans-serif; color: #10b981; font-weight:800; font-size:1.2rem; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);">
+            <div style="text-align:center; font-family:'Orbitron', sans-serif; color: #10b981; font-weight:800; font-size:1.2rem; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); pointer-events:none;">
               LIVING ROOM
             </div>
             <!-- Placeholder for dragged blocks -->
-            <div class="placeholder-text" id="canvas-placeholder">
+            <div class="placeholder-text" id="canvas-placeholder" style="pointer-events:none;">
               Block hier ablegen
             </div>
           </div>
@@ -487,18 +488,118 @@ class OpenKairoBuilder extends HTMLElement {
     // Alle Markierungen resetten
     this.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
     
-    // Auswahl markieren + UI-Update rechts
-    const propsHeader = this.querySelector('.right-sidebar .prop-header');
+    // UI-Update rechts (Right Sidebar elements)
+    const rightContent = this.querySelector('.right-sidebar .sidebar-content');
     
     if (blockId) {
       const el = this.querySelector('#' + blockId);
-      if (el) {
-        el.classList.add('selected');
-        const blockObj = this.canvasBlocks.find(b => b.id === blockId);
-        if(propsHeader) propsHeader.innerHTML = `Properties: ${blockObj.type} <ha-icon icon="mdi:chevron-up"></ha-icon>`;
+      const blockObj = this.canvasBlocks.find(b => b.id === blockId);
+      if (el) el.classList.add('selected');
+
+      // Generate properties HTML
+      let specificProps = '';
+      
+      // HA Entities ermitteln (Live-Ansicht)
+      let entityOptions = '<option value="">Keine Entität</option>';
+      if (this._hass && this._hass.states) {
+          Object.keys(this._hass.states).sort().forEach(eId => {
+              entityOptions += `<option value="${eId}" ${blockObj.entity === eId ? 'selected' : ''}>${eId}</option>`;
+          });
       }
+
+      if (blockObj.type === 'Text' || blockObj.type === 'Button') {
+          specificProps = `
+            <div class="prop-row">
+              <span class="prop-label">Inhalt (Text)</span>
+              <input type="text" class="prop-input" id="prop-text" value="${blockObj.text || blockObj.type}" style="width:140px;" />
+            </div>
+          `;
+      } else if (blockObj.type === 'Entity State' || blockObj.type === 'Badge') {
+          specificProps = `
+            <div class="prop-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
+              <span class="prop-label" style="color:#10b981;">Home Assistant Entität</span>
+              <select class="prop-input" id="prop-entity" style="width:100%; border-color:#10b981; background:rgba(16,185,129,0.1);">${entityOptions}</select>
+            </div>
+          `;
+      }
+
+      rightContent.innerHTML = `
+        <div class="prop-group">
+          <div class="prop-header">Eigenschaften: <span style="color:#10b981">${blockObj.type}</span></div>
+          ${specificProps}
+        </div>
+        <div class="prop-group">
+          <div class="prop-header">Abmessungen & Farben</div>
+          <div class="prop-row">
+             <span class="prop-label">Breite (px)</span>
+             <input type="number" class="prop-input" id="prop-width" value="${el.offsetWidth || 100}" />
+          </div>
+          <div class="prop-row">
+             <span class="prop-label">Höhe (px)</span>
+             <input type="number" class="prop-input" id="prop-height" value="${el.offsetHeight || 40}" />
+          </div>
+          <div class="prop-row">
+             <span class="prop-label">Leucht-Farbe</span>
+             <input type="color" class="prop-input" id="prop-color" value="${blockObj.color || '#10b981'}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
+          </div>
+        </div>
+        <div class="prop-group">
+           <div style="font-size:11px; color:rgba(255,255,255,0.4); text-align:center;">
+             ${blockId}
+           </div>
+        </div>
+      `;
+
+      // Event Listeners für dynamische Eingaben
+
+      const iptText = this.querySelector('#prop-text');
+      if (iptText) {
+          iptText.addEventListener('input', (e) => {
+              blockObj.text = e.target.value;
+              el.innerHTML = `<ha-icon icon="mdi:format-text" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> ${blockObj.text}`;
+          });
+      }
+      
+      const iptEntity = this.querySelector('#prop-entity');
+      if (iptEntity) {
+          iptEntity.addEventListener('change', (e) => {
+              blockObj.entity = e.target.value;
+              if(this._hass && this._hass.states[blockObj.entity]) {
+                const stateObj = this._hass.states[blockObj.entity];
+                const displayVal = stateObj.state + (stateObj.attributes.unit_of_measurement ? ' ' + stateObj.attributes.unit_of_measurement : '');
+                el.innerHTML = `<ha-icon icon="mdi:thermometer" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> <b>${displayVal}</b> <br><span style="font-size:10px; opacity:0.8">${blockObj.entity}</span>`;
+              }
+          });
+      }
+
+      const iptWidth = this.querySelector('#prop-width');
+      if (iptWidth) iptWidth.addEventListener('input', (e) => { el.style.width = e.target.value + 'px'; el.style.minWidth = 'unset'; });
+      
+      const iptHeight = this.querySelector('#prop-height');
+      if (iptHeight) iptHeight.addEventListener('input', (e) => { 
+        el.style.height = e.target.value + 'px'; 
+        el.style.display = 'flex'; 
+        el.style.alignItems = 'center'; 
+        el.style.justifyContent = 'center'; 
+        el.style.flexDirection = 'column';
+      });
+
+      const iptColor = this.querySelector('#prop-color');
+      if (iptColor) iptColor.addEventListener('input', (e) => {
+          blockObj.color = e.target.value;
+          el.style.color = blockObj.color;
+          el.style.borderColor = blockObj.color;
+          el.style.boxShadow = `0 0 15px ${blockObj.color}80`;
+          el.style.background = `${blockObj.color}20`;
+      });
+
     } else {
-       if(propsHeader) propsHeader.innerHTML = `Layout (Board) <ha-icon icon="mdi:chevron-up"></ha-icon>`;
+       rightContent.innerHTML = `
+         <div class="prop-group">
+            <div class="prop-header">Layout (Board)</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.5);">Klicke auf einen Block im Canvas, um ihn zu bearbeiten.</div>
+         </div>
+       `;
     }
   }
 }
