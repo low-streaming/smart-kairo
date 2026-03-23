@@ -370,29 +370,83 @@ class OpenKairoBuilder extends HTMLElement {
     if(!container) return;
     let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Search..." value="${this.sidebarSearchQuery}">`;
     
-    const blocks = [
-      {name:'Text', icon:'mdi:format-text', cat:'BASIC'},
-      {name:'Card', icon:'mdi:card', cat:'BASIC'},
-      {name:'Button', icon:'mdi:gesture-tap-button', cat:'UI'}
+    const allBlocks = [
+      { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
+      { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
+      { name: 'Image', icon: 'mdi:image', cat: 'BASIC' },
+      { name: 'Badge', icon: 'mdi:badge-account-outline', cat: 'BASIC' },
+      { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
+      { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
+      { name: 'Entity State', icon: 'mdi:thermometer', cat: 'UI' },
+      { name: 'Button', icon: 'mdi:gesture-tap-button', cat: 'UI' },
+      { name: 'Slider', icon: 'mdi:tune-variant', cat: 'UI' },
+      { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' }
     ];
 
-    html += `<div class="block-category">Karten-Elemente</div><div class="block-grid">`;
-    blocks.forEach(b => {
-      html += `<div class="block-item" data-type="${b.name}"><ha-icon icon="${b.icon}"></ha-icon><span>${b.name}</span></div>`;
+    const searchVal = (this.sidebarSearchQuery || '').toLowerCase();
+    
+    // 1. ALWAYS show BASIC blocks (persistent tools)
+    const basicBlocks = allBlocks.filter(b => b.cat === 'BASIC' || b.name === 'Card' || b.name === 'Container');
+    html += `<div class="block-category">Bausteine</div><div class="block-grid">`;
+    basicBlocks.slice(0, 4).forEach(b => {
+      if (searchVal && !b.name.toLowerCase().includes(searchVal)) return;
+      html += `<div class="block-item" data-type="${b.name}">
+          <ha-icon icon="${b.icon}"></ha-icon>
+          <span>${b.name}</span>
+      </div>`;
     });
     html += `</div>`;
 
-    if(this.activeToolbarMode === 'ENTITIES') {
-      html += `<div class="block-category" style="margin-top:20px; color:#10b981;">Entitäten</div><div class="block-grid" style="grid-template-columns:1fr; gap:5px;">`;
-      if(this._hass && this._hass.states) {
-        Object.keys(this._hass.states).sort().slice(0,50).forEach(eid => {
-          if(this.sidebarSearchQuery && !eid.toLowerCase().includes(this.sidebarSearchQuery.toLowerCase())) return;
-          html += `<div class="block-item" data-type="Entity State" data-entity="${eid}" style="flex-direction:row; padding:8px; gap:10px;">
-            <ha-icon icon="mdi:database" style="--mdc-icon-size:14px;"></ha-icon><span style="font-size:10px;">${eid}</span>
-          </div>`;
+    // 2. Dynamic Section based on Toolbar Mode
+    if (this.activeToolbarMode === 'ENTITIES') {
+        html += `<div class="block-category" style="margin-top:20px; color:#10b981;">Home Assistant Entitäten</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 6px;">`;
+        if (this._hass && this._hass.states) {
+            const eIds = Object.keys(this._hass.states)
+                .filter(id => id.toLowerCase().includes(searchVal))
+                .sort()
+                .slice(0, 50);
+            
+            if (eIds.length === 0) {
+                html += `<div style="padding:20px; text-align:center; color:rgba(255,255,255,0.3); font-size:11px;">Keine Entitäten gefunden</div>`;
+            }
+
+            eIds.forEach(eid => {
+                const name = eid.split('.')[1];
+                html += `
+                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:auto; padding:8px; flex-direction:row; align-items:center; gap:10px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                        <ha-icon icon="mdi:database-outline" style="--mdc-icon-size:14px; color:#10b981; opacity:0.7;"></ha-icon>
+                        <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
+                            <span style="font-size:10px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;">${name}</span>
+                            <span style="font-size:8px; color:rgba(255,255,255,0.4); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eid}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        html += `</div>`;
+    } else {
+        // Filter based on other modes
+        const catMap = { 'ACTIONS': 'UI', 'LAYOUT': 'LAYOUT', 'MEDIA': 'BASIC' };
+        const modeLabel = this.activeToolbarMode === 'ACTIONS' ? 'Bedienung & UI' : this.activeToolbarMode;
+        
+        const filtered = allBlocks.filter(b => {
+             // Avoid double entry in "Media" if it's already in basic
+             if (this.activeToolbarMode === 'MEDIA' && b.name === 'Image') return true;
+             if (this.activeToolbarMode === 'ACTIONS' && b.cat === 'UI') return true;
+             if (this.activeToolbarMode === 'LAYOUT' && b.cat === 'LAYOUT') return true;
+             return false;
         });
-      }
-      html += `</div>`;
+
+        if (filtered.length > 0) {
+            html += `<div class="block-category" style="margin-top:20px;">${modeLabel}</div><div class="block-grid">`;
+            filtered.forEach(b => {
+                html += `<div class="block-item" data-type="${b.name}">
+                    <ha-icon icon="${b.icon}"></ha-icon>
+                    <span>${b.name}</span>
+                </div>`;
+            });
+            html += `</div>`;
+        }
     }
 
     container.innerHTML = html;
