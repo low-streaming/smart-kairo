@@ -263,12 +263,12 @@ class OpenKairoBuilder extends HTMLElement {
           </div>
           
           <div class="header-toolbar">
-            <div class="tool-btn active"><ha-icon icon="mdi:shape-outline"></ha-icon> Entities</div>
-            <div class="tool-btn"><ha-icon icon="mdi:gesture-tap"></ha-icon> Actions</div>
-            <div class="tool-btn"><ha-icon icon="mdi:image-outline"></ha-icon> Media</div>
-            <div class="tool-btn"><ha-icon icon="mdi:card-outline"></ha-icon> Container Selector</div>
-            <div class="tool-btn"><ha-icon icon="mdi:vector-line"></ha-icon> Link</div>
-            <div class="tool-btn"><ha-icon icon="mdi:toggle-switch-outline"></ha-icon> Toggles</div>
+            <div class="tool-btn active" data-mode="ENTITIES"><ha-icon icon="mdi:shape-outline"></ha-icon> Entities</div>
+            <div class="tool-btn" data-mode="ACTIONS"><ha-icon icon="mdi:gesture-tap"></ha-icon> Actions</div>
+            <div class="tool-btn" data-mode="MEDIA"><ha-icon icon="mdi:image-outline"></ha-icon> Media</div>
+            <div class="tool-btn" data-mode="LAYOUT"><ha-icon icon="mdi:card-outline"></ha-icon> Layout</div>
+            <div class="tool-btn" data-mode="LINK"><ha-icon icon="mdi:vector-line"></ha-icon> Link</div>
+            <div class="tool-btn" data-mode="TOGGLES"><ha-icon icon="mdi:toggle-switch-outline"></ha-icon> Toggles</div>
           </div>
 
           <div class="header-actions">
@@ -284,20 +284,10 @@ class OpenKairoBuilder extends HTMLElement {
             <div class="s-tab active">Blocks</div>
             <div class="s-tab">Layers</div>
           </div>
-          <div class="sidebar-content">
-            <input type="text" class="search-box" placeholder="Search blocks...">
-            
-            <div class="block-category">Basic</div>
-            <div class="block-grid">
-              <div class="block-item"><ha-icon icon="mdi:format-text"></ha-icon><span>Text</span></div>
-              <div class="block-item"><ha-icon icon="mdi:star-outline"></ha-icon><span>Icon</span></div>
-              <div class="block-item"><ha-icon icon="mdi:image"></ha-icon><span>Image</span></div>
-              <div class="block-item"><ha-icon icon="mdi:badge-account-outline"></ha-icon><span>Badge</span></div>
-            </div>
-
-            <div class="block-category">Layout</div>
-            <div class="block-grid">
-              <div class="block-item"><ha-icon icon="mdi:crop-square"></ha-icon><span>Container</span></div>
+          <div class="sidebar-content" id="left-sidebar-container">
+             <!-- Dynamically rendered -->
+          </div>
+        </div>
               <div class="block-item"><ha-icon icon="mdi:grid"></ha-icon><span>Grid</span></div>
               <div class="block-item"><ha-icon icon="mdi:format-list-bulleted"></ha-icon><span>Stack</span></div>
               <div class="block-item"><ha-icon icon="mdi:card"></ha-icon><span>Card</span></div>
@@ -419,6 +409,8 @@ class OpenKairoBuilder extends HTMLElement {
     this.selectedBlockId = null;
     this.linkMode = false;
     this.linkSourceId = null;
+    this.activeToolbarMode = 'ENTITIES';
+    this.sidebarSearchQuery = '';
 
     // --- RIGHT SIDEBAR TAB NAVIGATION ---
     this.activeRightTab = 'STYLES';
@@ -434,36 +426,34 @@ class OpenKairoBuilder extends HTMLElement {
         });
     });
 
-    const blocks = this.querySelectorAll('.block-item');
     const canvas = this.querySelector('#drop-target');
 
     // --- TOOLBAR LOGIC ---
     const toolBtns = this.querySelectorAll('.tool-btn');
     toolBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        if (btn.innerText.includes('Link')) {
-            this.linkMode = !this.linkMode;
-            btn.classList.toggle('active', this.linkMode);
-            if (!this.linkMode) {
-                this.linkSourceId = null;
-                this.renderLinks(); // Refresh to remove preview
-            }
+        const mode = btn.dataset.mode;
+        if (!mode) {
+            // Undo/Redo logic here potentially
+            return;
         }
+
+        this.activeToolbarMode = mode;
+        toolBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Link mode is special
+        this.linkMode = (mode === 'LINK');
+        if (!this.linkMode) {
+            this.linkSourceId = null;
+        }
+        
+        this.renderLeftSidebar();
+        this.renderLinks(); 
       });
     });
 
-    // 1. Sidebar Blocks (Source)
-    blocks.forEach(block => {
-      block.setAttribute('draggable', 'true');
-      block.addEventListener('dragstart', (e) => {
-        const blockType = block.querySelector('span').innerText;
-        e.dataTransfer.setData('source_type', blockType);
-        block.style.opacity = '0.5';
-      });
-      block.addEventListener('dragend', (e) => {
-        block.style.opacity = '1';
-      });
-    });
+    this.renderLeftSidebar();
 
     // 2. Canvas Drop Zone
     canvas.addEventListener('dragover', (e) => {
@@ -629,7 +619,7 @@ class OpenKairoBuilder extends HTMLElement {
     });
   }
 
-  addBlockToCanvas(type, x, y) {
+  addBlockToCanvas(type, x, y, entityId = null) {
     const canvas = this.querySelector('#drop-target');
     const placeholder = canvas.querySelector('#canvas-placeholder');
     if (placeholder) placeholder.remove();
@@ -740,6 +730,7 @@ class OpenKairoBuilder extends HTMLElement {
     this.canvasBlocks.push({ 
       id: blockId, 
       type: type, 
+      entity: entityId || '',
       x: x, 
       y: y, 
       color: defColor, 
@@ -1112,6 +1103,92 @@ class OpenKairoBuilder extends HTMLElement {
             svg.appendChild(path);
         }
     });
+  }
+
+  renderLeftSidebar() {
+    const container = this.querySelector('#left-sidebar-container');
+    if (!container) return;
+    
+    let html = `
+        <input type="text" class="search-box" id="sidebar-search" placeholder="Search..." value="${this.sidebarSearchQuery}">
+    `;
+    
+    const filterBlocks = (search, list) => {
+        if(!search) return list;
+        return list.filter(b => b.name.toLowerCase().includes(search.toLowerCase()));
+    };
+
+    const allBlocks = [
+        { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
+        { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
+        { name: 'Image', icon: 'mdi:image', cat: 'BASIC' },
+        { name: 'Badge', icon: 'mdi:badge-account-outline', cat: 'BASIC' },
+        { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
+        { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
+        { name: 'Entity State', icon: 'mdi:thermometer', cat: 'UI' },
+        { name: 'Button', icon: 'mdi:gesture-tap-button', cat: 'UI' },
+        { name: 'Slider', icon: 'mdi:tune-variant', cat: 'UI' },
+        { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' }
+    ];
+
+    if (this.activeToolbarMode === 'ENTITIES') {
+        html += `<div class="block-category">Entitäten Browser</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 4px;">`;
+        if (this._hass && this._hass.states) {
+            const eIds = Object.keys(this._hass.states).filter(id => id.toLowerCase().includes(this.sidebarSearchQuery.toLowerCase())).sort().slice(0, 50);
+            eIds.forEach(eid => {
+                html += `
+                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:32px; padding:0 8px;">
+                        <ha-icon icon="mdi:database-outline" style="--mdc-icon-size:14px; margin-right:8px; opacity:0.5;"></ha-icon>
+                        <span style="font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eid}</span>
+                    </div>
+                `;
+            });
+        }
+        html += `</div>`;
+    } else {
+        // Blocks display based on category
+        const cats = ['BASIC', 'LAYOUT', 'UI'];
+        cats.forEach(cat => {
+            const filtered = allBlocks.filter(b => b.cat === cat && (this.activeToolbarMode === 'ENTITIES' || (this.activeToolbarMode === 'ACTIONS' && b.cat === 'UI') || (this.activeToolbarMode === 'MEDIA' && b.name === 'Image') || (this.activeToolbarMode === 'LAYOUT' && b.cat === 'LAYOUT') || (this.activeToolbarMode === 'LINK' && b.cat === 'BASIC') || (!['ACTIONS','MEDIA','LAYOUT','LINK'].includes(this.activeToolbarMode))));
+            
+            if (filtered.length > 0) {
+                html += `<div class="block-category">${cat}</div><div class="block-grid">`;
+                filtered.forEach(b => {
+                    html += `<div class="block-item" data-type="${b.name}">
+                        <ha-icon icon="${b.icon}"></ha-icon>
+                        <span>${b.name}</span>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+        });
+    }
+
+    container.innerHTML = html;
+
+    // Listeners for Sidebar items
+    const items = container.querySelectorAll('.block-item');
+    items.forEach(item => {
+        item.setAttribute('draggable', 'true');
+        item.addEventListener('dragstart', (e) => {
+            const type = item.dataset.type;
+            const entity = item.dataset.entity || '';
+            e.dataTransfer.setData('source_type', type);
+            if (entity) e.dataTransfer.setData('source_entity', entity);
+            item.style.opacity = '0.5';
+        });
+        item.addEventListener('dragend', () => item.style.opacity = '1');
+    });
+
+    // Search Listener
+    const search = container.querySelector('#sidebar-search');
+    search.addEventListener('input', (e) => {
+        this.sidebarSearchQuery = e.target.value;
+        // Throttled or direct redraw
+        clearTimeout(this._searchTimeout);
+        this._searchTimeout = setTimeout(() => this.renderLeftSidebar(), 300);
+    });
+    search.addEventListener('click', e => e.stopPropagation());
   }
 }
 
