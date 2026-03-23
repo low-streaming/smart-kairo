@@ -765,11 +765,12 @@ class OpenKairoBuilder extends HTMLElement {
         // Curvy path
         const cp1x = x1 + (x2 - x1) / 2, cp1y = y1;
         const cp2x = x1 + (x2 - x1) / 2, cp2y = y2;
-        path.setAttribute("d", `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`);
+        const d = `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
+        path.setAttribute("d", d);
         
         // Selection hit area (invisible thick path)
         const hitPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        hitPath.setAttribute("d", pathData);
+        hitPath.setAttribute("d", d);
         hitPath.style.fill = 'none';
         hitPath.style.stroke = 'transparent';
         hitPath.style.strokeWidth = '20px';
