@@ -518,6 +518,8 @@ class OpenKairoBuilder extends HTMLElement {
               if (blockObj.fontWeight) yamlStr += `    fontWeight: "${blockObj.fontWeight}"\n`;
               if (blockObj.borderRadius !== undefined) yamlStr += `    borderRadius: ${blockObj.borderRadius}\n`;
               if (blockObj.backgroundColor) yamlStr += `    backgroundColor: "${blockObj.backgroundColor}"\n`;
+              if (blockObj.backgroundImage) yamlStr += `    backgroundImage: "${blockObj.backgroundImage}"\n`;
+              if (blockObj.imageUrl) yamlStr += `    imageUrl: "${blockObj.imageUrl}"\n`;
               if (blockObj.action && blockObj.action !== 'none') yamlStr += `    action: "${blockObj.action}"\n`;
               if (blockObj.logicState) yamlStr += `    logicState: "${blockObj.logicState}"\n`;
               if (blockObj.logicColor) yamlStr += `    logicColor: "${blockObj.logicColor}"\n`;
@@ -714,6 +716,16 @@ class OpenKairoBuilder extends HTMLElement {
           <div class="prop-row">
              <span class="prop-label">Hintergrundfarbe (Hex/rgba)</span>
              <input type="text" class="prop-input" id="prop-bg-color" value="${blockObj.backgroundColor || 'transparent'}" style="width:120px;" />
+          </div>
+          <div class="prop-row">
+             <span class="prop-label">Hintergrundbild (URL)</span>
+             <input type="text" class="prop-input" id="prop-bg-image" value="${blockObj.backgroundImage || ''}" placeholder="/local/..." style="width:120px;" />
+          </div>`;
+      } else if (blockObj.type === 'Image') {
+          bgProps = `
+          <div class="prop-row">
+             <span class="prop-label">Bildquelle (URL)</span>
+             <input type="text" class="prop-input" id="prop-image-url" value="${blockObj.imageUrl || ''}" placeholder="/local/..." style="width:120px;" />
           </div>`;
       }
 
@@ -793,6 +805,13 @@ class OpenKairoBuilder extends HTMLElement {
          
          if(blockObj.type === 'Card' || blockObj.type === 'Container') {
              el.style.background = blockObj.backgroundColor || 'transparent';
+             if (blockObj.backgroundImage) {
+                 el.style.backgroundImage = `url('${blockObj.backgroundImage}')`;
+                 el.style.backgroundSize = 'cover';
+                 el.style.backgroundPosition = 'center';
+             } else {
+                 el.style.backgroundImage = 'none';
+             }
          } else if (blockObj.type !== 'Text') {
              el.style.background = `${blockObj.color}25`; // Soft tint for buttons/badges
          } else {
@@ -850,6 +869,19 @@ class OpenKairoBuilder extends HTMLElement {
 
       const iptBgColor = this.querySelector('#prop-bg-color');
       if(iptBgColor) iptBgColor.addEventListener('input', e => { blockObj.backgroundColor = e.target.value; applyBlockCSS(); });
+
+      const iptBgImage = this.querySelector('#prop-bg-image');
+      if(iptBgImage) iptBgImage.addEventListener('input', e => { blockObj.backgroundImage = e.target.value; applyBlockCSS(); });
+
+      const iptImageUrl = this.querySelector('#prop-image-url');
+      if(iptImageUrl) iptImageUrl.addEventListener('input', e => { 
+          blockObj.imageUrl = e.target.value; 
+          if (blockObj.imageUrl) {
+              el.innerHTML = `<img src="${blockObj.imageUrl}" style="width:100%; height:100%; object-fit:cover; pointer-events:none; border-radius:${blockObj.borderRadius||8}px;" />`;
+          } else {
+              el.innerHTML = `<ha-icon icon="mdi:image" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle; pointer-events:none;"></ha-icon> Image`;
+          }
+      });
 
       // Actions & Logic Listeners
       const iptAction = this.querySelector('#prop-action');

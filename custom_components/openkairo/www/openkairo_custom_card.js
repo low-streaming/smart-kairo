@@ -114,6 +114,11 @@ class OpenKairoCustomCard extends HTMLElement {
             if (block.backgroundColor && block.backgroundColor !== 'transparent') {
                 el.style.backdropFilter = 'blur(15px)';
             }
+            if (block.backgroundImage) {
+                el.style.backgroundImage = `url('${block.backgroundImage}')`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+            }
         } else if (block.type !== 'Text') {
             el.style.background = `${activeColor}25`;
             el.style.boxShadow = `0 0 10px ${activeColor}40`;
@@ -138,6 +143,7 @@ class OpenKairoCustomCard extends HTMLElement {
         el._ok_type = block.type;
         el._ok_entity = block.entity;
         el._ok_text = block.text;
+        el._ok_img = block.imageUrl;
         
         renderArea.appendChild(el);
     });
@@ -168,6 +174,13 @@ class OpenKairoCustomCard extends HTMLElement {
               <input type="range" min="0" max="100" value="${numVal}" style="width:80%;" disabled />
            `;
        }
+       else if (type === 'Image') {
+           if (el._ok_img) {
+               el.innerHTML = `<img src="${el._ok_img}" style="width:100%; height:100%; object-fit:cover; pointer-events:none; border-radius:${el.style.borderRadius};" />`;
+           } else {
+               el.innerHTML = `<ha-icon icon="mdi:image" style="--mdc-icon-size:24px; opacity:0.3;"></ha-icon>`;
+           }
+       }
        else if (type === 'Energie-Ring') {
            let numVal = parseFloat(val) || 0;
            el.innerHTML = `
@@ -194,6 +207,13 @@ class OpenKairoCustomCard extends HTMLElement {
        else if (entityId && stateObj && type !== 'Card' && type !== 'Container') {
            // Universal fallback for anything with an entity attached
            el.innerHTML = `<b>${val} ${metric}</b>`;
+       }
+       else if (type !== 'Card' && type !== 'Container') {
+           // Fallback for structural blocks or blocks without entity so they aren't invisible
+           let icon = 'mdi:cube-outline';
+           if(type==='Grid') icon = 'mdi:grid';
+           if(type==='Stack') icon = 'mdi:format-list-bulleted';
+           el.innerHTML = `<ha-icon icon="${icon}" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> ${type}`;
        }
     });
   }
