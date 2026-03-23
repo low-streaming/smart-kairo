@@ -656,21 +656,23 @@ class OpenKairoBuilder extends HTMLElement {
           });
       }
 
+      let textProp = '';
       if (blockObj.type === 'Text' || blockObj.type === 'Button') {
-          specificProps = `
+          textProp = `
             <div class="prop-row">
               <span class="prop-label">Inhalt (Text)</span>
               <input type="text" class="prop-input" id="prop-text" value="${blockObj.text || blockObj.type}" style="width:140px;" />
             </div>
           `;
-      } else if (blockObj.type === 'Entity State' || blockObj.type === 'Badge') {
-          specificProps = `
-            <div class="prop-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
-              <span class="prop-label" style="color:#10b981;">Home Assistant Entität</span>
-              <select class="prop-input" id="prop-entity" style="width:100%; border-color:#10b981; background:rgba(16,185,129,0.1);">${entityOptions}</select>
-            </div>
-          `;
       }
+
+      specificProps = `
+        ${textProp}
+        <div class="prop-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:10px;">
+          <span class="prop-label" style="color:#10b981;">Home Assistant Entität (Smart Binding)</span>
+          <select class="prop-input" id="prop-entity" style="width:100%; border-color:#10b981; background:rgba(16,185,129,0.1);">${entityOptions}</select>
+        </div>
+      `;
 
       // General typography & appearance for ALL block types
       const extraProps = `
