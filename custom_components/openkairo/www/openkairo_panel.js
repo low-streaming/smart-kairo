@@ -175,7 +175,14 @@ class OpenKairoBuilder extends HTMLElement {
         .canvas-element.selected { border: 1px dashed #10b981 !important; box-shadow: 0 0 15px rgba(16,185,129,0.3); z-index: 100; }
 
         #links-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
-        .linking-path { fill:none; stroke:#10b981; stroke-width:2; stroke-dasharray:5,5; animation: flow 1s linear infinite; }
+        .linking-path { 
+          fill:none; 
+          stroke:#10b981; 
+          stroke-width:2; 
+          stroke-dasharray:5,5; 
+          animation: flow 1s linear infinite; 
+          filter: drop-shadow(0 0 5px #10b981);
+        }
         @keyframes flow { to { stroke-dashoffset: -10; } }
 
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); display:none; justify-content:center; align-items:center; z-index:1000; }
@@ -234,6 +241,19 @@ class OpenKairoBuilder extends HTMLElement {
     this.canvasBlocks = [];
     this.canvasLinks = [];
     this.selectedBlockId = null;
+    // --- RIGHT SIDEBAR TAB NAVIGATION ---
+    this.activeRightTab = 'STYLES';
+    const rightTabs = this.querySelectorAll('.right-sidebar .s-tab');
+    rightTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            rightTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.activeRightTab = tab.innerText.trim().toUpperCase(); // Sync with data-tab if needed
+            if(this.selectedBlockId) {
+                this.selectBlock(this.selectedBlockId);
+            }
+        });
+    });
     this.activeToolbarMode = 'ENTITIES';
     this.sidebarSearchQuery = '';
 
@@ -303,7 +323,66 @@ class OpenKairoBuilder extends HTMLElement {
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     el.style.background = 'rgba(16,185,129,0.2)';
-    el.innerHTML = `<span>${entityId || type}</span>`;
+
+    let icon;
+    if(type === 'Text') icon = 'mdi:format-text';
+    if(type === 'Entity State') icon = 'mdi:thermometer';
+    if(type === 'Image') icon = 'mdi:image';
+    if(type === 'Button') icon = 'mdi:gesture-tap-button';
+    if(type === 'Icon') icon = 'mdi:star-outline';
+    if(type === 'Klima-Bogen') icon = 'mdi:circle-slice-8';
+    if(type === 'Modus-Schalter') icon = 'mdi:view-grid-outline';
+    
+    // Render UI Logic 
+    if(type === 'Text') {
+        el.style.background = 'transparent';
+        el.innerHTML = `Text`;
+    } else if(type === 'Modus-Schalter') {
+        el.style.width = '240px';
+        el.style.height = '60px';
+        el.style.background = 'rgba(255,255,255,0.03)';
+        el.style.borderRadius = '12px';
+        el.style.display = 'flex';
+        el.style.gap = '5px';
+        el.style.padding = '5px';
+        el.innerHTML = `
+          <div style="flex:1; background:rgba(16,185,129,0.2); border:1px solid #10b981; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+            <ha-icon icon="mdi:fire" style="--mdc-icon-size:14px; color:#10b981;"></ha-icon>
+            <span style="font-size:9px; color:#10b981; font-weight:bold;">Heat</span>
+          </div>
+          <div style="flex:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; opacity:0.5;">
+            <ha-icon icon="mdi:snowflake" style="--mdc-icon-size:14px;"></ha-icon>
+            <span style="font-size:9px;">Cool</span>
+          </div>
+          <div style="flex:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; opacity:0.5;">
+            <ha-icon icon="mdi:auto-fix" style="--mdc-icon-size:14px;"></ha-icon>
+            <span style="font-size:9px;">Auto</span>
+          </div>
+          <div style="flex:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; opacity:0.5;">
+            <ha-icon icon="mdi:power" style="--mdc-icon-size:14px;"></ha-icon>
+            <span style="font-size:9px;">Off</span>
+          </div>
+        `;
+    } else if(type === 'Klima-Bogen') {
+        el.style.width = '160px';
+        el.style.height = '160px';
+        el.style.background = 'transparent';
+        el.innerHTML = `
+          <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+            <path d="M 20 80 A 40 40 0 1 1 80 80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" stroke-linecap="round" />
+            <path d="M 20 80 A 40 40 0 0 1 50 20" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" style="filter: drop-shadow(0 0 5px #10b981);" />
+            <circle cx="50" cy="20" r="5" fill="white" />
+            <text x="50" y="60" text-anchor="middle" fill="white" style="font-size:18px; font-weight:bold;">22°</text>
+            <text x="50" y="75" text-anchor="middle" fill="rgba(255,255,255,0.5)" style="font-size:8px;">Ist: 20°</text>
+          </svg>
+        `;
+    } else if(type === 'Card' || type === 'Container') {
+        // No specific innerHTML provided for Card/Container in the instruction,
+        // so it will fall through to the default or be handled by other styles.
+        el.innerHTML = `<span>${entityId || type}</span>`;
+    } else {
+        el.innerHTML = `<span>${entityId || type}</span>`;
+    }
     
     el.addEventListener('click', e => {
       e.stopPropagation();
@@ -322,7 +401,18 @@ class OpenKairoBuilder extends HTMLElement {
     });
 
     this.querySelector('#drop-target').appendChild(el);
-    this.canvasBlocks.push({id:blockId, type:type, x:x, y:y, color:'#10b981', entity:entityId});
+    this.canvasBlocks.push({
+      id: blockId, 
+      type: type, 
+      x: x, 
+      y: y, 
+      color: '#10b981', 
+      entity: entityId,
+      glow: 0,
+      textGlow: 0,
+      blur: 0,
+      opacity: 1
+    });
     this.selectBlock(blockId);
   }
 
@@ -334,15 +424,48 @@ class OpenKairoBuilder extends HTMLElement {
       const el = this.querySelector('#' + id);
       el.classList.add('selected');
       const b = this.canvasBlocks.find(x => x.id === id);
-      right.innerHTML = `
-        <div class="prop-group">
-          <div class="prop-header">Styles</div>
-          <div class="prop-row"><span class="prop-label">Color</span><input type="color" id="p-color" value="${b.color}"></div>
-          <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Delete</button>
-        </div>
-      `;
-      this.querySelector('#p-color').addEventListener('input', e => { b.color = e.target.value; el.style.color = b.color; });
-      this.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
+      
+      if (this.activeRightTab === 'STYLES') {
+        right.innerHTML = `
+          <div class="prop-group">
+            <div class="prop-header">Farbe & Transparenz</div>
+            <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}"></div>
+            <div class="prop-row"><span class="prop-label">Deckkraft</span><input type="range" id="p-opacity" min="0" max="1" step="0.1" value="${b.opacity || 1}"></div>
+          </div>
+          <div class="prop-group">
+            <div class="prop-header">Neon & Glow</div>
+            <div class="prop-row"><span class="prop-label">Glow (Border)</span><input type="range" id="p-glow" min="0" max="50" value="${b.glow || 0}"></div>
+            <div class="prop-row"><span class="prop-label">Glow (Text)</span><input type="range" id="p-tglow" min="0" max="20" value="${b.textGlow || 0}"></div>
+          </div>
+          <div class="prop-group">
+            <div class="prop-header">Glassmorphism</div>
+            <div class="prop-row"><span class="prop-label">Blur (Pixel)</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
+          </div>
+          <div class="prop-group">
+            <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Löschen</button>
+          </div>
+        `;
+
+        const updateStyle = () => {
+          el.style.color = b.color;
+          el.style.opacity = b.opacity;
+          el.style.boxShadow = b.glow > 0 ? `0 0 ${b.glow}px ${b.color}` : 'none';
+          el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
+          el.style.backdropFilter = b.blur > 0 ? `blur(${b.blur}px)` : 'none';
+          if (b.blur > 0) el.style.background = `rgba(255,255,255,0.05)`;
+        };
+
+        this.querySelector('#p-color').addEventListener('input', e => { b.color = e.target.value; updateStyle(); });
+        this.querySelector('#p-opacity').addEventListener('input', e => { b.opacity = e.target.value; updateStyle(); });
+        this.querySelector('#p-glow').addEventListener('input', e => { b.glow = e.target.value; updateStyle(); });
+        this.querySelector('#p-tglow').addEventListener('input', e => { b.textGlow = e.target.value; updateStyle(); });
+        this.querySelector('#p-blur').addEventListener('input', e => { b.blur = e.target.value; updateStyle(); });
+        this.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
+        
+        updateStyle(); // Apply on load
+      } else {
+         right.innerHTML = `<div style="padding:20px; color:rgba(255,255,255,0.3);">${this.activeRightTab}-Eigenschaften (In Arbeit)</div>`;
+      }
     } else {
       right.innerHTML = '<div style="padding:20px; color:rgba(255,255,255,0.3);">No selection</div>';
     }
@@ -379,6 +502,8 @@ class OpenKairoBuilder extends HTMLElement {
       { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
       { name: 'Entity State', icon: 'mdi:thermometer', cat: 'UI' },
       { name: 'Button', icon: 'mdi:gesture-tap-button', cat: 'UI' },
+      { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', cat: 'UI' },
+      { name: 'Modus-Schalter', icon: 'mdi:view-grid-outline', cat: 'UI' },
       { name: 'Slider', icon: 'mdi:tune-variant', cat: 'UI' },
       { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' }
     ];
