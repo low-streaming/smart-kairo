@@ -152,16 +152,37 @@ class OpenKairoCustomCard extends HTMLElement {
     elements.forEach(el => {
        const type = el._ok_type;
        
-       if (type === 'Text' || type === 'Button') {
+       const entityId = el._ok_entity;
+       let val = "N/A", metric = "", stateObj = null;
+       
+       if (entityId && this._hass && this._hass.states[entityId]) {
+           stateObj = this._hass.states[entityId];
+           val = stateObj.state;
+           metric = stateObj.attributes.unit_of_measurement || '';
+       }
+
+       if (type === 'Slider') {
+           let numVal = parseFloat(val) || 0;
+           el.innerHTML = `
+              <div style="font-size:10px; margin-bottom:5px;">${el._ok_text || entityId || 'Slider'}</div>
+              <input type="range" min="0" max="100" value="${numVal}" style="width:80%;" disabled />
+           `;
+       }
+       else if (type === 'Energie-Ring') {
+           let numVal = parseFloat(val) || 0;
+           el.innerHTML = `
+              <div style="width: 40px; height: 40px; border-radius: 50%; border: 4px solid currentColor; border-top-color: transparent; display:flex; align-items:center; justify-content:center; box-sizing:border-box;">
+                 <span style="font-size:10px; font-weight:bold;">${numVal}</span>
+              </div>
+           `;
+       }
+       else if (type === 'Text' || type === 'Button') {
            const iconMap = type === 'Text' ? 'mdi:format-text' : 'mdi:gesture-tap-button';
-           el.innerHTML = `<ha-icon icon="${iconMap}" style="--mdc-icon-size:16px; margin-bottom: 2px;"></ha-icon> ${el._ok_text || type}`;
+           let displayContent = entityId && stateObj ? `<b>${val} ${metric}</b>` : (el._ok_text || type);
+           el.innerHTML = `<ha-icon icon="${iconMap}" style="--mdc-icon-size:16px; margin-bottom: 2px;"></ha-icon> ${displayContent}`;
        } 
        else if (type === 'Entity State' || type === 'Badge') {
-           const entityId = el._ok_entity;
-           if (entityId && this._hass.states[entityId]) {
-               const stateObj = this._hass.states[entityId];
-               const val = stateObj.state;
-               const metric = stateObj.attributes.unit_of_measurement || '';
+           if (stateObj) {
                el.innerHTML = `<ha-icon icon="mdi:thermometer" style="--mdc-icon-size:16px; margin-bottom: 2px;"></ha-icon> <b>${val} ${metric}</b>`;
            } else {
                el.innerHTML = `<ha-icon icon="mdi:alert-circle-outline" style="--mdc-icon-size:16px; margin-bottom: 2px; opacity:0.6;"></ha-icon> <span style="font-size:10px; opacity:0.6">N/A</span>`;
@@ -169,6 +190,10 @@ class OpenKairoCustomCard extends HTMLElement {
        }
        else if (type === 'Icon') {
            el.innerHTML = `<ha-icon icon="mdi:star-four-points-outline" style="--mdc-icon-size:24px;"></ha-icon>`;
+       }
+       else if (entityId && stateObj && type !== 'Card' && type !== 'Container') {
+           // Universal fallback for anything with an entity attached
+           el.innerHTML = `<b>${val} ${metric}</b>`;
        }
     });
   }
