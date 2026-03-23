@@ -214,6 +214,27 @@ class OpenKairoBuilder extends HTMLElement {
         .placeholder-text {
           border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; height: 100px; display:flex; justify-content:center; align-items:center; color:rgba(255,255,255,0.3); font-size:12px; margin-top: 20px;
         }
+
+        /* SVG Links Overlay */
+        #links-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 5;
+        }
+        .linking-path {
+          fill: none;
+          stroke: #10b981;
+          stroke-width: 2;
+          stroke-dasharray: 5,5;
+          animation: flow 1s linear infinite;
+        }
+        @keyframes flow {
+          to { stroke-dashoffset: -10; }
+        }
         
         /* Modal for Export / Speichern */
         .modal-overlay {
@@ -301,6 +322,7 @@ class OpenKairoBuilder extends HTMLElement {
             <div class="placeholder-text" id="canvas-placeholder" style="pointer-events:none;">
               Block hier ablegen
             </div>
+            <svg id="links-overlay"></svg>
           </div>
         </div>
 
@@ -392,7 +414,10 @@ class OpenKairoBuilder extends HTMLElement {
 
     // --- DRAG & DROP LOGIC ---
     this.canvasBlocks = [];
+    this.canvasLinks = [];
     this.selectedBlockId = null;
+    this.linkMode = false;
+    this.linkSourceId = null;
 
     // --- RIGHT SIDEBAR TAB NAVIGATION ---
     this.activeRightTab = 'STYLES';
@@ -410,6 +435,21 @@ class OpenKairoBuilder extends HTMLElement {
 
     const blocks = this.querySelectorAll('.block-item');
     const canvas = this.querySelector('#drop-target');
+
+    // --- TOOLBAR LOGIC ---
+    const toolBtns = this.querySelectorAll('.tool-btn');
+    toolBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.innerText.includes('Link')) {
+            this.linkMode = !this.linkMode;
+            btn.classList.toggle('active', this.linkMode);
+            if (!this.linkMode) {
+                this.linkSourceId = null;
+                this.renderLinks(); // Refresh to remove preview
+            }
+        }
+      });
+    });
 
     // 1. Sidebar Blocks (Source)
     blocks.forEach(block => {
@@ -444,20 +484,29 @@ class OpenKairoBuilder extends HTMLElement {
       const moveId = e.dataTransfer.getData('move_id');
       const canvasRect = canvas.getBoundingClientRect();
 
-      if (moveId) {
-        // Block wird innerhalb des Canvas verschoben
-        const el = this.querySelector('#' + moveId);
-        const offsetX = parseFloat(e.dataTransfer.getData('offsetX'));
-        const offsetY = parseFloat(e.dataTransfer.getData('offsetY'));
-        
-        let dropX = e.clientX - canvasRect.left - offsetX;
-        let dropY = e.clientY - canvasRect.top - offsetY;
-
-        el.style.left = dropX + 'px';
-        el.style.top = dropY + 'px';
-        this.selectBlock(moveId);
-
-      } else {
+        if (moveId) {
+          // Block wird innerhalb des Canvas verschoben
+          const el = this.querySelector('#' + moveId);
+          const offsetX = parseFloat(e.dataTransfer.getData('offsetX'));
+          const offsetY = parseFloat(e.dataTransfer.getData('offsetY'));
+          
+          let dropX = e.clientX - canvasRect.left - offsetX;
+          let dropY = e.clientY - canvasRect.top - offsetY;
+  
+          el.style.left = dropX + 'px';
+          el.style.top = dropY + 'px';
+          
+          // Update model
+          const blockObj = this.canvasBlocks.find(b => b.id === moveId);
+          if (blockObj) {
+              blockObj.x = dropX;
+              blockObj.y = dropY;
+          }
+          
+          this.selectBlock(moveId);
+          this.renderLinks(); // Update lines after move
+  
+        } else {
         // Neuer Block wird aus Sidebar aufs Canvas gezogen
         const blockType = e.dataTransfer.getData('source_type');
         if (blockType) {
@@ -510,6 +559,7 @@ class OpenKairoBuilder extends HTMLElement {
           if(!el) return;
           
           yamlStr += `  - type: ${b.type}\n`;
+          yamlStr += `    id: ${b.id}\n`;
           if (b.entity) yamlStr += `    entity: ${b.entity}\n`;
           if (b.text) yamlStr += `    text: "${b.text}"\n`;
           
@@ -532,6 +582,14 @@ class OpenKairoBuilder extends HTMLElement {
           if (b.logicState) yamlStr += `    logicState: "${b.logicState}"\n`;
           if (b.logicColor) yamlStr += `    logicColor: "${b.logicColor}"\n`;
       });
+      
+      // Export Links
+      if (this.canvasLinks.length > 0) {
+          yamlStr += `links:\n`;
+          this.canvasLinks.forEach(link => {
+              yamlStr += `  - source: ${link.source}\n    target: ${link.target}\n    color: "${link.color || '#10b981'}"\n    animated: true\n`;
+          });
+      }
       
       codeBox.innerText = yamlStr;
       modal.style.display = 'flex';
@@ -608,9 +666,32 @@ class OpenKairoBuilder extends HTMLElement {
     el.style.top = Math.max(0, y) + 'px';
 
     // Klick auf Block -> Rechte Sidebar Properties anzeigen
+    // Klick auf Block -> Rechte Sidebar Properties anzeigen ODER Link erstellen
     el.addEventListener('click', (e) => {
         e.stopPropagation(); // Verhindert, dass Canvas-Click auslöst
-        this.selectBlock(blockId);
+        
+        if (this.linkMode) {
+            if (!this.linkSourceId) {
+                this.linkSourceId = blockId;
+                el.style.outline = '2px solid #10b981';
+                el.style.outlineOffset = '4px';
+            } else if (this.linkSourceId !== blockId) {
+                // Link vervollständigen
+                this.canvasLinks.push({
+                    source: this.linkSourceId,
+                    target: blockId,
+                    color: '#10b981'
+                });
+                // Source-Highlight entfernen
+                const sourceEl = this.querySelector('#' + this.linkSourceId);
+                if(sourceEl) sourceEl.style.outline = 'none';
+                
+                this.linkSourceId = null;
+                this.renderLinks();
+            }
+        } else {
+            this.selectBlock(blockId);
+        }
     });
 
     // Block Drag-Logik (Verschieben auf dem Canvas)
@@ -621,14 +702,30 @@ class OpenKairoBuilder extends HTMLElement {
         
         // Maus-Position relativ zum Element für weiches, akkurates Dropping
         const elRect = el.getBoundingClientRect();
-        e.dataTransfer.setData('offsetX', e.clientX - elRect.left);
-        e.dataTransfer.setData('offsetY', e.clientY - elRect.top);
+        const ox = e.clientX - elRect.left;
+        const oy = e.clientY - elRect.top;
+        e.dataTransfer.setData('offsetX', ox);
+        e.dataTransfer.setData('offsetY', oy);
+        el.dataset.offsetX = ox; // Store locally for live drag
+        el.dataset.offsetY = oy;
         
         el.style.opacity = '0.5';
     });
     
+    el.addEventListener('drag', (e) => {
+        if (e.clientX === 0 && e.clientY === 0) return; // Ignore final frame 0,0
+        const canvasRect = canvas.getBoundingClientRect();
+        const offsetX = parseFloat(e.target.dataset.offsetX || 0);
+        const offsetY = parseFloat(e.target.dataset.offsetY || 0);
+
+        el.style.left = (e.clientX - canvasRect.left - offsetX) + 'px';
+        el.style.top = (e.clientY - canvasRect.top - offsetY) + 'px';
+        this.renderLinks();
+    });
+
     el.addEventListener('dragend', (e) => {
         el.style.opacity = '1';
+        this.renderLinks();
     });
 
     canvas.appendChild(el);
@@ -909,6 +1006,42 @@ class OpenKairoBuilder extends HTMLElement {
          </div>
        `;
     }
+  }
+
+  renderLinks() {
+    const svg = this.querySelector('#links-overlay');
+    if (!svg) return;
+    svg.innerHTML = '';
+    
+    this.canvasLinks.forEach(link => {
+        const sourceEl = this.querySelector('#' + link.source);
+        const targetEl = this.querySelector('#' + link.target);
+        
+        if (sourceEl && targetEl) {
+            const sRect = {
+                x: parseInt(sourceEl.style.left) + sourceEl.offsetWidth / 2,
+                y: parseInt(sourceEl.style.top) + sourceEl.offsetHeight / 2
+            };
+            const tRect = {
+                x: parseInt(targetEl.style.left) + targetEl.offsetWidth / 2,
+                y: parseInt(targetEl.style.top) + targetEl.offsetHeight / 2
+            };
+            
+            // Bezier kurve berechnen
+            const cp1x = sRect.x + (tRect.x - sRect.x) / 2;
+            const cp1y = sRect.y;
+            const cp2x = sRect.x + (tRect.x - sRect.x) / 2;
+            const cp2y = tRect.y;
+            
+            const pathData = `M ${sRect.x} ${sRect.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${tRect.x} ${tRect.y}`;
+            
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData);
+            path.setAttribute("class", "linking-path");
+            path.setAttribute("stroke", link.color || "#10b981");
+            svg.appendChild(path);
+        }
+    });
   }
 }
 

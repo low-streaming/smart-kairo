@@ -72,10 +72,33 @@ class OpenKairoCustomCard extends HTMLElement {
           box-sizing: border-box;
           transition: background 0.3s, color 0.3s, box-shadow 0.3s;
         }
+
+        /* SVG Links Overlay */
+        #links-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 5;
+        }
+        .linking-path {
+          fill: none;
+          stroke: #10b981;
+          stroke-width: 2;
+          stroke-dasharray: 5,5;
+          animation: flow 1s linear infinite;
+        }
+        @keyframes flow {
+          to { stroke-dashoffset: -10; }
+        }
       </style>
       <ha-card>
         <div class="header">${this._config.title || 'OPENKAIRO OS'}</div>
-        <div class="canvas-area" id="render-area"></div>
+        <div class="canvas-area" id="render-area">
+           <svg id="links-overlay"></svg>
+        </div>
       </ha-card>
     `;
 
@@ -85,7 +108,7 @@ class OpenKairoCustomCard extends HTMLElement {
     this._config.layout.forEach((block, index) => {
         const el = document.createElement('div');
         el.className = 'canvas-element';
-        el.id = 'block-' + index;
+        el.id = block.id || ('block-' + index);
         
         el.style.left = (block.x || 0) + 'px';
         el.style.top = (block.y || 0) + 'px';
@@ -148,7 +171,44 @@ class OpenKairoCustomCard extends HTMLElement {
         renderArea.appendChild(el);
     });
 
+    this.renderLinks();
     this.updateLiveStates();
+  }
+
+  renderLinks() {
+    const svg = this.querySelector('#links-overlay');
+    if (!svg || !this._config.links) return;
+    svg.innerHTML = '';
+    
+    this._config.links.forEach(link => {
+        const sourceEl = this.querySelector('#' + link.source);
+        const targetEl = this.querySelector('#' + link.target);
+        
+        if (sourceEl && targetEl) {
+            const sRect = {
+                x: parseInt(sourceEl.style.left) + sourceEl.offsetWidth / 2,
+                y: parseInt(sourceEl.style.top) + sourceEl.offsetHeight / 2
+            };
+            const tRect = {
+                x: parseInt(targetEl.style.left) + targetEl.offsetWidth / 2,
+                y: parseInt(targetEl.style.top) + targetEl.offsetHeight / 2
+            };
+            
+            // Bezier curve
+            const cp1x = sRect.x + (tRect.x - sRect.x) / 2;
+            const cp1y = sRect.y;
+            const cp2x = sRect.x + (tRect.x - sRect.x) / 2;
+            const cp2y = tRect.y;
+            
+            const pathData = `M ${sRect.x} ${sRect.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${tRect.x} ${tRect.y}`;
+            
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData);
+            path.setAttribute("class", "linking-path");
+            path.setAttribute("stroke", link.color || "#10b981");
+            svg.appendChild(path);
+        }
+    });
   }
 
   updateLiveStates() {
