@@ -2,78 +2,53 @@
 
 Das **OpenKAIRO OS** Dashboard-Paket ist eine exklusive, hochperformante Frontend-Erweiterung für Home Assistant. Sie kombiniert modernstes **Glassmorphism** Design mit flüssigen Animationen und einem professionellen Layout, das dein Smarthome wie ein echtes Premium-Betriebssystem aussehen lässt. 
 
-Egal ob du dein Dashboard im tiefschwarzen Sci-Fi Look oder im cleanen, strahlend hellen "Milchglas"-Stil fährst: OpenKAIRO OS passt sich ab Version 2.0 vollautomatisch in Echtzeit an dein System-Theme an!
+---
 
-Dieses Repository enthält eine komplette Custom Component (`smart_start_screen`), die automatisiert eine Reihe luxuriöser Lovelace-Karten für dein Dashboard registriert.
+## 🚀 Die Revolution: OpenKAIRO Builder 🖱️
+
+Vergiss kompliziertes YAML! Mit dem brandneuen **OpenKAIRO Builder** erstellst du dein Traum-Dashboard direkt im Browser via Drag-and-Drop.
+
+- **Intuitives Design:** Ziehe Entitäten einfach aus der Seitenleiste direkt auf deine Dashboard-Elemente.
+- **One-Click Presets:** Starte sofort mit professionellen Vorlagen für **Solar**, **Klima** oder das neue **Cyan-Cyber** Design.
+- **Live-Vorschau:** Sieht im Builder exakt so aus wie später auf deinem Tablet.
+- **Data-Flow Links:** Zeichne Verbindungen zwischen Geräten, um Energieflüsse oder Abhängigkeiten visuell mit fließenden Animationen darzustellen.
 
 ---
 
-## 🚀 Neue Features & Meilensteine (Aktuelles Release V2.0)
+## 🌌 Futuristic & Cyberpunk UI (Neu in V3.0)
 
-Wir haben das Portfolio signifikant erweitert und das Design perfektioniert!
+Wir haben das Design auf ein völlig neues Level gehoben. OpenKAIRO OS V3 bietet eine tiefgreifende Sci-Fi Ästhetik:
 
-### 1. 🖱️ OpenKairo Button Card V2 (Das Schweizer Taschenmesser)
-Die vermutlich fortschrittlichste und universellste Premium-Steuerung für Lichter, Schalter, Skripte und Szenen in ganz Home Assistant.
-- **Wisch-Gesten (Slide-to-Dim):** Wische mit dem Finger direkt über den Button nach links oder rechts, um das Licht stufenlos zu dimmen. Ein Laser-Balken zeigt dir den eleganten Füllstand im Hintergrund an!
-- **Sicherheitssperre (Hold-to-Unlock):** Perfekt für Haustüren oder Alarmanlagen. Ein einfacher Klick wird ignoriert. Halte den Button 1,5 Sekunden gedrückt, während sich ein glühender Ladekreis um das Icon aufbaut, um auszulösen.
-- **Sensor Badges (2-in-1 Karte):** Kombiniere Schalter und Sensor! Weise deinem Smart Plug den passenden Stromverbrauchssensor zu, und am Icon schwebt ein gläsernes Schild (z.B. "1200 W" oder "21°C"), ohne dass du Platz für zwei Karten verlierst.
-- **Sci-Fi Toggle Schalter:** Aktiviere im Editor den "Sci-Fi Schalter" für einen physisch wirkenden, leuchtenden Schiebeschalter am Rande der Karte (ähnlich wie bei iOS).
-- **Live-Animationen:** Ist das Gerät an, erwacht das Icon zum Leben! Ventilatoren rotieren in Echtzeit, Waschmaschinen schaukeln leicht und Radare pulsieren.
-- **Multi-Klick (Triple Action):** Konfiguriere getrennte Aktionen für "Einfacher Klick", "Doppelklick" und "Langes Halten".
+### 1. 🧪 Modernste UI-Effekte
+- **Glass- & Soft-Neumorphism:** Elemente wirken plastisch, schwebend und verfügen über einen edlen Hintergrund-Blur.
+- **Animated Grid Background:** Ein dezent leuchtendes, animiertes Raster gibt dem Dashboard eine technische Tiefe.
+- **Neon-Glow Engine:** Komponenten leuchten in lebendigen Farben (Cyan, Amber, Emerald) mit dynamischen Schatteneffekten.
 
-### 2. ☀️ OpenKairo Solar Card (Energy OS)
-Die zentrale Kommandozentrale für deine Energie-Flüsse!
-- **Neues Editor-Design:** Der visuelle Editor wurde komplett übersichtlich überarbeitet. Jede Entität (Solar, Batterie, Wärmepumpe, Miner) hat nun ihre eigene aufgeräumte "Box" im UI-Editor.
-- **Native Color-Picker:** Farben wählst du jetzt im Editor bequem über ein echtes interaktives Farbrad aus.
-- **Smartmeter / Kaskaden-Logik:** Wähle flexibel aus, ob Sonderverbraucher (z.B. WP, Wallbox) vom Haussaldo *abgezogen* (bei gemeinsamem Smartmeter) oder *addiert* (bei getrennten Zählern) werden sollen.
-- **Plastisches Node-Design:** Die "Bälle" (Knoten) leuchten intensiv durch radiale Gradienten, Inner-Glows und einen pulsierenden Drop-Shadow.
-
-### 3. 🌗 Auto-Theme Engine (Light & Dark Mode)
-Schluss mit schlecht lesbaren Karten auf weißem Hintergrund!
-- **Dynamic Adaption:** Alle Karten lesen den Modus deines Home Assistants heimlich im Hintergrund mit. Zieht der Nutzer ein "Light Theme" (Helles Design) an, schaltet OpenKAIRO OS sofort das Acrylglas von dunklem "Sci-Fi Schwarz" auf hochglänzendes, weißes "Opal-Milchglas" um. Schriftarten und Schatten invertieren perfekt!
-
-### 4. 🔔 OpenKairo Smart Alert Card (Dynamic Island)
-Ein unsichtbares Benachrichtigungssystem, das nur bei Bedarf elegant in Erscheinung tritt.
-- **Zero-Pixels Design:** Solange dein Bedingungs-Limit (z.B. *Akku < 10%*) nicht erreicht ist, ist die Karte zu 100% unsichtbar und raubt keinen Platz.
-- **Geschmeidige Animation:** Wird die Warnschwelle überschritten, fährt die Karte wie eine *Dynamic Island* butterweich ins Dashboard herab.
-
-### 5. 📈 OpenKairo History Card
-Macht langweilige HA-Graphen zu einem echten Premium-Feature.
-- **Auto-Skalierung:** Graphen schrumpfen nicht mehr unschön zusammen, sondern haben nun ein smartes `max-height` (gecappt bei 400px) samt Scrollbar.
-- **Stats-Grid:** Unter dem Graphen befindet sich ein aufgeräumtes Panel mit aufbereiteten Tages-/Wochen-/Jahresstatistiken im echten OpenKAIRO-Design.
+### 2. 🕹️ Neue High-Tech Komponenten
+- **Klima-Bogen:** Ein futuristischer Thermostat-Ring mit Neon-Anzeige und dynamischem Status-Glow.
+- **Energie-Ring:** Visualisiere PV-Erträge oder Hausverbrauch mit rotierenden Daten-Partikeln.
+- **Weather- & Media-Cards:** Speziell designte Blöcke für Wettervorhersagen und Musiksteuerung im Dark-Mode Glassmorphism Stil.
+- **Flow-Animationen:** Verbindungs-Links pulsieren und zeigen den aktiven Datenfluss zwischen deinen Geräten an.
 
 ---
 
-## 🛠️ Installation via HACS
-
-1. Öffne **HACS** in deinem Home Assistant.
-2. Gehe auf **Integrations** und klicke oben rechts auf die drei Punkte -> **Custom repositories**.
-3. Füge die URL dieses Repositories hinzu und wähle die Kategorie **Integration**.
-4. Installiere die Integration (Suchbegriff: *OpenKairo OS*).
-5. **WICHTIG:** Lade bei Aktualisierungen immer den `main` Branch oder das neuste Release herunter.
-6. Nach der Konfiguration zwingend deinen Browser-Cache leeren (**STRG + F5** oder App-Cache löschen in der Companion App), damit die brandneuen Animationen greifen!
-
-## ⚙️ Nutzung (No-Code Architektur!)
-
-Du brauchst für keine einzige dieser Karten auch nur eine Zeile YAML-Code zu schreiben (obwohl du das natürlich darfst). Jede Karte bringt ihren eigenen, perfekt aufgeräumten und visuell anpassbaren Options-Dialog im Home Assistant Editor mit.
-
-Im Dashboard-Editor kannst du direkt nach folgenden neuen Karten suchen:
-- `OpenKairo Solar Card`
-- `OpenKairo Button Card`
-- `OpenKairo Smart Alert Card`
-- `OpenKairo Gauge Card`
-- `OpenKairo History Card`
+## 🌗 Auto-Theme Engine (Light & Dark Mode)
+Schluss mit schlecht lesbaren Karten! 
+- **Dynamic Adaption:** Alle Karten passen sich automatisch an dein Home Assistant Theme an. Im Light-Mode wird aus dem Sci-Fi Schwarz sofort hochglänzendes "Opal-Milchglas" mit perfekt lesbaren Kontrasten.
 
 ---
 
-## 🗺️ Roadmap (Was in Zukunft noch kommen könnte)
+## 🛠️ Installation & Setup
 
-Die Vision von OpenKAIRO OS ist noch lange nicht am Ende:
-
-- [ ] **OpenKAIRO Climate Card:** Eine hochvisuelle Steuerung für Klimaanlagen und Heizkörper mit animierten Luftströmen, Lüfter-Rotoren und einem dynamischen Temperatur-Glow-Slider.
-- [ ] **Room Hub / Media Deck:** Großzügige Kontrollzentren für ganze Räume oder zur Musik-Steuerung mit Live-Cover-Art und Equalizer-Effekten.
-- [ ] **OpenKAIRO EV-Charger Card:** Ein dediziertes Widget für die Wallbox, das den Ladefluss, genutzte Phasen und die voraussichtliche Restdauer elegant als Lade-Ring darstellt.
-- [ ] **Erweiterte History-Analytics:** Integration von Langzeit-Statistiken directly ins Dashboard als optisch ansprechende Heatmaps und Bar-Charts.
+1. **HACS**: Füge dieses Repository als "Custom Repository" hinzu.
+2. **Integration**: Suche nach *OpenKairo OS* und installiere die Komponente.
+3. **Builder**: Du findest den Builder direkt in deiner Home Assistant Seitenleiste unter dem OpenKAIRO-Logo.
+4. **Cache**: WICHTIG! Leere nach jedem Update deinen Browser-Cache (**STRG + F5**), damit die neuen Animationen und Skripte geladen werden.
 
 ---
+
+## 🗺️ Roadmap & Vision
+
+OpenKAIRO OS wächst ständig weiter. Unsere nächsten Ziele findest du in der [ROADMAP.md](ROADMAP.md).
+
 *Powered by OpenKAIRO OS – Smarthome in Exklusiv.*
