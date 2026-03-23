@@ -76,13 +76,6 @@ class OpenKairoBuilder extends HTMLElement {
         .tool-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .tool-btn.active { background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
 
-        .header-actions { display: flex; gap: 10px; }
-        .btn-primary {
-          background: #10b981; color: #0b1121;
-          border: none; padding: 8px 16px; border-radius: 6px;
-          font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;
-        }
-
         .left-sidebar {
           grid-area: left;
           background: rgba(15, 23, 42, 0.6);
@@ -156,8 +149,8 @@ class OpenKairoBuilder extends HTMLElement {
         }
 
         .prop-group { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 20px 15px; }
-        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 15px; }
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 12px; }
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .prop-label { font-size: 11px; color: rgba(255,255,255,0.6); }
         .prop-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 6px; border-radius: 4px; font-size: 11px; width: 80px; text-align: right; }
         input[type="range"] { width: 120px; accent-color: #10b981; }
@@ -212,7 +205,7 @@ class OpenKairoBuilder extends HTMLElement {
 
         <div class="canvas-area">
           <div class="canvas-board" id="drop-target">
-            <div style="text-align:center; font-family:sans-serif; color:#10b981; font-weight:800; opacity:0.5;">LIVING ROOM</div>
+            <div id="card-header-text" style="text-align:center; font-family:sans-serif; color:#10b981; font-weight:800; opacity:0.5;">LIVING ROOM</div>
             <svg id="links-overlay"></svg>
           </div>
         </div>
@@ -242,6 +235,7 @@ class OpenKairoBuilder extends HTMLElement {
     this.activeToolbarMode = 'ENTITIES';
     this.sidebarSearchQuery = '';
     this.activeRightTab = 'STYLES';
+    this.cardName = 'LIVING ROOM';
 
     const toolBtns = this.querySelectorAll('.tool-btn');
     toolBtns.forEach(btn => {
@@ -279,11 +273,8 @@ class OpenKairoBuilder extends HTMLElement {
         const el = this.querySelector('#' + moveId);
         const ox = parseFloat(e.dataTransfer.getData('offsetX'));
         const oy = parseFloat(e.dataTransfer.getData('offsetY'));
-        
-        // Snapping logic
         let dropX = Math.round((e.clientX - canvasRect.left - ox) / gridSize) * gridSize;
         let dropY = Math.round((e.clientY - canvasRect.top - oy) / gridSize) * gridSize;
-        
         el.style.left = dropX + 'px';
         el.style.top = dropY + 'px';
         const b = this.canvasBlocks.find(x => x.id === moveId);
@@ -302,7 +293,7 @@ class OpenKairoBuilder extends HTMLElement {
     canvas.addEventListener('click', () => this.selectBlock(null));
 
     this.querySelector('#btn-save').addEventListener('click', () => {
-      let yaml = `type: custom:openkairo-custom-card\nheight: ${canvas.offsetHeight}\nlayout:\n`;
+      let yaml = `type: custom:openkairo-custom-card\nname: "${this.cardName}"\nheight: ${canvas.offsetHeight}\nlayout:\n`;
       this.canvasBlocks.forEach(b => {
         yaml += `  - type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}\n    color: "${b.color}"\n`;
         if(b.entity) yaml += `    entity: ${b.entity}\n`;
@@ -321,6 +312,7 @@ class OpenKairoBuilder extends HTMLElement {
     });
 
     this.renderLeftSidebar();
+    this.selectBlock(null);
   }
 
   addBlockToCanvas(type, x, y, entityId = null) {
@@ -330,60 +322,17 @@ class OpenKairoBuilder extends HTMLElement {
     el.id = blockId;
     el.style.left = x + 'px';
     el.style.top = y + 'px';
-    if(type === 'Button') icon = 'mdi:gesture-tap-button';
-    if(type === 'Icon') icon = 'mdi:star-outline';
-    if(type === 'Klima-Bogen') icon = 'mdi:circle-slice-8';
-    if(type === 'Modus-Schalter') icon = 'mdi:view-grid-outline';
+    el.style.background = 'rgba(16,185,129,0.15)';
     
-    // Render UI Logic 
-    if(type === 'Text') {
-        el.style.background = 'transparent';
-        el.innerHTML = `Text`;
-    } else if(type === 'Modus-Schalter') {
-        el.style.width = '240px';
-        el.style.height = '60px';
-        el.style.background = 'rgba(255,255,255,0.03)';
-        el.style.borderRadius = '12px';
-        el.style.display = 'flex';
-        el.style.gap = '5px';
-        el.style.padding = '5px';
-        el.innerHTML = `
-          <div style="flex:1; background:rgba(16,185,129,0.2); border:1px solid #10b981; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
-            <ha-icon icon="mdi:fire" style="--mdc-icon-size:14px; color:#10b981;"></ha-icon>
-            <span style="font-size:9px; color:#10b981; font-weight:bold;">Heat</span>
-          </div>
-          <div style="flex:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; opacity:0.5;">
-            <ha-icon icon="mdi:snowflake" style="--mdc-icon-size:14px;"></ha-icon>
-            <span style="font-size:9px;">Cool</span>
-          </div>
-          <div style="flex:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; opacity:0.5;">
-            <ha-icon icon="mdi:auto-fix" style="--mdc-icon-size:14px;"></ha-icon>
-            <span style="font-size:9px;">Auto</span>
-          </div>
-          <div style="flex:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; opacity:0.5;">
-            <ha-icon icon="mdi:power" style="--mdc-icon-size:14px;"></ha-icon>
-            <span style="font-size:9px;">Off</span>
-          </div>
-        `;
-    } else if(type === 'Klima-Bogen') {
-        el.style.width = '160px';
-        el.style.height = '160px';
-        el.style.background = 'transparent';
-        el.innerHTML = `
-          <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
-            <path d="M 20 80 A 40 40 0 1 1 80 80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" stroke-linecap="round" />
-            <path d="M 20 80 A 40 40 0 0 1 50 20" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" style="filter: drop-shadow(0 0 5px #10b981);" />
-            <circle cx="50" cy="20" r="5" fill="white" />
-            <text x="50" y="60" text-anchor="middle" fill="white" style="font-size:18px; font-weight:bold;">22°</text>
-            <text x="50" y="75" text-anchor="middle" fill="rgba(255,255,255,0.5)" style="font-size:8px;">Ist: 20°</text>
-          </svg>
-        `;
-    } else if(type === 'Card' || type === 'Container') {
-        // No specific innerHTML provided for Card/Container in the instruction,
-        // so it will fall through to the default or be handled by other styles.
-        el.innerHTML = `<span>${entityId || type}</span>`;
+    let label = entityId || type;
+    if (type === 'Klima-Bogen') {
+        el.style.width = '160px'; el.style.height = '160px'; el.style.background = 'transparent';
+        el.innerHTML = `<svg viewBox="0 0 100 100" style="width:100%; height:100%;"><path d="M 20 80 A 40 40 0 1 1 80 80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" stroke-linecap="round" /><path d="M 20 80 A 40 40 0 0 1 50 20" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" /><circle cx="50" cy="20" r="5" fill="white" /><text x="50" y="60" text-anchor="middle" fill="white" style="font-size:18px; font-weight:bold;">22°</text></svg>`;
+    } else if (type === 'Modus-Schalter') {
+        el.style.width = '200px'; el.style.height = '50px'; el.style.background = 'rgba(255,255,255,0.03)'; el.style.borderRadius = '12px'; el.style.display = 'flex'; el.style.padding = '4px';
+        el.innerHTML = `<div style="flex:1; background:#10b981; border-radius:8px;"></div><div style="flex:1;"></div><div style="flex:1;"></div>`;
     } else {
-        el.innerHTML = `<span>${entityId || type}</span>`;
+        el.innerHTML = `<span>${label}</span>`;
     }
     
     el.addEventListener('click', e => {
@@ -404,16 +353,9 @@ class OpenKairoBuilder extends HTMLElement {
 
     this.querySelector('#drop-target').appendChild(el);
     this.canvasBlocks.push({
-      id: blockId, 
-      type: type, 
-      x: x, 
-      y: y, 
-      color: '#10b981', 
-      entity: entityId,
-      glow: 0,
-      textGlow: 0,
-      blur: 0,
-      opacity: 1
+        id: blockId, type: type, x: x, y: y, color: '#10b981', entity: entityId, 
+        text: type === 'Text' ? 'Dein Text' : (entityId ? entityId.split('.')[1] : type),
+        glow: 0, textGlow: 0, blur: 0, opacity: 1, fontSize: 13
     });
     this.selectBlock(blockId);
   }
@@ -421,55 +363,72 @@ class OpenKairoBuilder extends HTMLElement {
   selectBlock(id) {
     this.selectedBlockId = id;
     this.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
-    const right = this.querySelector('.right-sidebar .sidebar-content');
+    const right = this.querySelector('#right-sidebar-container');
+    if(!right) return;
+
     if(id) {
       const el = this.querySelector('#' + id);
       el.classList.add('selected');
       const b = this.canvasBlocks.find(x => x.id === id);
-      
-      if (this.activeRightTab === 'STYLES') {
-        right.innerHTML = `
-          <div class="prop-group">
-            <div class="prop-header">Farbe & Transparenz</div>
-            <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}"></div>
-            <div class="prop-row"><span class="prop-label">Deckkraft</span><input type="range" id="p-opacity" min="0" max="1" step="0.1" value="${b.opacity || 1}"></div>
-          </div>
-          <div class="prop-group">
-            <div class="prop-header">Neon & Glow</div>
-            <div class="prop-row"><span class="prop-label">Glow (Border)</span><input type="range" id="p-glow" min="0" max="50" value="${b.glow || 0}"></div>
-            <div class="prop-row"><span class="prop-label">Glow (Text)</span><input type="range" id="p-tglow" min="0" max="20" value="${b.textGlow || 0}"></div>
-          </div>
-          <div class="prop-group">
-            <div class="prop-header">Glassmorphism</div>
-            <div class="prop-row"><span class="prop-label">Blur (Pixel)</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
-          </div>
-          <div class="prop-group">
-            <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Löschen</button>
-          </div>
-        `;
 
-        const updateStyle = () => {
+      const updateUI = () => {
           el.style.color = b.color;
           el.style.opacity = b.opacity;
           el.style.boxShadow = b.glow > 0 ? `0 0 ${b.glow}px ${b.color}` : 'none';
           el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
           el.style.backdropFilter = b.blur > 0 ? `blur(${b.blur}px)` : 'none';
           if (b.blur > 0) el.style.background = `rgba(255,255,255,0.05)`;
-        };
+          if (el.querySelector('span')) el.querySelector('span').innerText = b.text;
+          if (el.querySelector('span')) el.querySelector('span').style.fontSize = b.fontSize + 'px';
+      };
 
-        this.querySelector('#p-color').addEventListener('input', e => { b.color = e.target.value; updateStyle(); });
-        this.querySelector('#p-opacity').addEventListener('input', e => { b.opacity = e.target.value; updateStyle(); });
-        this.querySelector('#p-glow').addEventListener('input', e => { b.glow = e.target.value; updateStyle(); });
-        this.querySelector('#p-tglow').addEventListener('input', e => { b.textGlow = e.target.value; updateStyle(); });
-        this.querySelector('#p-blur').addEventListener('input', e => { b.blur = e.target.value; updateStyle(); });
-        this.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
-        
-        updateStyle(); // Apply on load
+      if(this.activeRightTab === 'STYLES') {
+          right.innerHTML = `
+            <div class="prop-group">
+                <div class="prop-header">Neon & Glow</div>
+                <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}"></div>
+                <div class="prop-row"><span class="prop-label">Glow (Border)</span><input type="range" id="p-glow" min="0" max="60" value="${b.glow}"></div>
+                <div class="prop-row"><span class="prop-label">Glow (Text)</span><input type="range" id="p-tglow" min="0" max="30" value="${b.textGlow}"></div>
+            </div>
+            <div class="prop-group">
+                <div class="prop-header">Glassmorphism</div>
+                <div class="prop-row"><span class="prop-label">Blur (Pixel)</span><input type="range" id="p-blur" min="0" max="40" value="${b.blur}"></div>
+                <div class="prop-row"><span class="prop-label">Deckkraft</span><input type="range" id="p-opacity" min="0.1" max="1" step="0.1" value="${b.opacity}"></div>
+            </div>
+          `;
+          this.querySelector('#p-color').addEventListener('input', e => { b.color = e.target.value; updateUI(); });
+          this.querySelector('#p-glow').addEventListener('input', e => { b.glow = e.target.value; updateUI(); });
+          this.querySelector('#p-tglow').addEventListener('input', e => { b.textGlow = e.target.value; updateUI(); });
+          this.querySelector('#p-blur').addEventListener('input', e => { b.blur = e.target.value; updateUI(); });
+          this.querySelector('#p-opacity').addEventListener('input', e => { b.opacity = e.target.value; updateUI(); });
       } else {
-         right.innerHTML = `<div style="padding:20px; color:rgba(255,255,255,0.3);">${this.activeRightTab}-Eigenschaften (In Arbeit)</div>`;
+          right.innerHTML = `
+            <div class="prop-group">
+                <div class="prop-header">Element Properties</div>
+                <div class="prop-row"><span class="prop-label">Anzeige-Text</span><input type="text" class="prop-input" id="p-text" value="${b.text}" style="width:120px;"></div>
+                <div class="prop-row"><span class="prop-label">Schriftgröße</span><input type="number" class="prop-input" id="p-size" value="${b.fontSize}"></div>
+                <div class="prop-row"><span class="prop-label">HA-Entität</span><input type="text" class="prop-input" id="p-entity" value="${b.entity}" style="width:120px;" readonly></div>
+                <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Löschen</button>
+            </div>
+          `;
+          this.querySelector('#p-text').addEventListener('input', e => { b.text = e.target.value; updateUI(); });
+          this.querySelector('#p-size').addEventListener('input', e => { b.fontSize = e.target.value; updateUI(); });
+          this.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
       }
+      updateUI();
     } else {
-      right.innerHTML = '<div style="padding:20px; color:rgba(255,255,255,0.3);">No selection</div>';
+      right.innerHTML = `
+        <div class="prop-group">
+            <div class="prop-header">Globale Einstellungen</div>
+            <div class="prop-row"><span class="prop-label">Karten-Name</span><input type="text" class="prop-input" id="p-card-name" value="${this.cardName}" style="width:120px;"></div>
+            <div style="font-size:10px; opacity:0.5; margin-top:10px;">Wähle ein Element auf dem Canvas aus, um dessen Styles zu bearbeiten.</div>
+        </div>
+      `;
+      this.querySelector('#p-card-name').addEventListener('input', e => { 
+          this.cardName = e.target.value; 
+          const h = this.querySelector('#card-header-text');
+          if(h) h.innerText = this.cardName;
+      });
     }
   }
 
@@ -552,12 +511,8 @@ class OpenKairoBuilder extends HTMLElement {
         }
         html += `</div>`;
     } else {
-        // Filter based on other modes
-        const catMap = { 'ACTIONS': 'UI', 'LAYOUT': 'LAYOUT', 'MEDIA': 'BASIC' };
         const modeLabel = this.activeToolbarMode === 'ACTIONS' ? 'Bedienung & UI' : this.activeToolbarMode;
-        
         const filtered = allBlocks.filter(b => {
-             // Avoid double entry in "Media" if it's already in basic
              if (this.activeToolbarMode === 'MEDIA' && b.name === 'Image') return true;
              if (this.activeToolbarMode === 'ACTIONS' && b.cat === 'UI') return true;
              if (this.activeToolbarMode === 'LAYOUT' && b.cat === 'LAYOUT') return true;
