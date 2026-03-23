@@ -5,6 +5,7 @@ import os
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.frontend import async_register_built_in_panel, async_remove_panel
+from homeassistant.components.http import StaticPathConfig
 
 from .const import DOMAIN, PANEL_NAME, PANEL_TITLE, PANEL_ICON, PANEL_URL
 
@@ -22,11 +23,13 @@ async def _setup_internal(hass: HomeAssistant):
     if not os.path.exists(static_path):
         os.makedirs(static_path)
 
-    hass.http.register_static_path(
-        url_path="/openkairo_os",
-        path=static_path,
-        cache_headers=False
-    )
+    await hass.http.async_register_static_paths([
+        StaticPathConfig(
+            url_path="/openkairo_os",
+            path=static_path,
+            cache_headers=False
+        )
+    ])
 
     for file_name in os.listdir(static_path):
         if file_name.endswith(".js"):
