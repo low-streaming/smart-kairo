@@ -33,69 +33,58 @@ class OpenKairoCustomCard extends HTMLElement {
   }
 
   setupDOM() {
+    const c = this._config;
+    // Resolve Card Name Slot
+    let cardName = c.name || 'LIVING ROOM';
+    if (cardName.startsWith('[[') && cardName.endsWith(']]')) {
+        const slotName = cardName.slice(2, -2);
+        cardName = (c.slots && c.slots[slotName]) || slotName.toUpperCase();
+    }
     this.innerHTML = `
       <style>
         ha-card {
-           background: rgba(10, 20, 28, 0.45); border-radius: 28px;
-           backdrop-filter: blur(15px) saturate(180%); -webkit-backdrop-filter: blur(15px) saturate(180%);
-           position: relative; box-shadow: 0 15px 45px rgba(0,0,0,0.7);
-           overflow: hidden !important; border: 1px solid rgba(255,255,255,0.1);
+           background: rgba(10, 20, 28, ${c.opacity || 0.45}); 
+           border-radius: 28px;
+           backdrop-filter: blur(${c.blur || 15}px) saturate(180%);
+           -webkit-backdrop-filter: blur(${c.blur || 15}px) saturate(180%);
+           position: relative; 
+           box-shadow: ${c.glow > 0 ? `0 0 ${c.glow}px ${c.color || '#10b981'}` : '0 15px 45px rgba(0,0,0,0.7)'};
+           overflow: hidden !important; 
+           border: 1px solid ${c.glow > 0 ? (c.color || '#10b981') : 'rgba(255,255,255,0.1)'};
            color: #fff; font-family: 'Inter', sans-serif;
+           min-height: ${c.height || 300}px;
         }
         
         .header { 
-           font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: #10b981; 
-           text-align: center; font-weight: 900; margin-top: 25px; margin-bottom: 20px; letter-spacing: 5px; 
-           text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+           font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #10b981; 
+           text-align: center; font-weight: 800; margin-top: 20px; 
+           opacity: 0.5; letter-spacing: 2px;
            text-transform: uppercase;
         }
 
         .canvas-area {
            position: relative;
            width: 100%;
-           height: ${this._config.height || 300}px;
-           overflow: hidden;
+           height: ${c.height || 300}px;
+           overflow: visible;
         }
 
         .canvas-element {
           position: absolute;
-          color: white;
-          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 13px;
-          font-weight: 500;
-          user-select: none;
           flex-direction: column;
-          text-align: center;
           box-sizing: border-box;
-          transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+          transition: 0.3s;
         }
 
-        /* SVG Links Overlay */
-        #links-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 5;
-        }
-        .linking-path {
-          fill: none;
-          stroke: #10b981;
-          stroke-width: 2;
-          stroke-dasharray: 5,5;
-          animation: flow 1s linear infinite;
-        }
-        @keyframes flow {
-          to { stroke-dashoffset: -10; }
-        }
+        #links-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        .linking-path { fill: none; stroke: #10b981; stroke-width: 2; stroke-dasharray: 5,5; animation: flow 1s linear infinite; filter: drop-shadow(0 0 5px #10b981); }
+        @keyframes flow { to { stroke-dashoffset: -10; } }
       </style>
       <ha-card>
-        <div class="header">${this._config.title || 'OPENKAIRO OS'}</div>
+        <div class="header">${cardName}</div>
         <div class="canvas-area" id="render-area">
            <svg id="links-overlay"></svg>
         </div>
@@ -105,69 +94,43 @@ class OpenKairoCustomCard extends HTMLElement {
     this.content = true;
     const renderArea = this.querySelector('#render-area');
 
-    this._config.layout.forEach((block, index) => {
+    c.layout.forEach((block, index) => {
         const el = document.createElement('div');
         el.className = 'canvas-element';
         el.id = block.id || ('block-' + index);
-        
         el.style.left = (block.x || 0) + 'px';
         el.style.top = (block.y || 0) + 'px';
-        el.style.width = (block.width || 100) + 'px';
-        el.style.height = (block.height || 40) + 'px';
         
-        let activeColor = block.color || '#10b981';
-        
-        // Dynamic Logic State Evaluation
-        if (block.logicState && block.entity && this._hass && this._hass.states[block.entity]) {
-            const currentState = this._hass.states[block.entity].state;
-            if (currentState.toString().toLowerCase() === block.logicState.toLowerCase()) {
-                activeColor = block.logicColor || '#f43f5e';
-            }
-        }
-        
-        el.style.color = activeColor;
-        el.style.fontSize = (block.fontSize || 13) + 'px';
-        el.style.fontWeight = block.fontWeight || 'bold';
-        const radius = block.borderRadius !== undefined ? block.borderRadius : ((block.type === 'Card' || block.type === 'Container') ? 20 : 8);
-        el.style.borderRadius = radius + 'px';
-        
-        if (block.type === 'Card' || block.type === 'Container') {
-            // Dynamic bg logic for containers
-            el.style.background = block.backgroundColor || 'transparent';
-            if (block.backgroundColor && block.backgroundColor !== 'transparent') {
-                el.style.backdropFilter = 'blur(15px)';
-            }
-            if (block.backgroundImage) {
-                el.style.backgroundImage = `url('${block.backgroundImage}')`;
-                el.style.backgroundSize = 'cover';
-                el.style.backgroundPosition = 'center';
-            }
-        } else if (block.type !== 'Text') {
-            el.style.background = `${activeColor}25`;
-            el.style.boxShadow = `0 0 10px ${activeColor}40`;
-        } else {
-            el.style.background = 'transparent';
-            el.style.boxShadow = 'none';
+        // Resolve Entity Slot
+        let entityId = block.entity;
+        if (entityId && entityId.startsWith('[[') && entityId.endsWith(']]')) {
+            const slotName = entityId.slice(2, -2);
+            entityId = (c.slots && c.slots[slotName]) || null;
         }
 
-        // Setup Actions (Once per block)
-        if (block.action && block.action !== 'none' && block.entity) {
+        // Initial Styles from Config
+        el.style.color = block.color || '#10b981';
+        el.style.opacity = block.opacity !== undefined ? block.opacity : 1;
+        el.style.fontSize = (block.fontSize || 13) + 'px';
+        el.style.fontWeight = 'bold';
+        
+        const updateStyles = () => {
+            el.style.boxShadow = block.glow > 0 ? `0 0 ${block.glow}px ${block.color}` : 'none';
+            el.style.textShadow = block.textGlow > 0 ? `0 0 ${block.textGlow}px ${block.color}` : 'none';
+            el.style.backdropFilter = block.blur > 0 ? `blur(${block.blur}px)` : 'none';
+            if (block.blur > 0) el.style.background = `rgba(255,255,255,0.05)`;
+        };
+        updateStyles();
+
+        if (block.action && block.action !== 'none' && entityId) {
             el.style.cursor = 'pointer';
             el.onclick = () => {
-                if(block.action === 'toggle') {
-                    this._hass.callService('homeassistant', 'toggle', { entity_id: block.entity });
-                } else if (block.action === 'more-info') {
-                    fireEvent(this, 'hass-more-info', { entityId: block.entity });
-                }
+                if(block.action === 'toggle') this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
+                else fireEvent(this, 'hass-more-info', { entityId: entityId });
             };
         }
 
-        // Store configuration logically
-        el._ok_type = block.type;
-        el._ok_entity = block.entity;
-        el._ok_text = block.text;
-        el._ok_img = block.imageUrl;
-        
+        el._ok_cfg = { ...block, resolvedEntity: entityId };
         renderArea.appendChild(el);
     });
 
@@ -194,7 +157,7 @@ class OpenKairoCustomCard extends HTMLElement {
                 y: parseInt(targetEl.style.top) + targetEl.offsetHeight / 2
             };
             
-            // Bezier curve
+            // Bezier curve (Curvy link)
             const cp1x = sRect.x + (tRect.x - sRect.x) / 2;
             const cp1y = sRect.y;
             const cp2x = sRect.x + (tRect.x - sRect.x) / 2;
@@ -219,64 +182,64 @@ class OpenKairoCustomCard extends HTMLElement {
     const elements = this.querySelectorAll('.canvas-element');
     
     elements.forEach(el => {
-       const type = el._ok_type;
-       
-       const entityId = el._ok_entity;
+       const b = el._ok_cfg;
+       const entityId = b.resolvedEntity;
        let val = "N/A", metric = "", stateObj = null;
        
-       if (entityId && this._hass && this._hass.states[entityId]) {
+       if (entityId && this._hass.states[entityId]) {
            stateObj = this._hass.states[entityId];
            val = stateObj.state;
            metric = stateObj.attributes.unit_of_measurement || '';
        }
 
-       if (type === 'Slider') {
-           let numVal = parseFloat(val) || 0;
+       if (b.type === 'Klima-Bogen') {
+           const temp = stateObj ? stateObj.attributes.current_temperature || val : "21";
+           const target = stateObj ? stateObj.attributes.temperature || val : "22";
+           const hvacAction = stateObj ? (stateObj.attributes.hvac_action || stateObj.state) : "idle";
+           const accentColor = hvacAction === 'heating' ? '#f59e0b' : (hvacAction === 'cooling' ? '#3b82f6' : '#10b981');
+           
            el.innerHTML = `
-              <div style="font-size:10px; margin-bottom:5px;">${el._ok_text || entityId || 'Slider'}</div>
-              <input type="range" min="0" max="100" value="${numVal}" style="width:80%;" disabled />
+             <div style="position:relative; width:120px; height:120px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); box-shadow:0 10px 30px rgba(0,0,0,0.4);">
+                <svg viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; transform:rotate(-90deg);">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="4" />
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="${accentColor}" stroke-width="4" 
+                            stroke-dasharray="282" stroke-dashoffset="${282 - (282 * (Math.min(target, 35) / 35))}" 
+                            style="transition:0.8s cubic-bezier(0.4, 0, 0.2, 1); filter:drop-shadow(0 0 8px ${accentColor});" />
+                </svg>
+                <div style="text-align:center; z-index:2;">
+                    <div style="font-size:28px; font-weight:800; color:#fff; line-height:1; letter-spacing:-1px;">${temp}°</div>
+                    <div style="font-size:9px; color:${accentColor}; text-transform:uppercase; margin-top:4px; letter-spacing:1px; font-weight:700;">${hvacAction}</div>
+                </div>
+             </div>
            `;
-       }
-       else if (type === 'Image') {
-           if (el._ok_img) {
-               el.innerHTML = `<img src="${el._ok_img}" style="width:100%; height:100%; object-fit:cover; pointer-events:none; border-radius:${el.style.borderRadius};" />`;
-           } else {
-               el.innerHTML = `<ha-icon icon="mdi:image" style="--mdc-icon-size:24px; opacity:0.3;"></ha-icon>`;
-           }
-       }
-       else if (type === 'Energie-Ring') {
-           let numVal = parseFloat(val) || 0;
+       } else if (b.type === 'Modus-Schalter') {
+           const currentMode = stateObj ? stateObj.state : "auto";
+           const modes = stateObj ? (stateObj.attributes.hvac_modes || ['heat', 'cool', 'auto']) : ['heat', 'cool', 'auto'];
+           let modeHtml = modes.map(m => `
+                <div style="padding:6px 12px; border-radius:8px; background:${currentMode === m ? '#10b981' : 'rgba(255,255,255,0.03)'}; color:${currentMode === m ? '#fff' : 'rgba(255,255,255,0.4)'}; font-size:10px; text-transform:uppercase; font-weight:800; transition:0.3s; cursor:pointer;">${m}</div>
+           `).join('');
+           el.innerHTML = `<div style="display:flex; gap:6px; background:rgba(0,0,0,0.3); padding:6px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(10px);">${modeHtml}</div>`;
+       } else if (b.type === 'Energie-Ring') {
+           const flowVal = parseFloat(val) || 0;
+           metric = stateObj ? (stateObj.attributes.unit_of_measurement || "W") : "W";
+           const flowColor = flowVal > 0 ? '#10b981' : '#f43f5e';
            el.innerHTML = `
-              <div style="width: 40px; height: 40px; border-radius: 50%; border: 4px solid currentColor; border-top-color: transparent; display:flex; align-items:center; justify-content:center; box-sizing:border-box;">
-                 <span style="font-size:10px; font-weight:bold;">${numVal}</span>
-              </div>
+             <div style="position:relative; width:90px; height:90px; display:flex; align-items:center; justify-content:center;">
+                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid ${flowColor}; opacity:0.1; box-shadow:inset 0 0 20px ${flowColor}30;"></div>
+                <svg viewBox="0 0 100 100" style="position:absolute; width:100%; height:100%; animation: rotate 10s linear infinite;">
+                    <circle cx="50" cy="50" r="48" fill="none" stroke="${flowColor}" stroke-width="1" stroke-dasharray="10, 20" opacity="0.4" />
+                </svg>
+                <div style="text-align:center; z-index:2;">
+                    <div style="font-size:18px; font-weight:900; color:#fff; line-height:1;">${val}</div>
+                    <div style="font-size:9px; color:${flowColor}; font-weight:bold; text-transform:uppercase; margin-top:2px;">${metric}</div>
+                </div>
+             </div>
+             <style>@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>
            `;
-       }
-       else if (type === 'Text' || type === 'Button') {
-           const iconMap = type === 'Text' ? 'mdi:format-text' : 'mdi:gesture-tap-button';
-           let displayContent = entityId && stateObj ? `<b>${val} ${metric}</b>` : (el._ok_text || type);
-           el.innerHTML = `<ha-icon icon="${iconMap}" style="--mdc-icon-size:16px; margin-bottom: 2px;"></ha-icon> ${displayContent}`;
-       } 
-       else if (type === 'Entity State' || type === 'Badge') {
-           if (stateObj) {
-               el.innerHTML = `<ha-icon icon="mdi:thermometer" style="--mdc-icon-size:16px; margin-bottom: 2px;"></ha-icon> <b>${val} ${metric}</b>`;
-           } else {
-               el.innerHTML = `<ha-icon icon="mdi:alert-circle-outline" style="--mdc-icon-size:16px; margin-bottom: 2px; opacity:0.6;"></ha-icon> <span style="font-size:10px; opacity:0.6">N/A</span>`;
-           }
-       }
-       else if (type === 'Icon') {
-           el.innerHTML = `<ha-icon icon="mdi:star-four-points-outline" style="--mdc-icon-size:24px;"></ha-icon>`;
-       }
-       else if (entityId && stateObj && type !== 'Card' && type !== 'Container') {
-           // Universal fallback for anything with an entity attached
-           el.innerHTML = `<b>${val} ${metric}</b>`;
-       }
-       else if (type !== 'Card' && type !== 'Container') {
-           // Fallback for structural blocks or blocks without entity so they aren't invisible
-           let icon = 'mdi:cube-outline';
-           if(type==='Grid') icon = 'mdi:grid';
-           if(type==='Stack') icon = 'mdi:format-list-bulleted';
-           el.innerHTML = `<ha-icon icon="${icon}" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> ${type}`;
+       } else {
+           let displayContent = b.text || b.type;
+           if (entityId && stateObj) displayContent = `${val}${metric}`;
+           el.innerHTML = `<span style="text-shadow: 0 0 10px rgba(255,255,255,0.2);">${displayContent}</span>`;
        }
     });
   }

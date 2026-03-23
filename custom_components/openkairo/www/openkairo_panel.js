@@ -111,6 +111,12 @@ class OpenKairoBuilder extends HTMLElement {
         .block-item ha-icon { color: rgba(255,255,255,0.7); --mdc-icon-size: 20px; }
         .block-item span { font-size: 11px; font-weight: 500; }
 
+        .layer-item { padding: 8px 10px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-radius: 4px; border: 1px solid transparent; color: rgba(255,255,255,0.7); transition: 0.2s; }
+        .layer-item:hover { background: rgba(255,255,255,0.03); }
+        .layer-item.active { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981; }
+
+        .linking-path.active { stroke-width: 4 !important; filter: drop-shadow(0 0 8px currentColor); }
+
         .canvas-area {
           grid-area: canvas;
           background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%), #0f172a;
@@ -125,7 +131,7 @@ class OpenKairoBuilder extends HTMLElement {
 
         .canvas-board {
           width: 400px;
-          height: 500px;
+          height: 600px;
           background: rgba(10, 20, 28, 0.45);
           border-radius: 28px;
           box-shadow: 0 15px 45px rgba(0,0,0,0.7);
@@ -137,6 +143,20 @@ class OpenKairoBuilder extends HTMLElement {
           padding: 20px;
           background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
           background-size: 10px 10px;
+        }
+
+        #links-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 100;
+        }
+        .linking-path {
+           pointer-events: auto;
+           cursor: pointer;
         }
 
         .right-sidebar {
@@ -190,15 +210,16 @@ class OpenKairoBuilder extends HTMLElement {
             <div class="tool-btn" data-mode="LAYOUT"><ha-icon icon="mdi:card-outline"></ha-icon> Layout</div>
             <div class="tool-btn" data-mode="LINK"><ha-icon icon="mdi:vector-line"></ha-icon> Link</div>
           </div>
-          <div class="header-actions">
+          <div class="header-actions" style="display:flex; gap:10px;">
+            <button class="tool-btn" id="btn-preset-climate" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><ha-icon icon="mdi:thermostat"></ha-icon> Klima-Preset</button>
             <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:content-save"></ha-icon> Speichern</button>
           </div>
         </div>
 
         <div class="left-sidebar">
           <div class="sidebar-tabs">
-            <div class="s-tab active">Blocks</div>
-            <div class="s-tab">Layers</div>
+            <div class="s-tab active" data-tab="BLOCKS">Blocks</div>
+            <div class="s-tab" data-tab="LAYERS">Layers</div>
           </div>
           <div class="sidebar-content" id="left-sidebar-container"></div>
         </div>
@@ -232,11 +253,41 @@ class OpenKairoBuilder extends HTMLElement {
     this.canvasBlocks = [];
     this.canvasLinks = [];
     this.selectedBlockId = null;
-    this.activeToolbarMode = 'ENTITIES';
+    this.selectedBlockId = null;
+    this.selectedLinkId = null;
     this.sidebarSearchQuery = '';
     this.activeRightTab = 'STYLES';
     this.cardName = 'LIVING ROOM';
     this.cardStyle = { glow: 20, blur: 15, color: '#10b981', opacity: 0.45 };
+
+    this.querySelector('#btn-preset-climate').addEventListener('click', () => {
+        if(!confirm("Aktuelles Layout verwerfen und Klima-Preset laden?")) return;
+        this.canvasBlocks = [];
+        this.canvasLinks = [];
+        
+        // Add Climate Arc
+        this.addBlockToCanvas('Klima-Bogen', 140, 80, null);
+        const arcId = this.canvasBlocks[0].id;
+        this.canvasBlocks[0].entity = '[[klima_entitaet]]';
+        
+        // Add Mode Switch
+        this.addBlockToCanvas('Modus-Schalter', 100, 220, null);
+        
+        // Add some info badges
+        this.addBlockToCanvas('Badge', 60, 320, null);
+        this.canvasBlocks[this.canvasBlocks.length-1].text = "Luftfeuchtigkeit";
+        this.canvasBlocks[this.canvasBlocks.length-1].entity = '[[feuchtigkeit_entitaet]]';
+        
+        this.addBlockToCanvas('Badge', 220, 320, null);
+        this.canvasBlocks[this.canvasBlocks.length-1].text = "Außentemp";
+        this.canvasBlocks[this.canvasBlocks.length-1].entity = '[[aussen_temp]]';
+
+        this.cardName = "WOHNZIMMER KLIMA";
+        const h = this.querySelector('#card-header-text');
+        if(h) h.innerText = this.cardName;
+        
+        this.selectBlock(null);
+    });
 
     const toolBtns = this.querySelectorAll('.tool-btn');
     toolBtns.forEach(btn => {
@@ -250,6 +301,16 @@ class OpenKairoBuilder extends HTMLElement {
         this.renderLeftSidebar();
         this.renderLinks();
       });
+    });
+
+    const leftTabs = this.querySelectorAll('.left-sidebar .s-tab');
+    leftTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+           leftTabs.forEach(t => t.classList.remove('active'));
+           tab.classList.add('active');
+           this.activeLeftTab = tab.dataset.tab;
+           this.renderLeftSidebar();
+        });
     });
 
     const rightTabs = this.querySelectorAll('.right-sidebar .s-tab');
@@ -283,31 +344,57 @@ class OpenKairoBuilder extends HTMLElement {
         const oy = parseFloat(e.dataTransfer.getData('offsetY'));
         let dropX = Math.round((e.clientX - canvasRect.left - ox) / gridSize) * gridSize;
         let dropY = Math.round((e.clientY - canvasRect.top - oy) / gridSize) * gridSize;
-        el.style.left = dropX + 'px';
-        el.style.top = dropY + 'px';
+        
         const b = this.canvasBlocks.find(x => x.id === moveId);
-        if(b) { b.x = dropX; b.y = dropY; }
+        if(b) {
+          const dx = dropX - b.x;
+          const dy = dropY - b.y;
+          b.x = dropX; b.y = dropY;
+          el.style.left = dropX + 'px';
+          el.style.top = dropY + 'px';
+          
+          // Move children
+          this.canvasBlocks.filter(x => x.parentId === moveId).forEach(child => {
+            child.x += dx; child.y += dy;
+            const childEl = this.querySelector('#' + child.id);
+            if(childEl) { childEl.style.left = child.x + 'px'; childEl.style.top = child.y + 'px'; }
+          });
+        }
         this.selectBlock(moveId);
       } else {
         const type = e.dataTransfer.getData('source_type');
         const entity = e.dataTransfer.getData('source_entity');
         let dropX = Math.round((e.clientX - canvasRect.left - 40) / gridSize) * gridSize;
         let dropY = Math.round((e.clientY - canvasRect.top - 20) / gridSize) * gridSize;
-        this.addBlockToCanvas(type, dropX, dropY, entity);
+        
+        // Find potential parent container
+        const targetBlock = e.target.closest('.canvas-element');
+        let pId = null;
+        if (targetBlock) {
+          const tb = this.canvasBlocks.find(x => x.id === targetBlock.id);
+          if (tb && (tb.type === 'Container' || tb.type === 'Card')) pId = tb.id;
+        }
+        
+        this.addBlockToCanvas(type, dropX, dropY, entity, pId);
       }
       this.renderLinks();
     });
 
-    canvas.addEventListener('click', () => this.selectBlock(null));
+    canvas.addEventListener('click', () => {
+      this.selectedLinkId = null;
+      this.selectBlock(null);
+    });
 
     this.querySelector('#btn-save').addEventListener('click', () => {
       let yaml = `type: custom:openkairo-custom-card\nname: "${this.cardName}"\nglow: ${this.cardStyle.glow}\nblur: ${this.cardStyle.blur}\nopacity: ${this.cardStyle.opacity}\nlayout:\n`;
       this.canvasBlocks.forEach(b => {
-        yaml += `  - type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}\n    color: "${b.color}"\n`;
+        yaml += `  - type: ${b.type}\n    id: ${b.id}\n    x: ${b.x}\n    y: ${b.y}\n    color: "${b.color}"\n`;
         if(b.entity) yaml += `    entity: ${b.entity}\n`;
         if(b.text) yaml += `    text: "${b.text}"\n`;
         if(b.glow) yaml += `    glow: ${b.glow}\n`;
         if(b.blur) yaml += `    blur: ${b.blur}\n`;
+        if(b.action && b.action !== 'none') yaml += `    action: ${b.action}\n`;
+        if(b.parentId) yaml += `    parentId: ${b.parentId}\n`;
       });
       this.querySelector('#export-code-box').innerText = yaml;
       this.querySelector('#export-modal').style.display = 'flex';
@@ -327,22 +414,49 @@ class OpenKairoBuilder extends HTMLElement {
     updateCardStyle();
   }
 
-  addBlockToCanvas(type, x, y, entityId = null) {
+  addBlockToCanvas(type, x, y, entityId = null, parentId = null) {
     const blockId = 'b' + Date.now();
     const el = document.createElement('div');
     el.className = 'canvas-element';
     el.id = blockId;
     el.style.left = x + 'px';
     el.style.top = y + 'px';
+    el.style.zIndex = parentId ? '20' : '10';
+    if(type === 'Container' || type === 'Card') el.style.zIndex = '5';
+    
     el.style.background = 'rgba(16,185,129,0.15)';
     
     let label = entityId || type;
     if (type === 'Klima-Bogen') {
-        el.style.width = '160px'; el.style.height = '160px'; el.style.background = 'transparent';
-        el.innerHTML = `<svg viewBox="0 0 100 100" style="width:100%; height:100%;"><path d="M 20 80 A 40 40 0 1 1 80 80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" stroke-linecap="round" /><path d="M 20 80 A 40 40 0 0 1 50 20" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" /><circle cx="50" cy="20" r="5" fill="white" /><text x="50" y="60" text-anchor="middle" fill="white" style="font-size:18px; font-weight:bold;">22°</text></svg>`;
+        el.style.width = '120px'; el.style.height = '120px'; el.style.background = 'transparent';
+        el.innerHTML = `
+             <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); box-shadow:0 10px 30px rgba(0,0,0,0.4);">
+                <svg viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; transform:rotate(-90deg);">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="4" />
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="282" stroke-dashoffset="70" />
+                </svg>
+                <div style="text-align:center; z-index:2;">
+                    <div style="font-size:28px; font-weight:800; color:#fff; line-height:1;">21°</div>
+                    <div style="font-size:9px; color:#10b981; text-transform:uppercase; margin-top:4px; letter-spacing:1px; font-weight:700;">HEAT</div>
+                </div>
+             </div>
+        `;
     } else if (type === 'Modus-Schalter') {
-        el.style.width = '200px'; el.style.height = '50px'; el.style.background = 'rgba(255,255,255,0.03)'; el.style.borderRadius = '12px'; el.style.display = 'flex'; el.style.padding = '4px';
-        el.innerHTML = `<div style="flex:1; background:#10b981; border-radius:8px;"></div><div style="flex:1;"></div><div style="flex:1;"></div>`;
+        el.innerHTML = `<div style="display:flex; gap:6px; background:rgba(0,0,0,0.3); padding:6px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(10px);">
+             <div style="padding:6px 12px; border-radius:8px; background:#10b981; color:#fff; font-size:10px; text-transform:uppercase; font-weight:800;">HEAT</div>
+             <div style="padding:6px 12px; border-radius:8px; background:rgba(255,255,255,0.03); color:rgba(255,255,255,0.4); font-size:10px; text-transform:uppercase; font-weight:800;">AUTO</div>
+        </div>`;
+    } else if (type === 'Energie-Ring') {
+        el.style.width = '90px'; el.style.height = '90px'; el.style.background = 'transparent';
+        el.innerHTML = `
+             <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid #10b981; opacity:0.1; box-shadow:inset 0 0 20px #10b98130;"></div>
+                <div style="text-align:center; z-index:2;">
+                    <div style="font-size:18px; font-weight:900; color:#fff; line-height:1;">450</div>
+                    <div style="font-size:9px; color:#10b981; font-weight:bold; text-transform:uppercase; margin-top:2px;">W</div>
+                </div>
+             </div>
+        `;
     } else {
         el.innerHTML = `<span>${label}</span>`;
     }
@@ -367,13 +481,15 @@ class OpenKairoBuilder extends HTMLElement {
     this.canvasBlocks.push({
         id: blockId, type: type, x: x, y: y, color: '#10b981', entity: entityId, 
         text: type === 'Text' ? 'Dein Text' : (entityId ? entityId.split('.')[1] : type),
-        glow: 0, textGlow: 0, blur: 0, opacity: 1, fontSize: 13
+        glow: 0, textGlow: 0, blur: 0, opacity: 1, fontSize: 13,
+        action: 'none', parentId: parentId
     });
     this.selectBlock(blockId);
   }
 
   selectBlock(id) {
     this.selectedBlockId = id;
+    if (id) this.selectedLinkId = null;
     this.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
     const right = this.querySelector('#right-sidebar-container');
     if(!right) return;
@@ -417,17 +533,55 @@ class OpenKairoBuilder extends HTMLElement {
           right.innerHTML = `
             <div class="prop-group">
                 <div class="prop-header">Element Properties</div>
-                <div class="prop-row"><span class="prop-label">Anzeige-Text</span><input type="text" class="prop-input" id="p-text" value="${b.text}" style="width:120px;"></div>
-                <div class="prop-row"><span class="prop-label">Schriftgröße</span><input type="number" class="prop-input" id="p-size" value="${b.fontSize}"></div>
-                <div class="prop-row"><span class="prop-label">HA-Entität</span><input type="text" class="prop-input" id="p-entity" value="${b.entity}" style="width:120px;" readonly></div>
-                <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Löschen</button>
+                <div class="prop-row"><span class="prop-label">Anzeige-Text</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:120px;"></div>
+                <div class="prop-row"><span class="prop-label">Schriftgröße</span><input type="number" class="prop-input" id="p-size" value="${b.fontSize || 13}"></div>
+                <div class="prop-row"><span class="prop-label">HA-Entität</span><input type="text" class="prop-input" id="p-entity" value="${b.entity || ''}" style="width:120px;"></div>
+            </div>
+            <div class="prop-group">
+                <div class="prop-header">Interaktion (Actions)</div>
+                <div class="prop-row"><span class="prop-label">Action</span>
+                    <select class="prop-input" id="p-action" style="width:120px;">
+                        <option value="none" ${b.action === 'none' ? 'selected' : ''}>Keine</option>
+                        <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Umschalten (Toggle)</option>
+                        <option value="more-info" ${b.action === 'more-info' ? 'selected' : ''}>Mehr Info</option>
+                        <option value="navigate" ${b.action === 'navigate' ? 'selected' : ''}>Navigieren</option>
+                    </select>
+                </div>
+            </div>
+            <div class="prop-group" style="border:none;">
+                <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; width:100%;">Element löschen</button>
             </div>
           `;
           this.querySelector('#p-text').addEventListener('input', e => { b.text = e.target.value; updateUI(); });
           this.querySelector('#p-size').addEventListener('input', e => { b.fontSize = e.target.value; updateUI(); });
+          this.querySelector('#p-entity').addEventListener('input', e => { b.entity = e.target.value; updateUI(); });
+          this.querySelector('#p-action').addEventListener('change', e => { b.action = e.target.value; });
           this.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
       }
       updateUI();
+    } else if (this.selectedLinkId !== null) {
+      const l = this.canvasLinks[this.selectedLinkId];
+      right.innerHTML = `
+        <div class="prop-group">
+            <div class="prop-header">Link Einstellungen</div>
+            <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-link-color" value="${l.color || '#10b981'}"></div>
+            <div class="prop-row"><span class="prop-label">Animation</span>
+                <select class="prop-input" id="p-link-anim" style="width:120px;">
+                    <option value="true" ${l.animated !== false ? 'selected' : ''}>Fließen</option>
+                    <option value="false" ${l.animated === false ? 'selected' : ''}>Statisch</option>
+                </select>
+            </div>
+            <button class="btn-primary" id="btn-del-link" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Link löschen</button>
+        </div>
+      `;
+      this.querySelector('#p-link-color').addEventListener('input', e => { l.color = e.target.value; this.renderLinks(); });
+      this.querySelector('#p-link-anim').addEventListener('change', e => { l.animated = (e.target.value === 'true'); this.renderLinks(); });
+      this.querySelector('#btn-del-link').addEventListener('click', () => {
+          this.canvasLinks.splice(this.selectedLinkId, 1);
+          this.selectedLinkId = null;
+          this.selectBlock(null);
+          this.renderLinks();
+      });
     } else {
       if(this.activeRightTab === 'STYLES') {
         right.innerHTML = `
@@ -473,15 +627,41 @@ class OpenKairoBuilder extends HTMLElement {
   renderLinks() {
     const svg = this.querySelector('#links-overlay');
     svg.innerHTML = '';
-    this.canvasLinks.forEach(l => {
+    this.canvasLinks.forEach((l, idx) => {
       const s = this.querySelector('#' + l.source);
       const t = this.querySelector('#' + l.target);
       if(s && t) {
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         const x1 = s.offsetLeft + s.offsetWidth/2, y1 = s.offsetTop + s.offsetHeight/2;
         const x2 = t.offsetLeft + t.offsetWidth/2, y2 = t.offsetTop + t.offsetHeight/2;
-        path.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2}`);
-        path.setAttribute("class", "linking-path");
+        
+        // Curvy path
+        const cp1x = x1 + (x2 - x1) / 2, cp1y = y1;
+        const cp2x = x1 + (x2 - x1) / 2, cp2y = y2;
+        path.setAttribute("d", `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`);
+        
+        // Selection hit area (invisible thick path)
+        const hitPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        hitPath.setAttribute("d", pathData);
+        hitPath.style.fill = 'none';
+        hitPath.style.stroke = 'transparent';
+        hitPath.style.strokeWidth = '20px';
+        hitPath.style.pointerEvents = 'auto';
+        hitPath.style.cursor = 'pointer';
+        
+        hitPath.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.selectedLinkId = idx;
+            this.selectedBlockId = null;
+            this.selectBlock(null);
+            this.renderLinks();
+        });
+        svg.appendChild(hitPath);
+        
+        path.setAttribute("class", "linking-path" + (this.selectedLinkId === idx ? ' active' : ''));
+        path.style.stroke = l.color || '#10b981';
+        path.style.pointerEvents = 'none'; // Click hits the hitPath instead
+        
         svg.appendChild(path);
       }
     });
@@ -490,6 +670,34 @@ class OpenKairoBuilder extends HTMLElement {
   renderLeftSidebar() {
     const container = this.querySelector('#left-sidebar-container');
     if(!container) return;
+    
+    if (this.activeLeftTab === 'LAYERS') {
+        let html = `<div class="block-category">Struktur & Ebenen</div>`;
+        const renderLayer = (parentId = null, level = 0) => {
+            const children = this.canvasBlocks.filter(b => b.parentId === parentId);
+            children.forEach(b => {
+                const isSelected = this.selectedBlockId === b.id;
+                html += `
+                    <div class="layer-item ${isSelected ? 'active' : ''}" style="padding-left:${level * 15 + 10}px;" id="layer-${b.id}">
+                        <ha-icon icon="${b.type === 'Container' ? 'mdi:folder-outline' : 'mdi:cube-outline'}" style="--mdc-icon-size:14px; opacity:0.6;"></ha-icon>
+                        <span style="font-size:11px;">${b.text || b.type}</span>
+                    </div>
+                `;
+                renderLayer(b.id, level + 1);
+            });
+        };
+        renderLayer(null, 0);
+        if (this.canvasBlocks.length === 0) html += `<div style="padding:20px; opacity:0.3; font-size:11px;">Keine Elemente vorhanden</div>`;
+        container.innerHTML = html;
+        container.querySelectorAll('.layer-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const id = item.id.replace('layer-', '');
+                this.selectBlock(id);
+            });
+        });
+        return;
+    }
+
     let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Search..." value="${this.sidebarSearchQuery}">`;
     
     const allBlocks = [
