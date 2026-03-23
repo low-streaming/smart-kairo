@@ -204,8 +204,11 @@ class OpenKairoCustomCard extends HTMLElement {
             
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute("d", pathData);
-            path.setAttribute("class", "linking-path");
+            if (link.animated !== false) {
+                path.setAttribute("class", "linking-path");
+            }
             path.setAttribute("stroke", link.color || "#10b981");
+            path.setAttribute("fill", "none");
             svg.appendChild(path);
         }
     });

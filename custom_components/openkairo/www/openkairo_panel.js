@@ -168,9 +168,10 @@ class OpenKairoBuilder extends HTMLElement {
           display: flex;
           flex-direction: column;
           overflow-y: auto;
+          box-shadow: -5px 0 15px rgba(0,0,0,0.2);
         }
 
-        .prop-group { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 15px; }
+        .prop-group { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 20px 15px; margin-bottom: 0; }
         .prop-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 10px; }
         .prop-header ha-icon { --mdc-icon-size: 16px; color: rgba(255,255,255,0.5); }
         
@@ -427,8 +428,8 @@ class OpenKairoBuilder extends HTMLElement {
             rightTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             this.activeRightTab = tab.dataset.tab;
-            if(this.selectedBlockId) {
-                this.selectBlock(this.selectedBlockId);
+            if(this.selectedBlockId || this.selectedLinkId) {
+                this.selectBlock(this.selectedBlockId || this.selectedLinkId, !!this.selectedLinkId);
             }
         });
     });
@@ -587,7 +588,7 @@ class OpenKairoBuilder extends HTMLElement {
       if (this.canvasLinks.length > 0) {
           yamlStr += `links:\n`;
           this.canvasLinks.forEach(link => {
-              yamlStr += `  - source: ${link.source}\n    target: ${link.target}\n    color: "${link.color || '#10b981'}"\n    animated: true\n`;
+              yamlStr += `  - source: ${link.source}\n    target: ${link.target}\n    color: "${link.color || '#10b981'}"\n    animated: ${link.animated !== false}\n`;
           });
       }
       
@@ -680,7 +681,8 @@ class OpenKairoBuilder extends HTMLElement {
                 this.canvasLinks.push({
                     source: this.linkSourceId,
                     target: blockId,
-                    color: '#10b981'
+                    color: '#10b981',
+                    animated: true
                 });
                 // Source-Highlight entfernen
                 const sourceEl = this.querySelector('#' + this.linkSourceId);
@@ -690,6 +692,7 @@ class OpenKairoBuilder extends HTMLElement {
                 this.renderLinks();
             }
         } else {
+            this.selectedLinkId = null; // Reset link selection
             this.selectBlock(blockId);
         }
     });
@@ -751,17 +754,58 @@ class OpenKairoBuilder extends HTMLElement {
     this.selectBlock(blockId);
   }
 
-  selectBlock(blockId) {
-    this.selectedBlockId = blockId;
+  selectBlock(id, isLink = false) {
+    if (isLink) {
+        this.selectedLinkId = id;
+        this.selectedBlockId = null;
+    } else {
+        this.selectedBlockId = id;
+        this.selectedLinkId = null;
+    }
     
     // Alle Markierungen resetten
     this.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
+    this.renderLinks(); // Highlight selected link if any
     
     // UI-Update rechts (Right Sidebar elements)
     const rightContent = this.querySelector('.right-sidebar .sidebar-content');
     
-    if (blockId) {
-      const el = this.querySelector('#' + blockId);
+    if (isLink) {
+        const link = this.canvasLinks.find(l => (l.source + '-' + l.target) === id);
+        if(!link) return;
+
+        rightContent.innerHTML = `
+            <div class="prop-group">
+                <div class="prop-header" style="color:#10b981">Verbindung bearbeiten</div>
+                <div class="prop-row">
+                    <span class="prop-label">Linien-Farbe</span>
+                    <input type="color" class="prop-input" id="link-color" value="${link.color || '#10b981'}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Animation</span>
+                    <select class="prop-input" id="link-anim" style="width:100px;">
+                        <option value="true" ${link.animated !== false ? 'selected' : ''}>An</option>
+                        <option value="false" ${link.animated === false ? 'selected' : ''}>Aus</option>
+                    </select>
+                </div>
+                <button class="btn-primary" id="btn-delete-link" style="background:rgba(244,63,94,0.1); border-color:#f43f5e; color:#f43f5e; width:100%; justify-content:center; margin-top:20px;">
+                    <ha-icon icon="mdi:trash-can-outline"></ha-icon> Verbindung löschen
+                </button>
+            </div>
+        `;
+
+        this.querySelector('#link-color').addEventListener('input', e => { link.color = e.target.value; this.renderLinks(); });
+        this.querySelector('#link-anim').addEventListener('change', e => { link.animated = e.target.value === 'true'; this.renderLinks(); });
+        this.querySelector('#btn-delete-link').addEventListener('click', () => {
+            this.canvasLinks = this.canvasLinks.filter(l => (l.source + '-' + l.target) !== id);
+            this.selectBlock(null);
+            this.renderLinks();
+        });
+        return;
+    }
+
+    if (id) {
+      const el = this.querySelector('#' + id);
       const blockObj = this.canvasBlocks.find(b => b.id === blockId);
       if (el) el.classList.add('selected');
 
@@ -1012,12 +1056,17 @@ class OpenKairoBuilder extends HTMLElement {
     const svg = this.querySelector('#links-overlay');
     if (!svg) return;
     svg.innerHTML = '';
+    svg.style.pointerEvents = 'none'; // Default
     
     this.canvasLinks.forEach(link => {
         const sourceEl = this.querySelector('#' + link.source);
         const targetEl = this.querySelector('#' + link.target);
+        const linkId = link.source + '-' + link.target;
+        const isSelected = this.selectedLinkId === linkId;
         
         if (sourceEl && targetEl) {
+            svg.style.pointerEvents = 'auto'; // Allow interaction if links exist
+            
             const sRect = {
                 x: parseInt(sourceEl.style.left) + sourceEl.offsetWidth / 2,
                 y: parseInt(sourceEl.style.top) + sourceEl.offsetHeight / 2
@@ -1027,7 +1076,6 @@ class OpenKairoBuilder extends HTMLElement {
                 y: parseInt(targetEl.style.top) + targetEl.offsetHeight / 2
             };
             
-            // Bezier kurve berechnen
             const cp1x = sRect.x + (tRect.x - sRect.x) / 2;
             const cp1y = sRect.y;
             const cp2x = sRect.x + (tRect.x - sRect.x) / 2;
@@ -1035,10 +1083,32 @@ class OpenKairoBuilder extends HTMLElement {
             
             const pathData = `M ${sRect.x} ${sRect.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${tRect.x} ${tRect.y}`;
             
+            // Hit area (transparent larger path for easy clicking)
+            const hitPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            hitPath.setAttribute("d", pathData);
+            hitPath.setAttribute("fill", "none");
+            hitPath.setAttribute("stroke", "transparent");
+            hitPath.setAttribute("stroke-width", "15");
+            hitPath.style.cursor = "pointer";
+            hitPath.style.pointerEvents = "stroke";
+            hitPath.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectBlock(linkId, true);
+            });
+            svg.appendChild(hitPath);
+
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute("d", pathData);
-            path.setAttribute("class", "linking-path");
-            path.setAttribute("stroke", link.color || "#10b981");
+            path.setAttribute("class", isSelected ? "" : "linking-path");
+            path.setAttribute("stroke", isSelected ? "#fff" : (link.color || "#10b981"));
+            path.setAttribute("stroke-width", isSelected ? "4" : "2");
+            path.setAttribute("fill", "none");
+            if (isSelected) {
+                path.style.filter = "drop-shadow(0 0 8px #10b981)";
+            }
+            if (link.animated === false) {
+                path.classList.remove("linking-path");
+            }
             svg.appendChild(path);
         }
     });
