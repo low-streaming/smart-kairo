@@ -1,0 +1,5 @@
+DOMAIN = "openkairo"
+PANEL_NAME = "openkairo_builder"
+PANEL_TITLE = "OpenKAIRO OS"
+PANEL_ICON = "mdi:view-dashboard-edit"
+PANEL_URL = "openkairo"
