@@ -307,9 +307,9 @@ class OpenKairoBuilder extends HTMLElement {
         <!-- RIGHT SIDEBAR -->
         <div class="right-sidebar">
           <div class="sidebar-tabs">
-            <div class="s-tab">Properties</div>
-            <div class="s-tab active">Styles</div>
-            <div class="s-tab">Actions</div>
+            <div class="s-tab" data-tab="PROPERTIES">Properties</div>
+            <div class="s-tab active" data-tab="STYLES">Styles</div>
+            <div class="s-tab" data-tab="ACTIONS">Actions</div>
           </div>
 
           <div class="sidebar-content" style="padding:0;">
@@ -393,6 +393,20 @@ class OpenKairoBuilder extends HTMLElement {
     // --- DRAG & DROP LOGIC ---
     this.canvasBlocks = [];
     this.selectedBlockId = null;
+
+    // --- RIGHT SIDEBAR TAB NAVIGATION ---
+    this.activeRightTab = 'STYLES';
+    const rightTabs = this.querySelectorAll('.right-sidebar .s-tab');
+    rightTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            rightTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.activeRightTab = tab.dataset.tab;
+            if(this.selectedBlockId) {
+                this.selectBlock(this.selectedBlockId);
+            }
+        });
+    });
 
     const blocks = this.querySelectorAll('.block-item');
     const canvas = this.querySelector('#drop-target');
@@ -703,56 +717,73 @@ class OpenKairoBuilder extends HTMLElement {
           </div>`;
       }
 
-      rightContent.innerHTML = `
-        <div class="prop-group">
-          <div class="prop-header">Eigenschaften: <span style="color:#10b981">${blockObj.type}</span></div>
-          ${specificProps}
-        </div>
-        <div class="prop-group">
-          <div class="prop-header">Layout & Typografie</div>
-          <div class="prop-row">
-             <span class="prop-label">Breite (px)</span>
-             <input type="number" class="prop-input" id="prop-width" value="${el.offsetWidth || 100}" />
-          </div>
-          <div class="prop-row">
-             <span class="prop-label">Höhe (px)</span>
-             <input type="number" class="prop-input" id="prop-height" value="${el.offsetHeight || 40}" />
-          </div>
-          ${extraProps}
-        </div>
-        <div class="prop-group">
-          <div class="prop-header">Appearance</div>
-          <div class="prop-row">
-             <span class="prop-label">Leucht-/Füll-Farbe</span>
-             <input type="color" class="prop-input" id="prop-color" value="${(blockObj.color.length===7 ? blockObj.color : '#10b981')}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
-          </div>
-          ${bgProps}
-        </div>
-        <div class="prop-group">
-          <div class="prop-header" style="color:#f43f5e"><ha-icon icon="mdi:flash"></ha-icon> Aktionen & Logik</div>
-          <div class="prop-row">
-             <span class="prop-label">Klick-Aktion</span>
-             <select class="prop-input" id="prop-action" style="width:120px;">
-                <option value="none" ${blockObj.action === 'none' || !blockObj.action ? 'selected' : ''}>Keine</option>
-                <option value="toggle" ${blockObj.action === 'toggle' ? 'selected' : ''}>Umschalten</option>
-                <option value="more-info" ${blockObj.action === 'more-info' ? 'selected' : ''}>Mehr Infos</option>
-             </select>
-          </div>
-          <div class="prop-row">
-             <span class="prop-label">Farbe ändern, wenn Status =</span>
-             <input type="text" class="prop-input" id="prop-logic-state" value="${blockObj.logicState || ''}" placeholder="z.B. on" style="width:50px;" />
-          </div>
-          <div class="prop-row">
-             <span class="prop-label">↳ Aktiv-Farbe</span>
-             <input type="color" class="prop-input" id="prop-logic-color" value="${(blockObj.logicColor || '#f43f5e')}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
-          </div>
-        </div>
+      let htmlOutput = '';
+      if (this.activeRightTab === 'PROPERTIES') {
+          htmlOutput = `
+            <div class="prop-group">
+              <div class="prop-header">Eigenschaften: <span style="color:#10b981">${blockObj.type}</span></div>
+              ${specificProps}
+            </div>
+            <div class="prop-group">
+              <div class="prop-header">Layout</div>
+              <div class="prop-row">
+                 <span class="prop-label">Breite (px)</span>
+                 <input type="number" class="prop-input" id="prop-width" value="${el.offsetWidth || 100}" />
+              </div>
+              <div class="prop-row">
+                 <span class="prop-label">Höhe (px)</span>
+                 <input type="number" class="prop-input" id="prop-height" value="${el.offsetHeight || 40}" />
+              </div>
+            </div>
+          `;
+      } else if (this.activeRightTab === 'STYLES') {
+          htmlOutput = `
+            <div class="prop-group">
+              <div class="prop-header">Typografie</div>
+              ${extraProps}
+            </div>
+            <div class="prop-group">
+              <div class="prop-header">Appearance</div>
+              <div class="prop-row">
+                 <span class="prop-label">Leucht-/Füll-Farbe</span>
+                 <input type="color" class="prop-input" id="prop-color" value="${(blockObj.color.length===7 ? blockObj.color : '#10b981')}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
+              </div>
+              ${bgProps}
+            </div>
+          `;
+      } else if (this.activeRightTab === 'ACTIONS') {
+          htmlOutput = `
+            <div class="prop-group">
+              <div class="prop-header" style="color:#f43f5e"><ha-icon icon="mdi:flash"></ha-icon> Aktionen & Logik</div>
+              <div class="prop-row">
+                 <span class="prop-label">Klick-Aktion</span>
+                 <select class="prop-input" id="prop-action" style="width:120px;">
+                    <option value="none" ${blockObj.action === 'none' || !blockObj.action ? 'selected' : ''}>Keine</option>
+                    <option value="toggle" ${blockObj.action === 'toggle' ? 'selected' : ''}>Umschalten</option>
+                    <option value="more-info" ${blockObj.action === 'more-info' ? 'selected' : ''}>Mehr Infos</option>
+                 </select>
+              </div>
+              <div class="prop-row">
+                 <span class="prop-label">Farbe ändern, wenn Status =</span>
+                 <input type="text" class="prop-input" id="prop-logic-state" value="${blockObj.logicState || ''}" placeholder="z.B. on" style="width:50px;" />
+              </div>
+              <div class="prop-row">
+                 <span class="prop-label">↳ Aktiv-Farbe</span>
+                 <input type="color" class="prop-input" id="prop-logic-color" value="${(blockObj.logicColor || '#f43f5e')}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
+              </div>
+            </div>
+          `;
+      }
+
+      htmlOutput += `
         <div class="prop-group">
            <div style="font-size:11px; color:rgba(255,255,255,0.4); text-align:center;">
              ${blockId}
            </div>
         </div>
       `;
+
+      rightContent.innerHTML = htmlOutput;
 
       // Central styling applicator for WYSIWYG
       const applyBlockCSS = () => {
