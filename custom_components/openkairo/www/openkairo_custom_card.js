@@ -72,11 +72,15 @@ class OpenKairoCustomCard extends HTMLElement {
         }
 
         .header { 
-           font-family: 'Inter', sans-serif; font-size: 0.8rem; color: ${c.color || '#10b981'}; 
-           text-align: center; font-weight: 900; margin-top: 24px; 
-           opacity: 0.4; letter-spacing: 3px;
-           text-transform: uppercase;
-           z-index: 10;
+          font-size: 18px; 
+          font-weight: 900; 
+          text-align: center; 
+          margin-bottom: 30px; 
+          color: var(--accent-color, #10b981); 
+          letter-spacing: 4px; 
+          text-transform: uppercase; 
+          text-shadow: 0 0 10px currentColor; 
+          opacity: 0.9;
         }
 
         .canvas-area {

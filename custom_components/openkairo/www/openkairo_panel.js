@@ -177,17 +177,24 @@ class OpenKairoBuilder extends HTMLElement {
           position: absolute;
           color: white;
           padding: 8px;
-          border-radius: 8px;
-          cursor: grab;
+          border-radius: 12px;
+          cursor: move;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-direction: column;
           user-select: none;
           box-sizing: border-box;
-          transition: transform 0.1s;
+          transition: transform 0.1s, box-shadow 0.2s;
+          border: 1px solid transparent;
         }
-        .canvas-element.selected { border: 1px dashed #10b981 !important; box-shadow: 0 0 15px rgba(16,185,129,0.3); z-index: 100; }
+        .canvas-element > * { pointer-events: none; } /* Prevents children from stealing drag events */
+        .canvas-element.selected { 
+          border: 1px solid #10b981 !important; 
+          box-shadow: 0 0 20px rgba(16,185,129,0.4), inset 0 0 10px rgba(16,185,129,0.2) !important; 
+          z-index: 100; 
+          background: rgba(16,185,129,0.05);
+        }
 
         #links-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
         .linking-path { fill:none; stroke:#10b981; stroke-width:2; stroke-dasharray:5,5; animation: flow 1s linear infinite; filter: drop-shadow(0 0 5px #10b981); }
@@ -210,6 +217,8 @@ class OpenKairoBuilder extends HTMLElement {
           </div>
           <div class="header-actions" style="display:flex; gap:10px;">
             <button class="tool-btn" id="btn-preset-climate" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><ha-icon icon="mdi:thermostat"></ha-icon> Klima</button>
+            <button class="tool-btn" id="btn-preset-solar" style="background:rgba(251,191,36,0.1); color:#fbbf24;"><ha-icon icon="mdi:solar-power"></ha-icon> Solar</button>
+            <button class="tool-btn" id="btn-preset-home" style="background:rgba(16,185,129,0.1); color:#10b981;"><ha-icon icon="mdi:home-lightning-bolt"></ha-icon> Home</button>
             <button class="tool-btn" id="btn-preset-cyber" style="background:rgba(168,85,247,0.1); color:#a855f7;"><ha-icon icon="mdi:robot"></ha-icon> Cyan-Cyber</button>
             <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:content-save"></ha-icon> Speichern</button>
           </div>
@@ -225,7 +234,7 @@ class OpenKairoBuilder extends HTMLElement {
 
         <div class="canvas-area">
           <div class="canvas-board" id="drop-target">
-            <div id="card-header-text" style="text-align:center; font-family:sans-serif; color:#10b981; font-weight:800; opacity:0.5;">LIVING ROOM</div>
+            <div id="card-header-text" style="text-align:center; font-family:sans-serif; color:#10b981; font-weight:900; opacity:0.8; font-size:18px; letter-spacing:4px; text-transform:uppercase; text-shadow: 0 0 10px currentColor; margin-top:10px;">LIVING ROOM</div>
             <svg id="links-overlay"></svg>
           </div>
         </div>
@@ -296,6 +305,55 @@ class OpenKairoBuilder extends HTMLElement {
         const h = this.querySelector('#card-header-text');
         if(h) h.innerText = this.cardName;
         
+        this.selectBlock(null);
+    });
+
+    this.querySelector('#btn-preset-solar').addEventListener('click', () => {
+        if(!confirm("Aktuelles Layout verwerfen und Solar-Preset laden?")) return;
+        this.canvasBlocks = []; this.canvasLinks = [];
+        this.cardStyle = { glow: 30, blur: 20, color: '#fbbf24', opacity: 0.6 };
+        this.cardName = "SOLAR MONITOR";
+        const h = this.querySelector('#card-header-text');
+        if(h) { h.innerText = this.cardName; h.style.color = '#fbbf24'; }
+
+        // Grid of 3 Energy Rings
+        this.addBlockToCanvas('Energie-Ring', 20, 100, 'sensor.solar_production');
+        this.addBlockToCanvas('Energie-Ring', 280, 100, 'sensor.house_consumption');
+        this.addBlockToCanvas('Energie-Ring', 150, 240, 'sensor.grid_export');
+        
+        this.addBlockToCanvas('Badge', 20, 50, null);
+        this.canvasBlocks[this.canvasBlocks.length-1].text = "Photovoltaik";
+        this.addBlockToCanvas('Badge', 280, 50, null);
+        this.canvasBlocks[this.canvasBlocks.length-1].text = "Hausverbrauch";
+
+        setTimeout(() => {
+            const b0 = this.canvasBlocks[0].id;
+            const b1 = this.canvasBlocks[1].id;
+            const b2 = this.canvasBlocks[2].id;
+            this.canvasLinks.push({source: b0, target: b1, color: '#fbbf24', animated: true});
+            this.canvasLinks.push({source: b0, target: b2, color: '#fbbf24', animated: true});
+            this.renderLinks();
+        }, 100);
+
+        this._updateCardStyle();
+        this.selectBlock(null);
+    });
+
+    this.querySelector('#btn-preset-home').addEventListener('click', () => {
+        if(!confirm("Aktuelles Layout verwerfen und Home-Preset laden?")) return;
+        this.canvasBlocks = []; this.canvasLinks = [];
+        this.cardStyle = { glow: 25, blur: 15, color: '#10b981', opacity: 0.5 };
+        this.cardName = "HOME OVERVIEW";
+        const h = this.querySelector('#card-header-text');
+        if(h) { h.innerText = this.cardName; h.style.color = '#10b981'; }
+
+        this.addBlockToCanvas('Weather-Card', 20, 60, 'weather.home');
+        this.addBlockToCanvas('Klima-Bogen', 180, 60, 'climate.living_room');
+        this.addBlockToCanvas('Modus-Schalter', 150, 220, 'climate.living_room');
+        this.addBlockToCanvas('Badge', 20, 180, 'sensor.active_lights');
+        this.canvasBlocks[this.canvasBlocks.length-1].text = "Lichter AN";
+        
+        this._updateCardStyle();
         this.selectBlock(null);
     });
 
