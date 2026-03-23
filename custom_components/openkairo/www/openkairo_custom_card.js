@@ -1,3 +1,16 @@
+function fireEvent(node, type, detail, options) {
+  options = options || {};
+  detail = detail === null || detail === undefined ? {} : detail;
+  const event = new Event(type, {
+    bubbles: options.bubbles === undefined ? true : options.bubbles,
+    cancelable: Boolean(options.cancelable),
+    composed: options.composed === undefined ? true : options.composed,
+  });
+  event.detail = detail;
+  node.dispatchEvent(event);
+  return event;
+}
+
 class OpenKairoCustomCard extends HTMLElement {
   setConfig(config) {
     if (!config || !config.layout) {
@@ -57,6 +70,7 @@ class OpenKairoCustomCard extends HTMLElement {
           flex-direction: column;
           text-align: center;
           box-sizing: border-box;
+          transition: background 0.3s, color 0.3s, box-shadow 0.3s;
         }
       </style>
       <ha-card>
@@ -78,23 +92,46 @@ class OpenKairoCustomCard extends HTMLElement {
         el.style.width = (block.width || 100) + 'px';
         el.style.height = (block.height || 40) + 'px';
         
-        const color = block.color || '#10b981';
-        el.style.color = color;
+        let activeColor = block.color || '#10b981';
         
+        // Dynamic Logic State Evaluation
+        if (block.logicState && block.entity && this._hass && this._hass.states[block.entity]) {
+            const currentState = this._hass.states[block.entity].state;
+            if (currentState.toString().toLowerCase() === block.logicState.toLowerCase()) {
+                activeColor = block.logicColor || '#f43f5e';
+            }
+        }
+        
+        el.style.color = activeColor;
         el.style.fontSize = (block.fontSize || 13) + 'px';
         el.style.fontWeight = block.fontWeight || 'bold';
         const radius = block.borderRadius !== undefined ? block.borderRadius : ((block.type === 'Card' || block.type === 'Container') ? 20 : 8);
         el.style.borderRadius = radius + 'px';
         
         if (block.type === 'Card' || block.type === 'Container') {
+            // Dynamic bg logic for containers
             el.style.background = block.backgroundColor || 'transparent';
             if (block.backgroundColor && block.backgroundColor !== 'transparent') {
                 el.style.backdropFilter = 'blur(15px)';
             }
         } else if (block.type !== 'Text') {
-            el.style.background = `${color}25`;
+            el.style.background = `${activeColor}25`;
+            el.style.boxShadow = `0 0 10px ${activeColor}40`;
         } else {
             el.style.background = 'transparent';
+            el.style.boxShadow = 'none';
+        }
+
+        // Setup Actions (Once per block)
+        if (block.action && block.action !== 'none' && block.entity) {
+            el.style.cursor = 'pointer';
+            el.onclick = () => {
+                if(block.action === 'toggle') {
+                    this._hass.callService('homeassistant', 'toggle', { entity_id: block.entity });
+                } else if (block.action === 'more-info') {
+                    fireEvent(this, 'hass-more-info', { entityId: block.entity });
+                }
+            };
         }
 
         // Store configuration logically
@@ -132,13 +169,6 @@ class OpenKairoCustomCard extends HTMLElement {
        }
        else if (type === 'Icon') {
            el.innerHTML = `<ha-icon icon="mdi:star-four-points-outline" style="--mdc-icon-size:24px;"></ha-icon>`;
-       }
-       else if (type === 'Card' || type === 'Container') {
-           if(!block.backgroundColor || block.backgroundColor === 'transparent') {
-               el.innerHTML = `<ha-icon icon="mdi:crop-square" style="--mdc-icon-size:16px; margin-bottom: 2px; opacity: 0.3;"></ha-icon>`;
-           } else {
-               el.innerHTML = ""; // clean look for rendered cards
-           }
        }
     });
   }

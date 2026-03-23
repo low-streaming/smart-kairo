@@ -504,6 +504,9 @@ class OpenKairoBuilder extends HTMLElement {
               if (blockObj.fontWeight) yamlStr += `    fontWeight: "${blockObj.fontWeight}"\n`;
               if (blockObj.borderRadius !== undefined) yamlStr += `    borderRadius: ${blockObj.borderRadius}\n`;
               if (blockObj.backgroundColor) yamlStr += `    backgroundColor: "${blockObj.backgroundColor}"\n`;
+              if (blockObj.action && blockObj.action !== 'none') yamlStr += `    action: "${blockObj.action}"\n`;
+              if (blockObj.logicState) yamlStr += `    logicState: "${blockObj.logicState}"\n`;
+              if (blockObj.logicColor) yamlStr += `    logicColor: "${blockObj.logicColor}"\n`;
           }
       });
       
@@ -724,6 +727,25 @@ class OpenKairoBuilder extends HTMLElement {
           ${bgProps}
         </div>
         <div class="prop-group">
+          <div class="prop-header" style="color:#f43f5e"><ha-icon icon="mdi:flash"></ha-icon> Aktionen & Logik</div>
+          <div class="prop-row">
+             <span class="prop-label">Klick-Aktion</span>
+             <select class="prop-input" id="prop-action" style="width:120px;">
+                <option value="none" ${blockObj.action === 'none' || !blockObj.action ? 'selected' : ''}>Keine</option>
+                <option value="toggle" ${blockObj.action === 'toggle' ? 'selected' : ''}>Umschalten</option>
+                <option value="more-info" ${blockObj.action === 'more-info' ? 'selected' : ''}>Mehr Infos</option>
+             </select>
+          </div>
+          <div class="prop-row">
+             <span class="prop-label">Farbe ändern, wenn Status =</span>
+             <input type="text" class="prop-input" id="prop-logic-state" value="${blockObj.logicState || ''}" placeholder="z.B. on" style="width:50px;" />
+          </div>
+          <div class="prop-row">
+             <span class="prop-label">↳ Aktiv-Farbe</span>
+             <input type="color" class="prop-input" id="prop-logic-color" value="${(blockObj.logicColor || '#f43f5e')}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
+          </div>
+        </div>
+        <div class="prop-group">
            <div style="font-size:11px; color:rgba(255,255,255,0.4); text-align:center;">
              ${blockId}
            </div>
@@ -795,6 +817,16 @@ class OpenKairoBuilder extends HTMLElement {
 
       const iptBgColor = this.querySelector('#prop-bg-color');
       if(iptBgColor) iptBgColor.addEventListener('input', e => { blockObj.backgroundColor = e.target.value; applyBlockCSS(); });
+
+      // Actions & Logic Listeners
+      const iptAction = this.querySelector('#prop-action');
+      if(iptAction) iptAction.addEventListener('change', e => { blockObj.action = e.target.value; });
+      
+      const iptLogicState = this.querySelector('#prop-logic-state');
+      if(iptLogicState) iptLogicState.addEventListener('input', e => { blockObj.logicState = e.target.value; });
+      
+      const iptLogicColor = this.querySelector('#prop-logic-color');
+      if(iptLogicColor) iptLogicColor.addEventListener('input', e => { blockObj.logicColor = e.target.value; });
 
     } else {
        rightContent.innerHTML = `
