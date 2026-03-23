@@ -48,7 +48,7 @@ async def _setup_internal(hass: HomeAssistant):
                     "name": f"{DOMAIN}-panel",
                     "embed_iframe": False,
                     "trust_external": False,
-                    "js_url": f"/openkairo_os/openkairo_panel.js?v={int(time.time())}"
+                    "js_url": "/openkairo_os/openkairo_panel.js?v=2.0.1"
                 }
             },
             require_admin=True

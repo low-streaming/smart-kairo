@@ -126,8 +126,8 @@ class OpenKairoBuilder extends HTMLElement {
           display: flex;
           justify-content: center;
           align-items: center;
-          background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-          background-size: 40px 40px;
+          background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+          background-size: 20px 20px;
         }
 
         .canvas-board {
@@ -142,6 +142,8 @@ class OpenKairoBuilder extends HTMLElement {
           display: flex;
           flex-direction: column;
           padding: 20px;
+          background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+          background-size: 10px 10px;
         }
 
         .right-sidebar {
@@ -154,10 +156,11 @@ class OpenKairoBuilder extends HTMLElement {
         }
 
         .prop-group { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 20px 15px; }
-        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 10px; }
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 15px; }
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .prop-label { font-size: 11px; color: rgba(255,255,255,0.6); }
         .prop-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 6px; border-radius: 4px; font-size: 11px; width: 80px; text-align: right; }
+        input[type="range"] { width: 120px; accent-color: #10b981; }
 
         .canvas-element {
           position: absolute;
@@ -171,18 +174,12 @@ class OpenKairoBuilder extends HTMLElement {
           flex-direction: column;
           user-select: none;
           box-sizing: border-box;
+          transition: transform 0.1s;
         }
         .canvas-element.selected { border: 1px dashed #10b981 !important; box-shadow: 0 0 15px rgba(16,185,129,0.3); z-index: 100; }
 
         #links-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
-        .linking-path { 
-          fill:none; 
-          stroke:#10b981; 
-          stroke-width:2; 
-          stroke-dasharray:5,5; 
-          animation: flow 1s linear infinite; 
-          filter: drop-shadow(0 0 5px #10b981);
-        }
+        .linking-path { fill:none; stroke:#10b981; stroke-width:2; stroke-dasharray:5,5; animation: flow 1s linear infinite; filter: drop-shadow(0 0 5px #10b981); }
         @keyframes flow { to { stroke-dashoffset: -10; } }
 
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); display:none; justify-content:center; align-items:center; z-index:1000; }
@@ -222,9 +219,10 @@ class OpenKairoBuilder extends HTMLElement {
 
         <div class="right-sidebar">
           <div class="sidebar-tabs">
-            <div class="s-tab active">Styles</div>
+            <div class="s-tab" id="tab-props">Properties</div>
+            <div class="s-tab active" id="tab-styles">Styles</div>
           </div>
-          <div class="sidebar-content"></div>
+          <div class="sidebar-content" id="right-sidebar-container"></div>
         </div>
       </div>
 
@@ -241,21 +239,9 @@ class OpenKairoBuilder extends HTMLElement {
     this.canvasBlocks = [];
     this.canvasLinks = [];
     this.selectedBlockId = null;
-    // --- RIGHT SIDEBAR TAB NAVIGATION ---
-    this.activeRightTab = 'STYLES';
-    const rightTabs = this.querySelectorAll('.right-sidebar .s-tab');
-    rightTabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            rightTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            this.activeRightTab = tab.innerText.trim().toUpperCase(); // Sync with data-tab if needed
-            if(this.selectedBlockId) {
-                this.selectBlock(this.selectedBlockId);
-            }
-        });
-    });
     this.activeToolbarMode = 'ENTITIES';
     this.sidebarSearchQuery = '';
+    this.activeRightTab = 'STYLES';
 
     const toolBtns = this.querySelectorAll('.tool-btn');
     toolBtns.forEach(btn => {
@@ -271,25 +257,44 @@ class OpenKairoBuilder extends HTMLElement {
       });
     });
 
+    const rightTabs = this.querySelectorAll('.right-sidebar .s-tab');
+    rightTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+           rightTabs.forEach(t => t.classList.remove('active'));
+           tab.classList.add('active');
+           this.activeRightTab = tab.innerText.trim().toUpperCase();
+           this.selectBlock(this.selectedBlockId);
+        });
+    });
+
     const canvas = this.querySelector('#drop-target');
     canvas.addEventListener('dragover', e => e.preventDefault());
     canvas.addEventListener('drop', e => {
       e.preventDefault();
       const moveId = e.dataTransfer.getData('move_id');
       const canvasRect = canvas.getBoundingClientRect();
+      const gridSize = 20;
+
       if (moveId) {
         const el = this.querySelector('#' + moveId);
         const ox = parseFloat(e.dataTransfer.getData('offsetX'));
         const oy = parseFloat(e.dataTransfer.getData('offsetY'));
-        el.style.left = (e.clientX - canvasRect.left - ox) + 'px';
-        el.style.top = (e.clientY - canvasRect.top - oy) + 'px';
+        
+        // Snapping logic
+        let dropX = Math.round((e.clientX - canvasRect.left - ox) / gridSize) * gridSize;
+        let dropY = Math.round((e.clientY - canvasRect.top - oy) / gridSize) * gridSize;
+        
+        el.style.left = dropX + 'px';
+        el.style.top = dropY + 'px';
         const b = this.canvasBlocks.find(x => x.id === moveId);
-        if(b) { b.x = parseInt(el.style.left); b.y = parseInt(el.style.top); }
+        if(b) { b.x = dropX; b.y = dropY; }
         this.selectBlock(moveId);
       } else {
         const type = e.dataTransfer.getData('source_type');
         const entity = e.dataTransfer.getData('source_entity');
-        this.addBlockToCanvas(type, e.clientX - canvasRect.left - 40, e.clientY - canvasRect.top - 20, entity);
+        let dropX = Math.round((e.clientX - canvasRect.left - 40) / gridSize) * gridSize;
+        let dropY = Math.round((e.clientY - canvasRect.top - 20) / gridSize) * gridSize;
+        this.addBlockToCanvas(type, dropX, dropY, entity);
       }
       this.renderLinks();
     });
@@ -301,6 +306,9 @@ class OpenKairoBuilder extends HTMLElement {
       this.canvasBlocks.forEach(b => {
         yaml += `  - type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}\n    color: "${b.color}"\n`;
         if(b.entity) yaml += `    entity: ${b.entity}\n`;
+        if(b.text) yaml += `    text: "${b.text}"\n`;
+        if(b.glow) yaml += `    glow: ${b.glow}\n`;
+        if(b.blur) yaml += `    blur: ${b.blur}\n`;
       });
       this.querySelector('#export-code-box').innerText = yaml;
       this.querySelector('#export-modal').style.display = 'flex';
@@ -322,12 +330,6 @@ class OpenKairoBuilder extends HTMLElement {
     el.id = blockId;
     el.style.left = x + 'px';
     el.style.top = y + 'px';
-    el.style.background = 'rgba(16,185,129,0.2)';
-
-    let icon;
-    if(type === 'Text') icon = 'mdi:format-text';
-    if(type === 'Entity State') icon = 'mdi:thermometer';
-    if(type === 'Image') icon = 'mdi:image';
     if(type === 'Button') icon = 'mdi:gesture-tap-button';
     if(type === 'Icon') icon = 'mdi:star-outline';
     if(type === 'Klima-Bogen') icon = 'mdi:circle-slice-8';
