@@ -213,6 +213,21 @@ class OpenKairoBuilder extends HTMLElement {
         .placeholder-text {
           border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; height: 100px; display:flex; justify-content:center; align-items:center; color:rgba(255,255,255,0.3); font-size:12px; margin-top: 20px;
         }
+        
+        /* Modal for Export / Speichern */
+        .modal-overlay {
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+          background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+          display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+          background: #0f172a; padding: 30px; border-radius: 16px; border: 1px solid rgba(16, 185, 129, 0.4);
+          width: 500px; max-width: 90%; color: white; display: flex; flex-direction: column; gap: 15px;
+        }
+        .modal-header { font-size: 18px; font-weight: 800; color: #10b981; display:flex; justify-content: space-between;}
+        .modal-code { background: #000; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; color: #a4b1cd; overflow-x: auto; white-space: pre-wrap;}
+        .modal-close { cursor: pointer; color: rgba(255,255,255,0.5); }
+        .modal-close:hover { color: #f43f5e; }
 
       </style>
 
@@ -236,7 +251,7 @@ class OpenKairoBuilder extends HTMLElement {
           <div class="header-actions">
             <div class="tool-btn"><ha-icon icon="mdi:undo"></ha-icon></div>
             <div class="tool-btn"><ha-icon icon="mdi:redo"></ha-icon></div>
-            <button class="btn-primary"><ha-icon icon="mdi:content-save"></ha-icon> Speichern</button>
+            <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:content-save"></ha-icon> Speichern / Export</button>
           </div>
         </div>
 
@@ -355,6 +370,21 @@ class OpenKairoBuilder extends HTMLElement {
           </div>
         </div>
       </div>
+      
+      <!-- MODAL OVERLAY -->
+      <div class="modal-overlay" id="export-modal">
+         <div class="modal-content">
+            <div class="modal-header">
+               <span><ha-icon icon="mdi:code-json"></ha-icon> Card Export Code</span>
+               <ha-icon class="modal-close" icon="mdi:close" id="btn-close-modal"></ha-icon>
+            </div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.6);">
+               Kopiere diesen Code und füge ihn als "Manuelle Karte" in Home Assistant ein! (Es wird automatisch die neue 'OpenKAIRO Custom Card' verwendet).
+            </div>
+            <div class="modal-code" id="export-code-box"></div>
+            <button class="btn-primary" style="justify-content:center;" id="btn-copy-code">Code kopieren</button>
+         </div>
+      </div>
     `;
 
     this.content = true;
@@ -427,6 +457,59 @@ class OpenKairoBuilder extends HTMLElement {
     // Klick ins Leere auf dem Canvas hebt die Auswahl auf
     canvas.addEventListener('click', () => {
       this.selectBlock(null);
+    });
+
+    // --- SAVE / EXPORT LOGIC ---
+    this.querySelector('#btn-save').addEventListener('click', () => {
+      const modal = this.querySelector('#export-modal');
+      const codeBox = this.querySelector('#export-code-box');
+      
+      // Generate Layout Array
+      const layoutData = [];
+      this.canvasBlocks.forEach(b => {
+          const el = this.querySelector('#' + b.id);
+          if(!el) return;
+          layoutData.push({
+             type: b.type,
+             entity: b.entity || "",
+             text: b.text || "",
+             x: parseInt(el.style.left) || 0,
+             y: parseInt(el.style.top) || 0,
+             width: el.offsetWidth,
+             height: el.offsetHeight,
+             color: b.color || "#10b981"
+          });
+      });
+
+      const yamlObj = {
+         type: "custom:openkairo-custom-card",
+         title: "LIVING ROOM",
+         height: canvas.offsetHeight,
+         layout: layoutData
+      };
+
+      // Simple YAML builder string
+      let yamlStr = `type: custom:openkairo-custom-card\ntitle: LIVING ROOM\nheight: ${canvas.offsetHeight}\nlayout:\n`;
+      layoutData.forEach(l => {
+          yamlStr += `  - type: ${l.type}\n`;
+          if (l.entity) yamlStr += `    entity: ${l.entity}\n`;
+          if (l.text) yamlStr += `    text: "${l.text}"\n`;
+          yamlStr += `    x: ${l.x}\n    y: ${l.y}\n    width: ${l.width}\n    height: ${l.height}\n    color: "${l.color}"\n`;
+      });
+      
+      codeBox.innerText = yamlStr;
+      modal.style.display = 'flex';
+    });
+
+    this.querySelector('#btn-close-modal').addEventListener('click', () => {
+       this.querySelector('#export-modal').style.display = 'none';
+    });
+    
+    this.querySelector('#btn-copy-code').addEventListener('click', () => {
+       const txt = this.querySelector('#export-code-box').innerText;
+       navigator.clipboard.writeText(txt);
+       alert("Lovelace YAML Code erfolgreich kopiert!");
+       this.querySelector('#export-modal').style.display = 'none';
     });
   }
 
