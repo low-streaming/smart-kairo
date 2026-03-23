@@ -288,19 +288,6 @@ class OpenKairoBuilder extends HTMLElement {
              <!-- Dynamically rendered -->
           </div>
         </div>
-              <div class="block-item"><ha-icon icon="mdi:grid"></ha-icon><span>Grid</span></div>
-              <div class="block-item"><ha-icon icon="mdi:format-list-bulleted"></ha-icon><span>Stack</span></div>
-              <div class="block-item"><ha-icon icon="mdi:card"></ha-icon><span>Card</span></div>
-            </div>
-
-            <div class="block-category">Entities & UI</div>
-            <div class="block-grid">
-              <div class="block-item"><ha-icon icon="mdi:thermometer"></ha-icon><span>Entity State</span></div>
-              <div class="block-item"><ha-icon icon="mdi:gesture-tap-button"></ha-icon><span>Button</span></div>
-              <div class="block-item"><ha-icon icon="mdi:tune-variant"></ha-icon><span>Slider</span></div>
-              <div class="block-item"><ha-icon icon="mdi:circle-slice-8"></ha-icon><span>Energie-Ring</span></div>
-            </div>
-          </div>
         </div>
 
         <!-- CANVAS -->
@@ -1034,12 +1021,22 @@ class OpenKairoBuilder extends HTMLElement {
       if(iptLogicColor) iptLogicColor.addEventListener('input', e => { blockObj.logicColor = e.target.value; });
 
     } else {
+       // Global Board Settings
        rightContent.innerHTML = `
          <div class="prop-group">
             <div class="prop-header">Layout (Board)</div>
-            <div style="font-size:11px; color:rgba(255,255,255,0.5);">Klicke auf einen Block im Canvas, um ihn zu bearbeiten.</div>
+            <div class="prop-row">
+                <span class="prop-label">Board Höhe (px)</span>
+                <input type="number" class="prop-input" id="board-height" value="${this.querySelector('#drop-target').offsetHeight}" style="width:80px;" />
+            </div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:10px;">
+                Klicke auf einen Block im Canvas, um ihn detailliert zu bearbeiten.
+            </div>
          </div>
        `;
+       this.querySelector('#board-height').addEventListener('input', (e) => {
+           this.querySelector('#drop-target').style.height = e.target.value + 'px';
+       });
     }
   }
 
@@ -1146,10 +1143,17 @@ class OpenKairoBuilder extends HTMLElement {
         }
         html += `</div>`;
     } else {
-        // Blocks display based on category
         const cats = ['BASIC', 'LAYOUT', 'UI'];
         cats.forEach(cat => {
-            const filtered = allBlocks.filter(b => b.cat === cat && (this.activeToolbarMode === 'ENTITIES' || (this.activeToolbarMode === 'ACTIONS' && b.cat === 'UI') || (this.activeToolbarMode === 'MEDIA' && b.name === 'Image') || (this.activeToolbarMode === 'LAYOUT' && b.cat === 'LAYOUT') || (this.activeToolbarMode === 'LINK' && b.cat === 'BASIC') || (!['ACTIONS','MEDIA','LAYOUT','LINK'].includes(this.activeToolbarMode))));
+            const filtered = allBlocks.filter(b => {
+                if (search && !b.name.toLowerCase().includes(search.toLowerCase())) return false;
+                if (this.activeToolbarMode === 'ACTIONS') return b.cat === 'UI';
+                if (this.activeToolbarMode === 'MEDIA') return b.name === 'Image';
+                if (this.activeToolbarMode === 'LAYOUT') return b.cat === 'LAYOUT';
+                if (this.activeToolbarMode === 'LINK') return b.cat === 'BASIC';
+                if (this.activeToolbarMode === 'TOGGLES') return b.cat === 'UI';
+                return b.cat === cat;
+            });
             
             if (filtered.length > 0) {
                 html += `<div class="block-category">${cat}</div><div class="block-grid">`;
