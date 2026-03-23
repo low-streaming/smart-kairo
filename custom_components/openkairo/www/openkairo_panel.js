@@ -185,29 +185,30 @@ class OpenKairoBuilder extends HTMLElement {
         .btn-style { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; cursor: pointer; color: #fff;}
         .btn-style.active { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
 
-        /* Draggable Elements on Canvas */
+        /* Draggable Elements on Canvas (WYSIWYG Mode) */
         .canvas-element {
           position: absolute;
-          background: rgba(16, 185, 129, 0.1);
-          border: 1px solid rgba(16, 185, 129, 0.4);
-          color: white;
-          padding: 8px 16px;
+          color: white; /* Default text color */
+          padding: 8px;
           border-radius: 8px;
           cursor: grab;
-          min-width: 60px;
+          min-width: 30px;
           text-align: center;
           user-select: none;
-          backdrop-filter: blur(5px);
           font-size: 13px;
           font-weight: 500;
-          transition: border-color 0.2s, box-shadow 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          box-sizing: border-box;
+          border: 1px solid transparent; /* No ugly border in live mode */
+          transition: box-shadow 0.2s;
         }
         .canvas-element:active { cursor: grabbing; }
-        .canvas-element:hover { border-color: #10b981; }
         .canvas-element.selected {
-          border-color: #05f0a0;
-          box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
-          background: rgba(16, 185, 129, 0.25);
+          border: 1px dashed rgba(16, 185, 129, 0.8) !important;
+          box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
           z-index: 100; /* Bring to front */
         }
         .placeholder-text {
@@ -494,7 +495,16 @@ class OpenKairoBuilder extends HTMLElement {
           yamlStr += `  - type: ${l.type}\n`;
           if (l.entity) yamlStr += `    entity: ${l.entity}\n`;
           if (l.text) yamlStr += `    text: "${l.text}"\n`;
-          yamlStr += `    x: ${l.x}\n    y: ${l.y}\n    width: ${l.width}\n    height: ${l.height}\n    color: "${l.color}"\n`;
+          yamlStr += `    x: ${l.x}\n    y: ${l.y}\n    width: ${l.width}\n    height: ${l.height}\n`;
+          yamlStr += `    color: "${l.color}"\n`;
+          
+          let blockObj = this.canvasBlocks.find(b => b.x === l.x && b.y === l.y); // Fallback match
+          if(blockObj) {
+              if (blockObj.fontSize) yamlStr += `    fontSize: ${blockObj.fontSize}\n`;
+              if (blockObj.fontWeight) yamlStr += `    fontWeight: "${blockObj.fontWeight}"\n`;
+              if (blockObj.borderRadius !== undefined) yamlStr += `    borderRadius: ${blockObj.borderRadius}\n`;
+              if (blockObj.backgroundColor) yamlStr += `    backgroundColor: "${blockObj.backgroundColor}"\n`;
+          }
       });
       
       codeBox.innerText = yamlStr;
@@ -552,10 +562,24 @@ class OpenKairoBuilder extends HTMLElement {
     if(type === 'Button') icon = 'mdi:gesture-tap-button';
     if(type === 'Icon') icon = 'mdi:star-outline';
     
-    el.innerHTML = `<ha-icon icon="${icon}" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> ${type}`;
-    
+    // Render UI Logic 
+    let bgTransparency = '15'; // Hex for small opacity 
+    if(type === 'Text') {
+        el.style.background = 'transparent';
+    } else if(type === 'Card' || type === 'Container') {
+        el.style.background = 'rgba(20, 30, 40, 0.5)';
+        el.style.width = '120px';
+        el.style.height = '120px';
+        el.style.borderRadius = '20px';
+        el.style.backdropFilter = 'blur(15px)';
+        el.innerHTML = `<ha-icon icon="${icon}" style="--mdc-icon-size:16px; margin-bottom:5px; opacity:0.3;"></ha-icon> <span style="opacity:0.3">${type}</span>`;
+    } else {
+        el.style.background = `rgba(16, 185, 129, 0.15)`;
+        el.innerHTML = `<ha-icon icon="${icon}" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> ${type}`;
+    }
+
     el.style.left = x + 'px';
-    el.style.top = Math.max(0, y) + 'px'; // Verhindern, dass Blöcke nach oben verschwinden
+    el.style.top = Math.max(0, y) + 'px';
 
     // Klick auf Block -> Rechte Sidebar Properties anzeigen
     el.addEventListener('click', (e) => {
@@ -582,7 +606,25 @@ class OpenKairoBuilder extends HTMLElement {
     });
 
     canvas.appendChild(el);
-    this.canvasBlocks.push({ id: blockId, type: type, x: x, y: y });
+    // Initialize default CSS properties on logical model
+    let defColor = '#10b981';
+    let defText = type;
+    if(type === 'Card' || type === 'Container') { defColor = '#ffffff'; defText = ''; }
+    
+    this.canvasBlocks.push({ 
+      id: blockId, 
+      type: type, 
+      x: x, 
+      y: y, 
+      color: defColor, 
+      text: defText,
+      fontSize: 13,
+      fontWeight: 'bold',
+      borderRadius: (type === 'Card' || type === 'Container') ? 20 : 8,
+      backgroundColor: (type === 'Card' || type === 'Container') ? '#141e28' : '',
+      bgOpacity: (type === 'Card' || type === 'Container') ? 0.5 : 0.15
+    });
+    
     this.selectBlock(blockId);
   }
 
@@ -627,13 +669,42 @@ class OpenKairoBuilder extends HTMLElement {
           `;
       }
 
+      // General typography & appearance for ALL block types
+      const extraProps = `
+          <div class="prop-row">
+             <span class="prop-label">Schriftgröße (px)</span>
+             <input type="number" class="prop-input" id="prop-font-size" value="${blockObj.fontSize || 13}" />
+          </div>
+          <div class="prop-row">
+             <span class="prop-label">Schrift-Dicke</span>
+             <select class="prop-input" id="prop-font-weight">
+                <option value="normal" ${blockObj.fontWeight === 'normal' ? 'selected' : ''}>Normal</option>
+                <option value="bold" ${blockObj.fontWeight === 'bold' ? 'selected' : ''}>Bold</option>
+                <option value="900" ${blockObj.fontWeight === '900' ? 'selected' : ''}>Heavy</option>
+             </select>
+          </div>
+          <div class="prop-row">
+             <span class="prop-label">Eckenabrundung (px)</span>
+             <input type="number" class="prop-input" id="prop-radius" value="${blockObj.borderRadius || 8}" />
+          </div>
+      `;
+
+      let bgProps = '';
+      if(blockObj.type === 'Card' || blockObj.type === 'Container') {
+          bgProps = `
+          <div class="prop-row">
+             <span class="prop-label">Hintergrundfarbe (Hex/rgba)</span>
+             <input type="text" class="prop-input" id="prop-bg-color" value="${blockObj.backgroundColor || 'transparent'}" style="width:120px;" />
+          </div>`;
+      }
+
       rightContent.innerHTML = `
         <div class="prop-group">
           <div class="prop-header">Eigenschaften: <span style="color:#10b981">${blockObj.type}</span></div>
           ${specificProps}
         </div>
         <div class="prop-group">
-          <div class="prop-header">Abmessungen & Farben</div>
+          <div class="prop-header">Layout & Typografie</div>
           <div class="prop-row">
              <span class="prop-label">Breite (px)</span>
              <input type="number" class="prop-input" id="prop-width" value="${el.offsetWidth || 100}" />
@@ -642,10 +713,15 @@ class OpenKairoBuilder extends HTMLElement {
              <span class="prop-label">Höhe (px)</span>
              <input type="number" class="prop-input" id="prop-height" value="${el.offsetHeight || 40}" />
           </div>
+          ${extraProps}
+        </div>
+        <div class="prop-group">
+          <div class="prop-header">Appearance</div>
           <div class="prop-row">
-             <span class="prop-label">Leucht-Farbe</span>
-             <input type="color" class="prop-input" id="prop-color" value="${blockObj.color || '#10b981'}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
+             <span class="prop-label">Leucht-/Füll-Farbe</span>
+             <input type="color" class="prop-input" id="prop-color" value="${(blockObj.color.length===7 ? blockObj.color : '#10b981')}" style="padding:0; width:40px; border-radius:15px; cursor:pointer;" />
           </div>
+          ${bgProps}
         </div>
         <div class="prop-group">
            <div style="font-size:11px; color:rgba(255,255,255,0.4); text-align:center;">
@@ -654,13 +730,30 @@ class OpenKairoBuilder extends HTMLElement {
         </div>
       `;
 
-      // Event Listeners für dynamische Eingaben
+      // Central styling applicator for WYSIWYG
+      const applyBlockCSS = () => {
+         el.style.fontSize = (blockObj.fontSize || 13) + 'px';
+         el.style.fontWeight = blockObj.fontWeight || 'bold';
+         el.style.borderRadius = (blockObj.borderRadius || 8) + 'px';
+         
+         if(blockObj.type === 'Card' || blockObj.type === 'Container') {
+             el.style.background = blockObj.backgroundColor || 'transparent';
+         } else if (blockObj.type !== 'Text') {
+             el.style.background = `${blockObj.color}25`; // Soft tint for buttons/badges
+         } else {
+             el.style.background = 'transparent';
+         }
+      };
 
+      // INIT existing styles
+      applyBlockCSS();
+
+      // Event Listeners für dynamische Eingaben
       const iptText = this.querySelector('#prop-text');
       if (iptText) {
           iptText.addEventListener('input', (e) => {
               blockObj.text = e.target.value;
-              el.innerHTML = `<ha-icon icon="mdi:format-text" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> ${blockObj.text}`;
+              el.innerHTML = `<ha-icon icon="mdi:format-text" style="--mdc-icon-size:16px; margin-bottom:5px;"></ha-icon> ${blockObj.text}`;
           });
       }
       
@@ -671,7 +764,7 @@ class OpenKairoBuilder extends HTMLElement {
               if(this._hass && this._hass.states[blockObj.entity]) {
                 const stateObj = this._hass.states[blockObj.entity];
                 const displayVal = stateObj.state + (stateObj.attributes.unit_of_measurement ? ' ' + stateObj.attributes.unit_of_measurement : '');
-                el.innerHTML = `<ha-icon icon="mdi:thermometer" style="--mdc-icon-size:16px; margin-right:5px; vertical-align:middle;"></ha-icon> <b>${displayVal}</b> <br><span style="font-size:10px; opacity:0.8">${blockObj.entity}</span>`;
+                el.innerHTML = `<ha-icon icon="mdi:thermometer" style="--mdc-icon-size:16px; margin-bottom:5px;"></ha-icon> <b>${displayVal}</b>`;
               }
           });
       }
@@ -680,22 +773,28 @@ class OpenKairoBuilder extends HTMLElement {
       if (iptWidth) iptWidth.addEventListener('input', (e) => { el.style.width = e.target.value + 'px'; el.style.minWidth = 'unset'; });
       
       const iptHeight = this.querySelector('#prop-height');
-      if (iptHeight) iptHeight.addEventListener('input', (e) => { 
-        el.style.height = e.target.value + 'px'; 
-        el.style.display = 'flex'; 
-        el.style.alignItems = 'center'; 
-        el.style.justifyContent = 'center'; 
-        el.style.flexDirection = 'column';
-      });
+      if (iptHeight) iptHeight.addEventListener('input', (e) => { el.style.height = e.target.value + 'px'; });
 
+      // Typography Listeners
+      const iptFontSize = this.querySelector('#prop-font-size');
+      if(iptFontSize) iptFontSize.addEventListener('input', e => { blockObj.fontSize = e.target.value; applyBlockCSS(); });
+      
+      const iptFontWeight = this.querySelector('#prop-font-weight');
+      if(iptFontWeight) iptFontWeight.addEventListener('change', e => { blockObj.fontWeight = e.target.value; applyBlockCSS(); });
+      
+      const iptRadius = this.querySelector('#prop-radius');
+      if(iptRadius) iptRadius.addEventListener('input', e => { blockObj.borderRadius = e.target.value; applyBlockCSS(); });
+
+      // Appearance Listeners
       const iptColor = this.querySelector('#prop-color');
       if (iptColor) iptColor.addEventListener('input', (e) => {
           blockObj.color = e.target.value;
           el.style.color = blockObj.color;
-          el.style.borderColor = blockObj.color;
-          el.style.boxShadow = `0 0 15px ${blockObj.color}80`;
-          el.style.background = `${blockObj.color}20`;
+          applyBlockCSS();
       });
+
+      const iptBgColor = this.querySelector('#prop-bg-color');
+      if(iptBgColor) iptBgColor.addEventListener('input', e => { blockObj.backgroundColor = e.target.value; applyBlockCSS(); });
 
     } else {
        rightContent.innerHTML = `

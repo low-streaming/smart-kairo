@@ -1,6 +1,7 @@
 """OpenKAIRO OS Integration."""
 import logging
 import os
+import time
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -47,7 +48,7 @@ async def _setup_internal(hass: HomeAssistant):
                     "name": f"{DOMAIN}-panel",
                     "embed_iframe": False,
                     "trust_external": False,
-                    "js_url": "/openkairo_os/openkairo_panel.js"
+                    "js_url": f"/openkairo_os/openkairo_panel.js?v={int(time.time())}"
                 }
             },
             require_admin=True

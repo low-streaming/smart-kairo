@@ -46,18 +46,17 @@ class OpenKairoCustomCard extends HTMLElement {
 
         .canvas-element {
           position: absolute;
-          background: rgba(16, 185, 129, 0.1);
           color: white;
           border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 13px;
-          font-weight: 600;
-          backdrop-filter: blur(5px);
+          font-weight: 500;
           user-select: none;
           flex-direction: column;
           text-align: center;
+          box-sizing: border-box;
         }
       </style>
       <ha-card>
@@ -81,10 +80,22 @@ class OpenKairoCustomCard extends HTMLElement {
         
         const color = block.color || '#10b981';
         el.style.color = color;
-        el.style.borderColor = color;
-        el.style.border = `1px solid ${color}80`;
-        el.style.boxShadow = `0 0 10px ${color}40`;
-        el.style.background = `${color}15`;
+        
+        el.style.fontSize = (block.fontSize || 13) + 'px';
+        el.style.fontWeight = block.fontWeight || 'bold';
+        const radius = block.borderRadius !== undefined ? block.borderRadius : ((block.type === 'Card' || block.type === 'Container') ? 20 : 8);
+        el.style.borderRadius = radius + 'px';
+        
+        if (block.type === 'Card' || block.type === 'Container') {
+            el.style.background = block.backgroundColor || 'transparent';
+            if (block.backgroundColor && block.backgroundColor !== 'transparent') {
+                el.style.backdropFilter = 'blur(15px)';
+            }
+        } else if (block.type !== 'Text') {
+            el.style.background = `${color}25`;
+        } else {
+            el.style.background = 'transparent';
+        }
 
         // Store configuration logically
         el._ok_type = block.type;
@@ -121,6 +132,13 @@ class OpenKairoCustomCard extends HTMLElement {
        }
        else if (type === 'Icon') {
            el.innerHTML = `<ha-icon icon="mdi:star-four-points-outline" style="--mdc-icon-size:24px;"></ha-icon>`;
+       }
+       else if (type === 'Card' || type === 'Container') {
+           if(!block.backgroundColor || block.backgroundColor === 'transparent') {
+               el.innerHTML = `<ha-icon icon="mdi:crop-square" style="--mdc-icon-size:16px; margin-bottom: 2px; opacity: 0.3;"></ha-icon>`;
+           } else {
+               el.innerHTML = ""; // clean look for rendered cards
+           }
        }
     });
   }
