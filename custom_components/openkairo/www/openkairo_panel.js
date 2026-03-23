@@ -132,32 +132,30 @@ class OpenKairoBuilder extends HTMLElement {
         .canvas-board {
           width: 400px;
           height: 600px;
-          background: rgba(10, 20, 28, 0.45);
-          border-radius: 28px;
-          box-shadow: 0 15px 45px rgba(0,0,0,0.7);
-          border: 1px solid rgba(255,255,255,0.1);
-          backdrop-filter: blur(15px);
+          background: linear-gradient(135deg, rgba(14, 25, 44, 0.8) 0%, rgba(10, 15, 28, 0.95) 100%);
+          border-radius: 32px;
+          box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.08);
+          backdrop-filter: blur(25px);
           position: relative;
           display: flex;
           flex-direction: column;
-          padding: 20px;
-          background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
-          background-size: 10px 10px;
+          padding: 24px;
+          background-image: 
+            radial-gradient(circle at 10px 10px, rgba(255,255,255,0.03) 1px, transparent 0);
+          background-size: 24px 24px;
         }
 
-        #links-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 100;
+        #links-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; opacity:0.6; }
+        .linking-path { 
+           fill:none; 
+           stroke-width:2; 
+           stroke-dasharray:4, 12; 
+           animation: flow 3s linear infinite, glowPulse 2s ease-in-out infinite alternate; 
+           stroke-linecap: round;
         }
-        .linking-path {
-           pointer-events: auto;
-           cursor: pointer;
-        }
+        @keyframes flow { to { stroke-dashoffset: -48; } }
+        @keyframes glowPulse { from { filter: drop-shadow(0 0 2px currentColor); opacity: 0.4; } to { filter: drop-shadow(0 0 10px currentColor); opacity: 0.9; } }
 
         .right-sidebar {
           grid-area: right;
@@ -211,7 +209,8 @@ class OpenKairoBuilder extends HTMLElement {
             <div class="tool-btn" data-mode="LINK"><ha-icon icon="mdi:vector-line"></ha-icon> Link</div>
           </div>
           <div class="header-actions" style="display:flex; gap:10px;">
-            <button class="tool-btn" id="btn-preset-climate" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><ha-icon icon="mdi:thermostat"></ha-icon> Klima-Preset</button>
+            <button class="tool-btn" id="btn-preset-climate" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><ha-icon icon="mdi:thermostat"></ha-icon> Klima</button>
+            <button class="tool-btn" id="btn-preset-cyber" style="background:rgba(168,85,247,0.1); color:#a855f7;"><ha-icon icon="mdi:robot"></ha-icon> Cyan-Cyber</button>
             <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:content-save"></ha-icon> Speichern</button>
           </div>
         </div>
@@ -253,12 +252,23 @@ class OpenKairoBuilder extends HTMLElement {
     this.canvasBlocks = [];
     this.canvasLinks = [];
     this.selectedBlockId = null;
-    this.selectedBlockId = null;
     this.selectedLinkId = null;
     this.sidebarSearchQuery = '';
     this.activeRightTab = 'STYLES';
     this.cardName = 'LIVING ROOM';
+    this.activeLeftTab = 'BLOCKS';
     this.cardStyle = { glow: 20, blur: 15, color: '#10b981', opacity: 0.45 };
+
+    const updateCardStyle = () => {
+        const board = this.querySelector('#drop-target');
+        if (!board) return;
+        board.style.boxShadow = this.cardStyle.glow > 0 ? `0 30px 60px rgba(0,0,0,0.8), 0 0 ${this.cardStyle.glow}px ${this.cardStyle.color}` : '0 30px 60px rgba(0,0,0,0.8)';
+        board.style.backdropFilter = `blur(${this.cardStyle.blur}px)`;
+        board.style.border = `1px solid ${this.cardStyle.color}40`;
+        const header = this.querySelector('#card-header-text');
+        if(header) header.style.color = this.cardStyle.color;
+    };
+    this._updateCardStyle = updateCardStyle;
 
     this.querySelector('#btn-preset-climate').addEventListener('click', () => {
         if(!confirm("Aktuelles Layout verwerfen und Klima-Preset laden?")) return;
@@ -286,6 +296,38 @@ class OpenKairoBuilder extends HTMLElement {
         const h = this.querySelector('#card-header-text');
         if(h) h.innerText = this.cardName;
         
+        this.selectBlock(null);
+    });
+
+    this.querySelector('#btn-preset-cyber').addEventListener('click', () => {
+        if(!confirm("Aktuelles Layout verwerfen und Cyberpunk-Preset laden?")) return;
+        this.canvasBlocks = [];
+        this.canvasLinks = [];
+        
+        // Setup Styles
+        this.cardStyle = { glow: 40, blur: 25, color: '#06b6d4', opacity: 0.8 };
+        this.cardName = "NEON TERMINAL";
+        const h = this.querySelector('#card-header-text');
+        if(h) { h.innerText = this.cardName; h.style.color = '#06b6d4'; }
+        
+        // Add Blocks
+        this.addBlockToCanvas('Weather-Card', 20, 50, 'weather.home');
+        this.addBlockToCanvas('Media-Player', 20, 160, 'media_player.spotify');
+        this.addBlockToCanvas('Klima-Bogen', 180, 50, 'climate.living_room');
+        this.addBlockToCanvas('Energie-Ring', 280, 160, 'sensor.solar_production');
+        
+        // Add some links for data flow
+        setTimeout(() => {
+            const b0 = this.canvasBlocks[0].id;
+            const b1 = this.canvasBlocks[1].id;
+            const b2 = this.canvasBlocks[2].id;
+            const b3 = this.canvasBlocks[3].id;
+            this.canvasLinks.push({source: b0, target: b1, color: '#06b6d4', animated: true});
+            this.canvasLinks.push({source: b2, target: b3, color: '#ec4899', animated: true});
+            this.renderLinks();
+        }, 100);
+
+        this._updateCardStyle();
         this.selectBlock(null);
     });
 
@@ -324,12 +366,8 @@ class OpenKairoBuilder extends HTMLElement {
     });
 
     const canvas = this.querySelector('#drop-target');
-    const updateCardStyle = () => {
-        canvas.style.boxShadow = this.cardStyle.glow > 0 ? `0 0 ${this.cardStyle.glow}px ${this.cardStyle.color}` : 'none';
-        canvas.style.backdropFilter = this.cardStyle.blur > 0 ? `blur(${this.cardStyle.blur}px)` : 'none';
-        canvas.style.background = `rgba(10, 20, 28, ${this.cardStyle.opacity})`;
-        canvas.style.borderColor = this.cardStyle.glow > 0 ? this.cardStyle.color : 'rgba(255,255,255,0.1)';
-    };
+    // Using the previously defined updateCardStyle via this._updateCardStyle if needed, 
+    // but we can just use the reference from the top of the function.
 
     canvas.addEventListener('dragover', e => e.preventDefault());
     canvas.addEventListener('drop', e => {
@@ -428,37 +466,68 @@ class OpenKairoBuilder extends HTMLElement {
     
     let label = entityId || type;
     if (type === 'Klima-Bogen') {
-        el.style.width = '120px'; el.style.height = '120px'; el.style.background = 'transparent';
+        el.style.width = '140px'; el.style.height = '140px'; el.style.background = 'transparent';
         el.innerHTML = `
-             <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); box-shadow:0 10px 30px rgba(0,0,0,0.4);">
+             <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 15px #10b98120;">
                 <svg viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; transform:rotate(-90deg);">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="4" />
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="282" stroke-dashoffset="70" />
+                    <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="6" />
+                    <circle cx="50" cy="50" r="46" fill="none" stroke="#10b981" stroke-width="6" stroke-dasharray="290" stroke-dashoffset="70" />
                 </svg>
                 <div style="text-align:center; z-index:2;">
-                    <div style="font-size:28px; font-weight:800; color:#fff; line-height:1;">21°</div>
-                    <div style="font-size:9px; color:#10b981; text-transform:uppercase; margin-top:4px; letter-spacing:1px; font-weight:700;">HEAT</div>
+                    <div style="font-size:32px; font-weight:900; color:#fff; line-height:1;">21°</div>
+                    <div style="font-size:10px; color:#10b981; text-transform:uppercase; margin-top:6px; letter-spacing:2px; font-weight:800;">HEAT</div>
                 </div>
              </div>
         `;
     } else if (type === 'Modus-Schalter') {
-        el.innerHTML = `<div style="display:flex; gap:6px; background:rgba(0,0,0,0.3); padding:6px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(10px);">
-             <div style="padding:6px 12px; border-radius:8px; background:#10b981; color:#fff; font-size:10px; text-transform:uppercase; font-weight:800;">HEAT</div>
-             <div style="padding:6px 12px; border-radius:8px; background:rgba(255,255,255,0.03); color:rgba(255,255,255,0.4); font-size:10px; text-transform:uppercase; font-weight:800;">AUTO</div>
+        el.innerHTML = `<div style="display:flex; gap:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+             <div style="padding:8px 16px; border-radius:10px; background:#10b981; color:#fff; font-size:11px; text-transform:uppercase; font-weight:900; box-shadow: 0 0 20px rgba(16,185,129,0.4);">HEAT</div>
+             <div style="padding:8px 16px; border-radius:10px; background:transparent; color:rgba(255,255,255,0.4); font-size:11px; text-transform:uppercase; font-weight:900;">AUTO</div>
         </div>`;
     } else if (type === 'Energie-Ring') {
-        el.style.width = '90px'; el.style.height = '90px'; el.style.background = 'transparent';
+        el.style.width = '100px'; el.style.height = '100px'; el.style.background = 'transparent';
         el.innerHTML = `
              <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid #10b981; opacity:0.1; box-shadow:inset 0 0 20px #10b98130;"></div>
+                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:1px solid #06b6d4; opacity:0.1; box-shadow:inset 0 0 20px #06b6d440;"></div>
                 <div style="text-align:center; z-index:2;">
-                    <div style="font-size:18px; font-weight:900; color:#fff; line-height:1;">450</div>
-                    <div style="font-size:9px; color:#10b981; font-weight:bold; text-transform:uppercase; margin-top:2px;">W</div>
+                    <div style="font-size:22px; font-weight:900; color:#fff; line-height:1; text-shadow: 0 0 15px #06b6d460;">450</div>
+                    <div style="font-size:10px; color:#06b6d4; font-weight:900; text-transform:uppercase; margin-top:4px; letter-spacing:1px;">W</div>
+                </div>
+             </div>
+        `;
+    } else if (type === 'Weather-Card') {
+        el.innerHTML = `
+             <div style="padding:15px; background:rgba(255,255,255,0.03); border-radius:20px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:15px; backdrop-filter:blur(10px);">
+                <ha-icon icon="mdi:weather-sunny" style="--mdc-icon-size:40px; color:#fbbf24; filter:drop-shadow(0 0 10px #fbbf2460);"></ha-icon>
+                <div>
+                    <div style="font-size:24px; font-weight:900; color:#fff;">18°</div>
+                    <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase;">Sunny</div>
+                </div>
+             </div>
+        `;
+    } else if (type === 'Media-Player') {
+        el.innerHTML = `
+             <div style="width:250px; padding:15px; background:rgba(0,0,0,0.4); border-radius:24px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:12px; backdrop-filter:blur(15px);">
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <div style="width:50px; height:50px; background:linear-gradient(45deg, #7c3aed, #db2777); border-radius:12px; display:flex; align-items:center; justify-content:center;">
+                        <ha-icon icon="mdi:music" style="color:#fff;"></ha-icon>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:13px; font-weight:900; color:#fff;">Cyberpunk 2077 OST</div>
+                        <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase;">Hyper</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:center; gap:20px; align-items:center;">
+                    <ha-icon icon="mdi:skip-previous" style="color:rgba(255,255,255,0.6);"></ha-icon>
+                    <div style="width:40px; height:40px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; box-shadow:0 0 20px rgba(255,255,255,0.4);">
+                        <ha-icon icon="mdi:pause"></ha-icon>
+                    </div>
+                    <ha-icon icon="mdi:skip-next" style="color:rgba(255,255,255,0.6);"></ha-icon>
                 </div>
              </div>
         `;
     } else {
-        el.innerHTML = `<span>${label}</span>`;
+        el.innerHTML = `<span style="text-shadow: 0 0 10px rgba(255,255,255,0.2);">${label}</span>`;
     }
     
     el.addEventListener('click', e => {
@@ -701,13 +770,13 @@ class OpenKairoBuilder extends HTMLElement {
     let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Search..." value="${this.sidebarSearchQuery}">`;
     
     const allBlocks = [
-      { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
-      { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
-      { name: 'Image', icon: 'mdi:image', cat: 'BASIC' },
+      { name: 'Box', icon: 'mdi:square-outline', cat: 'BASIC' },
+      { name: 'Circle', icon: 'mdi:circle-outline', cat: 'BASIC' },
       { name: 'Badge', icon: 'mdi:badge-account-outline', cat: 'BASIC' },
+      { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
+      { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
       { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
       { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
-      { name: 'Entity State', icon: 'mdi:thermometer', cat: 'UI' },
       { name: 'Button', icon: 'mdi:gesture-tap-button', cat: 'UI' },
       { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', cat: 'UI' },
       { name: 'Modus-Schalter', icon: 'mdi:view-grid-outline', cat: 'UI' },
