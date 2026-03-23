@@ -236,6 +236,7 @@ class OpenKairoBuilder extends HTMLElement {
     this.sidebarSearchQuery = '';
     this.activeRightTab = 'STYLES';
     this.cardName = 'LIVING ROOM';
+    this.cardStyle = { glow: 20, blur: 15, color: '#10b981', opacity: 0.45 };
 
     const toolBtns = this.querySelectorAll('.tool-btn');
     toolBtns.forEach(btn => {
@@ -262,6 +263,13 @@ class OpenKairoBuilder extends HTMLElement {
     });
 
     const canvas = this.querySelector('#drop-target');
+    const updateCardStyle = () => {
+        canvas.style.boxShadow = this.cardStyle.glow > 0 ? `0 0 ${this.cardStyle.glow}px ${this.cardStyle.color}` : 'none';
+        canvas.style.backdropFilter = this.cardStyle.blur > 0 ? `blur(${this.cardStyle.blur}px)` : 'none';
+        canvas.style.background = `rgba(10, 20, 28, ${this.cardStyle.opacity})`;
+        canvas.style.borderColor = this.cardStyle.glow > 0 ? this.cardStyle.color : 'rgba(255,255,255,0.1)';
+    };
+
     canvas.addEventListener('dragover', e => e.preventDefault());
     canvas.addEventListener('drop', e => {
       e.preventDefault();
@@ -293,7 +301,7 @@ class OpenKairoBuilder extends HTMLElement {
     canvas.addEventListener('click', () => this.selectBlock(null));
 
     this.querySelector('#btn-save').addEventListener('click', () => {
-      let yaml = `type: custom:openkairo-custom-card\nname: "${this.cardName}"\nheight: ${canvas.offsetHeight}\nlayout:\n`;
+      let yaml = `type: custom:openkairo-custom-card\nname: "${this.cardName}"\nglow: ${this.cardStyle.glow}\nblur: ${this.cardStyle.blur}\nopacity: ${this.cardStyle.opacity}\nlayout:\n`;
       this.canvasBlocks.forEach(b => {
         yaml += `  - type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}\n    color: "${b.color}"\n`;
         if(b.entity) yaml += `    entity: ${b.entity}\n`;
@@ -304,6 +312,9 @@ class OpenKairoBuilder extends HTMLElement {
       this.querySelector('#export-code-box').innerText = yaml;
       this.querySelector('#export-modal').style.display = 'flex';
     });
+    
+    // Add global updateCardStyle to be accessible in selectBlock
+    this._updateCardStyle = updateCardStyle;
 
     this.querySelector('#btn-close-modal').addEventListener('click', () => this.querySelector('#export-modal').style.display = 'none');
     this.querySelector('#btn-copy-code').addEventListener('click', () => {
@@ -313,6 +324,7 @@ class OpenKairoBuilder extends HTMLElement {
 
     this.renderLeftSidebar();
     this.selectBlock(null);
+    updateCardStyle();
   }
 
   addBlockToCanvas(type, x, y, entityId = null) {
@@ -417,18 +429,44 @@ class OpenKairoBuilder extends HTMLElement {
       }
       updateUI();
     } else {
-      right.innerHTML = `
-        <div class="prop-group">
-            <div class="prop-header">Globale Einstellungen</div>
-            <div class="prop-row"><span class="prop-label">Karten-Name</span><input type="text" class="prop-input" id="p-card-name" value="${this.cardName}" style="width:120px;"></div>
-            <div style="font-size:10px; opacity:0.5; margin-top:10px;">Wähle ein Element auf dem Canvas aus, um dessen Styles zu bearbeiten.</div>
-        </div>
-      `;
-      this.querySelector('#p-card-name').addEventListener('input', e => { 
-          this.cardName = e.target.value; 
-          const h = this.querySelector('#card-header-text');
-          if(h) h.innerText = this.cardName;
-      });
+      if(this.activeRightTab === 'STYLES') {
+        right.innerHTML = `
+          <div class="prop-group">
+              <div class="prop-header">Card Styling (Global)</div>
+              <div class="prop-row"><span class="prop-label">Glow Farbe</span><input type="color" id="p-card-color" value="${this.cardStyle.color}"></div>
+              <div class="prop-row"><span class="prop-label">Card Glow</span><input type="range" id="p-card-glow" min="0" max="100" value="${this.cardStyle.glow}"></div>
+              <div class="prop-row"><span class="prop-label">Card Blur</span><input type="range" id="p-card-blur" min="0" max="50" value="${this.cardStyle.blur}"></div>
+              <div class="prop-row"><span class="prop-label">Transparenz</span><input type="range" id="p-card-opacity" min="0" max="1" step="0.05" value="${this.cardStyle.opacity}"></div>
+              <button class="btn-primary" id="btn-premium-look" style="width:100%; margin-top:10px; background: linear-gradient(135deg, #10b981, #3b82f6); border:none;">✨ Premium Look anwenden</button>
+          </div>
+          <div class="prop-group">
+              <div class="prop-header">Karten-Navigation</div>
+              <div class="prop-row"><span class="prop-label">Karten-Name</span><input type="text" class="prop-input" id="p-card-name" value="${this.cardName}" style="width:120px;"></div>
+          </div>
+        `;
+        this.querySelector('#p-card-color').addEventListener('input', e => { this.cardStyle.color = e.target.value; this._updateCardStyle(); });
+        this.querySelector('#p-card-glow').addEventListener('input', e => { this.cardStyle.glow = e.target.value; this._updateCardStyle(); });
+        this.querySelector('#p-card-blur').addEventListener('input', e => { this.cardStyle.blur = e.target.value; this._updateCardStyle(); });
+        this.querySelector('#p-card-opacity').addEventListener('input', e => { this.cardStyle.opacity = e.target.value; this._updateCardStyle(); });
+        this.querySelector('#p-card-name').addEventListener('input', e => { 
+            this.cardName = e.target.value; 
+            const h = this.querySelector('#card-header-text');
+            if(h) h.innerText = this.cardName;
+        });
+        this.querySelector('#btn-premium-look').addEventListener('click', () => {
+            this.cardStyle = { glow: 40, blur: 25, color: '#10b981', opacity: 0.3 };
+            this._updateCardStyle();
+            this.selectBlock(null);
+        });
+      } else {
+        right.innerHTML = `
+          <div class="prop-group">
+              <div class="prop-header">Karten-Info</div>
+              <div class="prop-row"><span class="prop-label">Name</span><span>${this.cardName}</span></div>
+              <div style="font-size:10px; opacity:0.5; margin-top:10px;">Wähle ein Element aus, um dessen Eigenschaften zu bearbeiten.</div>
+          </div>
+        `;
+      }
     }
   }
 
