@@ -15,16 +15,17 @@ class OpenKairoBuilder extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          --bg-color: #09090b;
-          --sidebar-bg: #111114;
-          --border-color: #27272a;
-          --accent-color: #3b82f6;
+          --bg-color: #000000;
+          --sidebar-bg: rgba(14, 14, 16, 0.85);
+          --border-color: rgba(255, 255, 255, 0.08);
+          --accent-color: #00f6ff;
           --kairo-cyan: #00f6ff;
+          --kairo-magenta: #ff00ff;
           --text-primary: #ffffff;
-          --text-secondary: rgba(255,255,255,0.4);
-          --input-bg: #18181b;
-          font-family: 'Inter', sans-serif;
-          display: flex; flex-direction: column; height: 100%; min-height: 100vh; width: 100%; overflow: hidden; background: #000; color: var(--text-primary);
+          --text-secondary: rgba(255, 255, 255, 0.5);
+          --input-bg: rgba(255, 255, 255, 0.05);
+          font-family: 'Outfit', 'Inter', sans-serif;
+          display: flex; flex-direction: column; height: 100%; min-height: 100vh; width: 100%; overflow: hidden; background: #000; color: #fff;
         }
         
         #builder-container { display: flex; flex-direction: column; flex: 1; height: 100%; width: 100%; overflow: hidden; background: #000; position: relative; }
@@ -45,83 +46,117 @@ class OpenKairoBuilder extends HTMLElement {
 
         .main-layout { 
           display: grid; 
-          grid-template-columns: 260px 1fr 300px; 
-          flex: 1; min-height: 500px; height: calc(100vh - 60px); width: 100%; 
-          overflow: hidden; background: #000; border-top: 1px solid var(--border-color); 
+          grid-template-columns: 280px 1fr 340px; 
+          flex: 1; height: calc(100% - 66px); width: 100%; 
+          overflow: hidden; background: #000;
         }
         
-        .sidebar { height: 100%; background: #111114 !important; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .sidebar { 
+          height: 100%; background: var(--sidebar-bg); 
+          backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+          border-right: 1px solid var(--border-color); 
+          display: flex; flex-direction: column; overflow: hidden; position: relative; 
+          box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
         .sidebar-right { border-left: 1px solid var(--border-color); border-right: none; }
         
-        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border-color); height: 44px; min-height: 44px; align-items: center; padding: 0 10px; gap: 10px; background: rgba(0,0,0,0.3); }
-        .s-tab { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); cursor: pointer; padding: 12px 10px; border-bottom: 2px solid transparent; transition: 0.3s; letter-spacing: 1px; }
-        .s-tab.active { color: #fff; border-color: var(--kairo-cyan); }
-        .s-tab:hover { color: #fff; }
+        .sidebar-tabs { 
+            display: flex; background: rgba(0,0,0,0.4); border-radius: 12px; margin: 12px; padding: 4px; gap: 4px; height: auto; min-height: auto;
+            border: 1px solid var(--border-color);
+        }
+        .s-tab { 
+            flex: 1; text-align: center; font-size: 10px; font-weight: 900; text-transform: uppercase; color: var(--text-secondary); 
+            cursor: pointer; padding: 8px 4px; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); letter-spacing: 1px; border: none;
+        }
+        .s-tab.active { background: rgba(0, 246, 255, 0.1); color: var(--kairo-cyan); box-shadow: 0 0 0 1px rgba(0, 246, 255, 0.2); }
+        .s-tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: #fff; }
+        .s-tab::after { display: none; }
 
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; min-height: 100%; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 24px; min-height: 100%; }
         
         .canvas-area { 
-          height: 100%; background: #09090b; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;
-          background-image: radial-gradient(circle at 1.5px 1.5px, #27272a 1px, transparent 0);
-          background-size: 24px 24px;
+          height: 100%; background: #000; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;
+          background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+          background-size: 40px 40px;
+          background-position: center center;
         }
         
         #drop-target {
-          background: #000;
-          width: 320px; min-height: 480px; border-radius: 16px;
-          position: relative; box-shadow: 0 50px 100px rgba(0,0,0,0.8), 0 0 1px rgba(255,255,255,0.2);
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+          width: 320px; min-height: 480px; border-radius: 24px;
+          position: relative; 
+          box-shadow: 
+            0 50px 100px rgba(0,0,0,0.9), 
+            inset 0 0 40px rgba(0, 246, 255, 0.05),
+            0 0 0 1px rgba(255,255,255,0.1);
           transform-origin: center center;
-          border: 1px solid rgba(255,255,255,0.05);
+          overflow: hidden;
+          transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #drop-target::before {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            pointer-events: none;
         }
 
         .btn-primary { 
-          background: var(--kairo-cyan); color: #000; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 900; font-size: 10px; text-transform: uppercase;
-          cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; font-family: 'Rajdhani'; letter-spacing: 0.5px;
+          background: var(--kairo-cyan); color: #000; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; font-size: 11px; text-transform: uppercase;
+          cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; font-family: 'Outfit', 'Rajdhani'; letter-spacing: 1px;
         }
-        .btn-primary:hover { box-shadow: 0 0 20px rgba(0,246,255,0.4); transform: translateY(-1px); }
-        .btn-primary ha-icon { --mdc-icon-size: 16px; }
+        .btn-primary:hover { box-shadow: 0 0 25px rgba(0,246,255,0.5); transform: translateY(-2px); }
+        .btn-primary ha-icon { --mdc-icon-size: 18px; }
 
-        .search-box { background: var(--input-bg); border: 1px solid var(--border-color); color: white; padding: 10px 12px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; outline: none; font-size: 11px; }
-        .search-box:focus { border-color: var(--kairo-cyan); }
+        .search-box { background: var(--input-bg); border: 1px solid var(--border-color); color: white; padding: 12px 14px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 15px; outline: none; font-size: 12px; transition: 0.3s; }
+        .search-box:focus { border-color: var(--kairo-cyan); box-shadow: 0 0 10px rgba(0,246,255,0.1); }
         
         .block-category { 
-          font-size: 10px; text-transform: uppercase; color: var(--text-secondary); margin: 4px 0; letter-spacing: 1.5px; font-weight: 800; 
-          display:flex; align-items:center; justify-content: space-between; cursor: pointer; padding: 10px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.03); transition: 0.2s;
+          font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin: 8px 0; letter-spacing: 2px; font-weight: 900; 
+          display:flex; align-items:center; justify-content: space-between; cursor: pointer; padding: 12px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
         }
         .block-category:hover { color: #fff; }
-        .block-category ha-icon { --mdc-icon-size: 14px; transition: 0.3s; }
+        .block-category ha-icon { --mdc-icon-size: 16px; transition: 0.3s; }
         .block-category.open ha-icon { transform: rotate(180deg); color: var(--kairo-cyan); }
         
-        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; height: auto; overflow: hidden; transition: 0.3s ease-out; }
+        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; height: auto; overflow: hidden; transition: 0.3s ease-out; }
         .block-grid.collapsed { height: 0; margin-bottom: 0px; opacity: 0; pointer-events: none; }
         
-        .block-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: grab; transition: 0.2s; }
-        .block-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
-        .block-item ha-icon { color: var(--text-secondary); --mdc-icon-size: 18px; }
-        .block-item:hover ha-icon { color: var(--kairo-cyan); }
-        .block-item span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
+        .block-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: grab; transition: 0.3s; }
+        .block-item:hover { background: rgba(255,255,255,0.06); border-color: var(--kairo-cyan); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .block-preview { height: 40px; display: flex; align-items: center; justify-content: center; }
+        .block-item span { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; }
+        .block-item:hover span { color: #fff; }
 
         .canvas-element { 
             position: absolute; cursor: default; user-select: none; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; 
             transition: box-shadow 0.3s, backdrop-filter 0.3s;
         }
-        .canvas-element.selected { border: 1px solid #fff !important; z-index: 100; }
-        .resizer { width: 6px; height: 6px; background: #fff; border-radius: 50%; position: absolute; display: none; border: 1.5px solid var(--bg-color); }
+        .canvas-element.selected { border: 1px solid #fff !important; z-index: 100; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
+        .resizer { width: 8px; height: 8px; background: #fff; border-radius: 50%; position: absolute; display: none; border: 2px solid var(--bg-color); box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .canvas-element.selected .resizer { display: block; }
-        .resizer.nw { top: -3px; left: -3px; cursor: nw-resize; }
-        .resizer.ne { top: -3px; right: -3px; cursor: ne-resize; }
-        .resizer.sw { bottom: -3px; left: -3px; cursor: sw-resize; }
-        .resizer.se { bottom: -3px; right: -3px; cursor: se-resize; }
+        .resizer.nw { top: -4px; left: -4px; cursor: nw-resize; }
+        .resizer.ne { top: -4px; right: -4px; cursor: ne-resize; }
+        .resizer.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+        .resizer.se { bottom: -4px; right: -4px; cursor: se-resize; }
         
-        .prop-group { border-bottom: 1px solid var(--border-color); padding: 20px; }
-        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 800; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .prop-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-        .prop-input { background: var(--input-bg); border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; font-size: 11px; width: 140px; text-align: left; color-scheme: dark; }
-        .prop-input:focus { border-color: var(--kairo-cyan); outline: none; }
+        .prop-group { border-bottom: 1px solid var(--border-color); padding: 20px 24px; }
+        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 900; color: #fff; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; }
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .prop-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+        .prop-input { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 8px 10px; border-radius: 6px; font-size: 11px; width: 150px; text-align: left; color-scheme: dark; transition: 0.3s; }
+        .prop-input:focus { border-color: var(--kairo-cyan); outline: none; background: rgba(0,0,0,0.5); }
         
-        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(20px); display:none; justify-content:center; align-items:center; z-index:1000; }
+        /* Pro Sliders */
+        input[type="range"] { -webkit-appearance: none; background: transparent; cursor: pointer; height: 24px; width: 100%; }
+        input[type="range"]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.05); height: 3px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.03); }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #fff; margin-top: -6.5px; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: 0.2s; border: 2px solid #000; }
+        input[type="range"]:active::-webkit-slider-thumb { background: var(--kairo-cyan); transform: scale(1.1); box-shadow: 0 0 15px var(--kairo-cyan); }
+        
+        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(30px); display:none; justify-content:center; align-items:center; z-index:1000; }
         .modal-content { background:#111; padding:32px; border-radius:24px; border:1px solid var(--border-color); width:560px; color:white; display:flex; flex-direction:column; gap:20px; position:relative; }
         .modal-code { background:#000; padding:20px; border-radius:12px; font-family: monospace; font-size:12px; color:#10b981; overflow:auto; max-height:400px; border:1px solid var(--border-color); }
 
@@ -150,9 +185,10 @@ class OpenKairoBuilder extends HTMLElement {
         /* Component Styles */
         .studio-pro-arc { 
             position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; 
-            background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 15px #10b98120;
+            background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 30px #10b98130;
         }
-        .studio-pro-arc .val { font-size:32px; font-weight:900; color:#fff; line-height:1; }
+        .studio-pro-arc .val { font-size:36px; font-weight:900; color:#fff; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
       </style>
 
       <div id="builder-container">
@@ -189,7 +225,7 @@ class OpenKairoBuilder extends HTMLElement {
 
           <div class="canvas-area">
              <div id="drop-target">
-                <div id="card-header-text" style="text-align:center; color:var(--kairo-cyan); font-weight:900; filter:drop-shadow(0 0 10px var(--kairo-cyan)); opacity:0.8; font-size:20px; letter-spacing:4px; padding-top:20px;">LIVING ROOM</div>
+                <div id="card-header-text" style="text-align:center; color:var(--kairo-cyan); font-weight:900; filter:drop-shadow(0 0 20px var(--kairo-cyan)); opacity:0.9; font-size:24px; letter-spacing:6px; padding-top:30px; text-transform:uppercase; pointer-events:none;">${this.cardName}</div>
                 <svg id="links-overlay" style="position:absolute; inset:0; pointer-events:none;"></svg>
              </div>
           </div>
@@ -320,10 +356,21 @@ class OpenKairoBuilder extends HTMLElement {
   addBlockToCanvas(type, x, y, entityId = null, parentId = null) {
     const id = 'b' + Math.random().toString(36).substr(2, 9);
     const b = {
-        id, type, x, y, w: 100, h: 40, color: '#ffffff', text: type, 
-        glow:0, blur:0, opacity:1, fontSize:13, animation:'none', animDuration:2, animDelay:0
+        id, type, x, y, 
+        w: type === 'Klima-Bogen' ? 140 : (type === 'Container' ? 200 : 120), 
+        h: type === 'Klima-Bogen' ? 140 : (type === 'Container' ? 140 : 40), 
+        color: this.cardStyle.color || '#00f6ff', 
+        text: type, 
+        glow: 20, 
+        textGlow: 10, 
+        blur: 15, 
+        opacity: 1, 
+        fontSize: 14, 
+        animation: 'none', 
+        animDuration: 2, 
+        animDelay: 0
     };
-    if (type === 'Klima-Bogen') { b.w = 140; b.h = 140; b.color = '#10b981'; }
+    if (type === 'Klima-Bogen') b.color = '#10b981';
     this.canvasBlocks.push(b);
     this.renderCanvas();
     this.selectBlock(id);
@@ -618,14 +665,14 @@ class OpenKairoBuilder extends HTMLElement {
     }
 
     const blocks = [
-        { name: 'Box', icon: 'mdi:square-outline' },
-        { name: 'Text', icon: 'mdi:format-text' },
-        { name: 'Container', icon: 'mdi:crop-square' },
-        { name: 'Card', icon: 'mdi:card-outline' },
-        { name: 'Neon-Switch', icon: 'mdi:toggle-switch' },
-        { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8' },
-        { name: 'Energie-Ring', icon: 'mdi:circle-outline' },
-        { name: 'Media-Player', icon: 'mdi:play-circle' }
+        { name: 'Box', icon: 'mdi:square-outline', preview: '<div style="width:30px; height:20px; border:1px solid var(--kairo-cyan); box-shadow: 0 0 10px var(--kairo-cyan);"></div>' },
+        { name: 'Text', icon: 'mdi:format-text', preview: '<div style="font-size:14px; font-weight:900; color:#fff; text-shadow:0 0 5px #fff;">TEXT</div>' },
+        { name: 'Container', icon: 'mdi:crop-square', preview: '<div style="width:40px; height:30px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); border-radius:4px;"></div>' },
+        { name: 'Card', icon: 'mdi:card-outline', preview: '<div style="width:44px; height:32px; background:#000; border:1px solid var(--kairo-cyan); border-radius:6px; box-shadow:0 0 15px rgba(0,246,255,0.3);"></div>' },
+        { name: 'Neon-Switch', icon: 'mdi:toggle-switch', preview: '<div style="width:34px; height:18px; background:var(--kairo-cyan); border-radius:9px; position:relative;"><div style="position:absolute; right:2px; top:2px; width:14px; height:14px; background:#fff; border-radius:50%;"></div></div>' },
+        { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', preview: '<div style="width:36px; height:36px; border:2px solid var(--kairo-cyan); border-radius:50%; border-right-color:transparent; transform:rotate(45deg); display:flex; align-items:center; justify-content:center;"><div style="transform:rotate(-45deg); font-size:8px; font-weight:900;">21°</div></div>' },
+        { name: 'Energie-Ring', icon: 'mdi:circle-outline', preview: '<div style="width:36px; height:36px; border:1px dashed var(--kairo-magenta); border-radius:50%; display:flex; align-items:center; justify-content:center;"><div style="font-size:7px; color:var(--kairo-magenta); font-weight:900;">800W</div></div>' },
+        { name: 'Media-Player', icon: 'mdi:play-circle', preview: '<div style="width:44px; height:30px; background:rgba(0,0,0,0.5); border-radius:8px; display:flex; gap:4px; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);"><div style="width:0; height:0; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:6px solid #fff;"></div></div>' }
     ];
     container.innerHTML = `
         <input type="text" class="search-box" placeholder="Suche..." id="s-search" value="${this.sidebarSearchQuery || ''}">
@@ -633,7 +680,7 @@ class OpenKairoBuilder extends HTMLElement {
         <div class="block-grid">
             ${blocks.filter(b => b.name.toLowerCase().includes((this.sidebarSearchQuery || '').toLowerCase())).map(b => `
                 <div class="block-item b-item" data-type="${b.name}">
-                    <ha-icon icon="${b.icon}"></ha-icon>
+                    <div class="block-preview">${b.preview}</div>
                     <span>${b.name}</span>
                 </div>
             `).join('')}
