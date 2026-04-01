@@ -191,6 +191,29 @@ class OpenKairoBuilder extends HTMLElement {
         .modal-content { background:#0a0a0a; padding:40px; border-radius:12px; border:1px solid var(--kairo-cyan); width:600px; color:white; display:flex; flex-direction:column; gap:20px; box-shadow: 0 0 50px rgba(0, 246, 255, 0.2); position:relative; }
         .modal-content::before { content:"EXPORT CODE"; position:absolute; top:-12px; left:20px; background:#000; padding:4px 15px; color:var(--kairo-cyan); font-size:10px; font-weight:900; border:1px solid var(--kairo-cyan); letter-spacing:2px; }
         .modal-code { background:#000; padding:20px; border-radius:8px; font-family: 'Rajdhani', monospace; font-size:13px; color:#fff; overflow:auto; max-height:400px; border:1px solid rgba(255,255,255,0.05); }
+        .canvas-element {
+          position: absolute;
+          cursor: grab;
+          user-select: none;
+          transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .canvas-element:active { cursor: grabbing; transform: scale(0.98); }
+        .canvas-element.selected { 
+          border: 1px dashed var(--kairo-cyan) !important; 
+          box-shadow: 0 0 25px rgba(0,246,255,0.4) !important; 
+          z-index: 100; 
+          background: rgba(0, 246, 255, 0.08);
+        }
+        .canvas-element.selected::before { 
+          content:""; position:absolute; inset:-4px; 
+          border: 1px solid var(--kairo-cyan); 
+          clip-path: polygon(0 0, 10px 0, 0 10px, 100% 0, 100% 10px, 90% 0, 100% 100%, 90% 100%, 100% 90%, 0 100%, 0 90%, 10px 100%);
+          animation: corners 2s infinite alternate;
+        }
+        @keyframes corners { from { opacity: 0.2; } to { opacity: 0.8; } }
       </style>
 
       <div class="builder-layout">
@@ -430,6 +453,32 @@ class OpenKairoBuilder extends HTMLElement {
     this.querySelector('#theme-selector').addEventListener('change', e => {
         this._updateTheme(e.target.value);
     });
+
+    window.addEventListener('keydown', (e) => {
+        if (!this.selectedBlockId) return;
+        const b = this.canvasBlocks.find(x => x.id === this.selectedBlockId);
+        if (!b) return;
+
+        // Skip if typing in an input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+        const snap = 1;
+        if (e.key === 'ArrowLeft') b.x -= snap;
+        else if (e.key === 'ArrowRight') b.x += snap;
+        else if (e.key === 'ArrowUp') b.y -= snap;
+        else if (e.key === 'ArrowDown') b.y += snap;
+        else if (e.key === 'Delete') {
+            const el = this.querySelector('#' + b.id);
+            if(el) el.remove();
+            this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== b.id);
+            this.selectBlock(null);
+            this.renderLinks();
+            return;
+        } else return;
+
+        e.preventDefault();
+        this.selectBlock(b.id); // Triggers UI update
+    });
   }
 
   addBlockToCanvas(type, x, y, entityId = null, parentId = null) {
@@ -557,13 +606,57 @@ class OpenKairoBuilder extends HTMLElement {
     });
 
     this.querySelector('#drop-target').appendChild(el);
-    this.canvasBlocks.push({
-        id: blockId, type: type, x: x, y: y, color: '#10b981', entity: entityId, 
-        text: type === 'Text' ? 'Dein Text' : (entityId ? entityId.split('.')[1] : type),
-        glow: 0, textGlow: 0, blur: 0, opacity: 1, fontSize: 13,
-        action: 'none', parentId: parentId
-    });
+    this.canvasBlocks.push(b);
     this.selectBlock(blockId);
+  }
+
+  duplicateBlock(id) {
+    const b = this.canvasBlocks.find(x => x.id === id);
+    if (!b) return;
+    const newId = 'b' + Date.now();
+    const newBlock = JSON.parse(JSON.stringify(b));
+    newBlock.id = newId;
+    newBlock.x += 20;
+    newBlock.y += 20;
+    
+    // Create DOM element
+    const el = document.createElement('div');
+    el.className = 'canvas-element';
+    el.id = newId;
+    el.style.left = newBlock.x + 'px';
+    el.style.top = newBlock.y + 'px';
+    el.style.zIndex = newBlock.parentId ? '20' : '10';
+    
+    // Copy innerHTML from source
+    const sourceEl = this.querySelector('#' + id);
+    if(sourceEl) el.innerHTML = sourceEl.innerHTML;
+    
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      this.selectBlock(newId);
+    });
+
+    el.setAttribute('draggable', 'true');
+    el.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('move_id', newId);
+      const r = el.getBoundingClientRect();
+      e.dataTransfer.setData('offsetX', e.clientX - r.left);
+      e.dataTransfer.setData('offsetY', e.clientY - r.top);
+    });
+
+    this.querySelector('#drop-target').appendChild(el);
+    this.canvasBlocks.push(newBlock);
+    this.selectBlock(newId);
+  }
+
+  moveLayer(id, dir) {
+    const el = this.querySelector('#' + id);
+    if(!el) return;
+    const currentZ = parseInt(el.style.zIndex) || 10;
+    const newZ = dir === 'up' ? currentZ + 1 : Math.max(1, currentZ - 1);
+    el.style.zIndex = newZ;
+    const b = this.canvasBlocks.find(x => x.id === id);
+    if(b) b.zIndex = newZ;
   }
 
   selectBlock(id) {
@@ -579,80 +672,115 @@ class OpenKairoBuilder extends HTMLElement {
       const b = this.canvasBlocks.find(x => x.id === id);
 
       const updateUI = () => {
-          el.style.color = b.color;
-          el.style.opacity = b.opacity;
-          el.style.boxShadow = b.glow > 0 ? `0 0 ${b.glow}px ${b.color}` : 'none';
-          el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
-          el.style.backdropFilter = b.blur > 0 ? `blur(${b.blur}px)` : 'none';
-          if (b.blur > 0) el.style.background = `rgba(255,255,255,0.05)`;
-          if (el.querySelector('span')) el.querySelector('span').innerText = b.text;
-          if (el.querySelector('span')) el.querySelector('span').style.fontSize = b.fontSize + 'px';
+        if(!el) return;
+        el.style.left = b.x + 'px';
+        el.style.top = b.y + 'px';
+        el.style.color = b.color;
+        el.style.boxShadow = b.glow > 0 ? `0 0 ${b.glow}px ${b.color}` : 'none';
+        el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
+        el.style.backdropFilter = b.blur > 0 ? `blur(${b.blur}px)` : 'none';
+        el.style.opacity = b.opacity !== undefined ? b.opacity : 1;
+        if(el.querySelector('span')) {
+            el.querySelector('span').innerText = b.text;
+            el.querySelector('span').style.fontSize = b.fontSize + 'px';
+        }
+        
+        // Update Labels
+        this.querySelector('#l-x').innerText = `X POS (${b.x}px)`;
+        this.querySelector('#l-y').innerText = `Y POS (${b.y}px)`;
+        this.querySelector('#l-size').innerText = `Schrift (${b.fontSize}px)`;
+        this.querySelector('#l-glow').innerText = `GLOW (${b.glow})`;
+        this.querySelector('#l-tglow').innerText = `TEXT GLOW (${b.textGlow})`;
+        this.querySelector('#l-blur').innerText = `BLUR (${b.blur})`;
+        this.querySelector('#l-opacity').innerText = `DECKKRAFT (${Math.round((b.opacity || 1)*100)}%)`;
+        
+        this.renderLinks();
       };
 
-      if(this.activeRightTab === 'STYLES') {
-          right.innerHTML = `
-            <div class="prop-group">
-                <div class="prop-header">Neon & Glow</div>
-                <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}"></div>
-                <div class="prop-row"><span class="prop-label">Glow (Border)</span><input type="range" id="p-glow" min="0" max="60" value="${b.glow}"></div>
-                <div class="prop-row"><span class="prop-label">Glow (Text)</span><input type="range" id="p-tglow" min="0" max="30" value="${b.textGlow}"></div>
-            </div>
-            <div class="prop-group">
-                <div class="prop-header">Glassmorphism</div>
-                <div class="prop-row"><span class="prop-label">Blur (Pixel)</span><input type="range" id="p-blur" min="0" max="40" value="${b.blur}"></div>
-                <div class="prop-row"><span class="prop-label">Deckkraft</span><input type="range" id="p-opacity" min="0.1" max="1" step="0.1" value="${b.opacity}"></div>
-            </div>
-          `;
-          this.querySelector('#p-color').addEventListener('input', e => { b.color = e.target.value; updateUI(); });
-          this.querySelector('#p-glow').addEventListener('input', e => { b.glow = e.target.value; updateUI(); });
-          this.querySelector('#p-tglow').addEventListener('input', e => { b.textGlow = e.target.value; updateUI(); });
-          this.querySelector('#p-blur').addEventListener('input', e => { b.blur = e.target.value; updateUI(); });
-          this.querySelector('#p-opacity').addEventListener('input', e => { b.opacity = e.target.value; updateUI(); });
-      } else {
-          // Generate entity list for dropdown
-          let entityOptions = '<option value="">Keine Entität</option>';
-          if(this._hass && this._hass.states) {
-            Object.keys(this._hass.states).sort().forEach(eid => {
-                entityOptions += `<option value="${eid}" ${b.entity === eid ? 'selected' : ''}>${eid}</option>`;
-            });
-          }
-
-          right.innerHTML = `
-            <div class="prop-group">
-                <div class="prop-header">Element Properties</div>
-                <div class="prop-row"><span class="prop-label">ANZEIGE-TEXT</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:140px;"></div>
-                <div class="prop-row"><span class="prop-label">SCHRIFTGRÖSSE</span><input type="number" class="prop-input" id="p-size" value="${b.fontSize || 13}"></div>
-                <div class="prop-row"><span class="prop-label">ENTITÄT</span>
-                    <select class="prop-input" id="p-entity" style="width:140px; font-size:10px;">
-                        ${entityOptions}
-                    </select>
-                </div>
-            </div>
-            <div class="prop-group">
-                <div class="prop-header">Interaktion (Actions)</div>
-                <div class="prop-row"><span class="prop-label">Action</span>
-                    <select class="prop-input" id="p-action" style="width:120px;">
-                        <option value="none" ${b.action === 'none' ? 'selected' : ''}>Keine</option>
-                        <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Umschalten (Toggle)</option>
-                        <option value="more-info" ${b.action === 'more-info' ? 'selected' : ''}>Mehr Info</option>
-                        <option value="navigate" ${b.action === 'navigate' ? 'selected' : ''}>Navigieren</option>
-                    </select>
-                </div>
-            </div>
-            <div class="prop-group" style="border:none;">
-                <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; width:100%;">Element löschen</button>
-            </div>
-          `;
-          this.querySelector('#p-text').addEventListener('input', e => { b.text = e.target.value; updateUI(); });
-          this.querySelector('#p-size').addEventListener('input', e => { b.fontSize = e.target.value; updateUI(); });
-          this.querySelector('#p-entity').addEventListener('change', e => { 
-                b.entity = e.target.value; 
-                if(!b.text || b.text === b.type) b.text = b.entity.split('.')[1];
-                updateUI(); 
-          });
-          this.querySelector('#p-action').addEventListener('change', e => { b.action = e.target.value; });
-          this.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
+      let entityOptions = '<option value="">Keine</option>';
+      if (this._hass && this._hass.states) {
+          entityOptions += Object.keys(this._hass.states).sort().map(eid => 
+              `<option value="${eid}" ${b.entity === eid ? 'selected' : ''}>${eid}</option>`
+          ).join('');
       }
+
+      right.innerHTML = `
+        <div class="prop-group">
+            <div class="prop-header">Transform</div>
+            <div class="prop-row"><span class="prop-label" id="l-x">X POS (${b.x}px)</span><input type="range" id="p-x" min="0" max="400" value="${b.x}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-y">Y POS (${b.y}px)</span><input type="range" id="p-y" min="0" max="600" value="${b.y}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-size">Schrift (${b.fontSize || 13}px)</span><input type="range" id="p-size" min="10" max="80" value="${b.fontSize || 13}"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                <button class="btn-primary" id="btn-up" style="background:#222; font-size:9px; padding:5px;">LAYER UP</button>
+                <button class="btn-primary" id="btn-down" style="background:#222; font-size:9px; padding:5px;">LAYER DOWN</button>
+            </div>
+        </div>
+        
+        <div class="prop-group">
+            <div class="prop-header">Design</div>
+            <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-glow">GLOW (${b.glow || 0})</span><input type="range" id="p-glow" min="0" max="100" value="${b.glow || 0}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-tglow">TEXT GLOW (${b.textGlow || 0})</span><input type="range" id="p-textglow" min="0" max="100" value="${b.textGlow || 0}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-blur">BLUR (${b.blur || 0})</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-opacity">DECKKRAFT (${Math.round((b.opacity !== undefined ? b.opacity : 1) * 100)}%)</span><input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${b.opacity !== undefined ? b.opacity : 1}"></div>
+        </div>
+
+        <div class="prop-group">
+            <div class="prop-header">Inhalt & Logik</div>
+            <div class="prop-row"><span class="prop-label">NAME/TEXT</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:140px;"></div>
+            <div class="prop-row"><span class="prop-label">ENTITÄT</span>
+                <select class="prop-input" id="p-entity" style="width:140px; font-size:10px;">
+                    ${entityOptions}
+                </select>
+            </div>
+            <div class="prop-row"><span class="prop-label">AKTION</span>
+                <select class="prop-input" id="p-action" style="width:140px;">
+                    <option value="none" ${b.action === 'none' ? 'selected' : ''}>Keine</option>
+                    <option value="more-info" ${(b.action === 'more-info' || !b.action) ? 'selected' : ''}>Info-Fenster</option>
+                    <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Toggle</option>
+                </select>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+                <button class="btn-primary" id="btn-dup" style="background:#222; color:#fff; font-size:11px;">
+                    <ha-icon icon="mdi:content-copy" style="--mdc-icon-size:14px;"></ha-icon> KOPIEREN
+                </button>
+                <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; font-size:11px;">
+                    <ha-icon icon="mdi:delete" style="--mdc-icon-size:14px;"></ha-icon> LÖSCHEN
+                </button>
+            </div>
+        </div>
+      `;
+
+      this.querySelector('#btn-dup').addEventListener('click', () => this.duplicateBlock(id));
+      this.querySelector('#btn-up').addEventListener('click', () => this.moveLayer(id, 'up'));
+      this.querySelector('#btn-down').addEventListener('click', () => this.moveLayer(id, 'down'));
+
+      this.querySelector('#p-x').addEventListener('input', e => { b.x = parseInt(e.target.value); updateUI(); });
+      this.querySelector('#p-y').addEventListener('input', e => { b.y = parseInt(e.target.value); updateUI(); });
+      this.querySelector('#p-size').addEventListener('input', e => { b.fontSize = parseInt(e.target.value); updateUI(); });
+      this.querySelector('#p-color').addEventListener('input', e => { b.color = e.target.value; updateUI(); });
+      this.querySelector('#p-glow').addEventListener('input', e => { b.glow = parseInt(e.target.value); updateUI(); });
+      this.querySelector('#p-textglow').addEventListener('input', e => { b.textGlow = parseInt(e.target.value); updateUI(); });
+      this.querySelector('#p-blur').addEventListener('input', e => { b.blur = parseInt(e.target.value); updateUI(); });
+      this.querySelector('#p-opacity').addEventListener('input', e => { b.opacity = parseFloat(e.target.value); updateUI(); });
+      this.querySelector('#p-text').addEventListener('input', e => { 
+            b.text = e.target.value; 
+            updateUI();
+      });
+      this.querySelector('#p-entity').addEventListener('change', e => { 
+            b.entity = e.target.value; 
+            if(!b.text || b.text === b.type) {
+                b.text = b.entity.split('.')[1];
+                this.querySelector('#p-text').value = b.text;
+                updateUI();
+            }
+      });
+      this.querySelector('#p-action').addEventListener('change', e => { b.action = e.target.value; });
+      this.querySelector('#btn-del').addEventListener('click', () => { 
+            el.remove(); 
+            this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); 
+            this.selectBlock(null); 
+      });
       updateUI();
     } else if (this.selectedLinkId !== null) {
       const l = this.canvasLinks[this.selectedLinkId];
