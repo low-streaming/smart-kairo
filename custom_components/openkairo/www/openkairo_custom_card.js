@@ -43,19 +43,18 @@ class OpenKairoCustomCard extends HTMLElement {
     this.innerHTML = `
       <style>
         ha-card {
-           background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(10, 15, 28, 0.9) 100%);
-           border-radius: 32px;
-           backdrop-filter: blur(${c.blur || 25}px) saturate(200%);
-           -webkit-backdrop-filter: blur(${c.blur || 25}px) saturate(200%);
+           background: #000;
+           border-radius: 12px;
+           backdrop-filter: blur(${c.blur || 25}px);
+           -webkit-backdrop-filter: blur(${c.blur || 25}px);
            position: relative; 
            box-shadow: 
-             0 20px 50px rgba(0,0,0,0.8),
-             inset 0 0 20px rgba(255,255,255,0.02),
-             inset 0 0 2px rgba(255,255,255,0.1),
-             ${c.glow > 0 ? `0 0 ${c.glow}px ${c.color || '#10b981'}` : '0 1px 1px rgba(255,255,255,0.1)'};
+             0 20px 80px rgba(0,0,0,0.9),
+             inset 0 0 40px rgba(0, 0, 0, 0.5),
+             ${c.glow > 0 ? `0 0 ${c.glow}px ${c.color || '#00f6ff'}40, 0 0 1px ${c.color || '#00f6ff'}` : '0 1px 1px rgba(255,255,255,0.1)'};
            overflow: hidden !important; 
-           border: 1px solid ${c.glow > 0 ? (c.color || '#10b981') : 'rgba(255,255,255,0.05)'};
-           color: #fff; font-family: 'Inter', sans-serif;
+           border: 1px solid ${c.glow > 0 ? (c.color || '#00f6ff') : 'rgba(255,255,255,0.05)'};
+           color: #fff; font-family: 'Rajdhani', sans-serif;
            min-height: ${c.height || 400}px;
         }
         
@@ -240,6 +239,37 @@ class OpenKairoCustomCard extends HTMLElement {
                 </div>
              </div>
            `;
+       } else if (b.type === 'Hex-Power') {
+           const isOn = stateObj ? stateObj.state === 'on' : true;
+           const color = isOn ? (b.color || '#00f6ff') : 'rgba(255,255,255,0.2)';
+           el.innerHTML = `
+                <div style="width:80px; height:90px; background:${color}; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center; opacity:0.8; box-shadow:0 0 20px ${color}; transition:0.3s;">
+                   <div style="width:90%; height:90%; background:#000; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                       <ha-icon icon="mdi:flash" style="--mdc-icon-size:20px; color:${color};"></ha-icon>
+                       <div style="font-size:14px; font-weight:900; color:#fff;">${isOn ? 'ON' : 'OFF'}</div>
+                   </div>
+                </div>
+           `;
+       } else if (b.type === 'Pulse-Chart') {
+           const flowVal = parseFloat(val) || 0;
+           const color = b.color || '#00f6ff';
+           el.innerHTML = `
+                <div style="width:200px; height:80px; background:rgba(0,0,0,0.4); border-radius:12px; border:1px solid rgba(255,255,255,0.05); padding:10px; display:flex; flex-direction:column;">
+                   <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                       <span style="font-size:9px; color:${color}; font-weight:900; letter-spacing:1px; text-transform:uppercase;">${b.text || 'System Load'}</span>
+                       <span style="font-size:9px; color:#fff; font-weight:900;">${val}${metric}</span>
+                   </div>
+                   <div style="flex:1; display:flex; align-items:flex-end; gap:2px;">
+                       <div style="flex:1; background:${color}; height:40%; opacity:0.3;"></div>
+                       <div style="flex:1; background:${color}; height:60%; opacity:0.5;"></div>
+                       <div style="flex:1; background:${color}; height:30%; opacity:0.3;"></div>
+                       <div style="flex:1; background:${color}; height:80%; opacity:0.8; box-shadow:0 0 10px ${color};"></div>
+                       <div style="flex:1; background:${color}; height:50%; opacity:0.5;"></div>
+                   </div>
+                </div>
+           `;
+       } else if (b.type === 'Glitch-Text') {
+           el.innerHTML = `<span style="text-shadow: 2px 0 #ef4444, -2px 0 #3b82f6; font-weight:900; letter-spacing:2px; font-size:${b.fontSize || 18}px; color:#fff;">${b.text || val}</span>`;
        } else if (b.type === 'Modus-Schalter') {
            const currentMode = stateObj ? stateObj.state : "auto";
            const modes = stateObj ? (stateObj.attributes.hvac_modes || ['heat', 'cool', 'auto']) : ['heat', 'cool', 'auto'];

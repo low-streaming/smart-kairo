@@ -18,33 +18,42 @@ class OpenKairoBuilder extends HTMLElement {
           flex-direction: column;
           height: 100vh;
           width: 100%;
-          background: #0b1121;
+          background: #000;
           color: white;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Rajdhani', sans-serif;
           overflow: hidden;
+          --kairo-cyan: #00f6ff;
+          --kairo-amber: #ffb000;
+          --kairo-magenta: #ec4899;
+          --kairo-gold: #c6a34f;
         }
 
         .builder-layout {
           display: grid;
           grid-template-rows: 60px 1fr;
-          grid-template-columns: 240px 1fr 300px;
+          grid-template-columns: 280px 1fr 310px;
           grid-template-areas:
             "header header header"
             "left canvas right";
           height: 100%;
           width: 100%;
+          background-image: 
+             linear-gradient(rgba(18,18,18,0.5) 1px, transparent 1px),
+             linear-gradient(90deg, rgba(18,18,18,0.5) 1px, transparent 1px);
+          background-size: 50px 50px;
         }
 
         .header {
           grid-area: header;
-          background: rgba(15, 23, 42, 0.95);
-          border-bottom: 1px solid rgba(255,255,255,0.08);
+          background: #000;
+          border-bottom: 2px solid rgba(0, 246, 255, 0.3);
           display: flex;
           justify-content: space-between;
           align-items: center;
           padding: 0 20px;
-          backdrop-filter: blur(10px);
-          z-index: 10;
+          backdrop-filter: blur(20px);
+          z-index: 100;
+          box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         }
         
         .header-logo {
@@ -52,175 +61,161 @@ class OpenKairoBuilder extends HTMLElement {
           align-items: center;
           gap: 12px;
           font-weight: 800;
-          font-size: 18px;
-          color: #fff;
-          letter-spacing: 1px;
+          font-size: 20px;
+          color: var(--kairo-cyan);
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          text-shadow: 0 0 10px rgba(0, 246, 255, 0.4);
         }
-        .header-logo ha-icon { color: #10b981; }
+        .header-logo ha-icon { color: #fff; --mdc-icon-size: 24px; }
 
-        .header-toolbar { display: flex; gap: 10px; }
+        .header-toolbar { display: flex; gap: 8px; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .tool-btn {
           background: transparent;
-          color: rgba(255,255,255,0.7);
+          color: rgba(255,255,255,0.4);
           border: 1px solid transparent;
-          padding: 6px 12px;
-          border-radius: 6px;
-          font-size: 13px;
-          font-weight: 600;
+          padding: 8px 14px;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 700;
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 6px;
-          transition: 0.2s;
+          gap: 8px;
+          transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          text-transform: uppercase;
+          letter-spacing: 1px;
         }
         .tool-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .tool-btn.active { background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+        .tool-btn.active { background: var(--kairo-cyan); color: #000; font-weight: 900; box-shadow: 0 0 15px rgba(0,246,255,0.3); }
 
         .left-sidebar {
           grid-area: left;
-          background: rgba(15, 23, 42, 0.6);
-          border-right: 1px solid rgba(255,255,255,0.05);
+          background: rgba(8, 8, 8, 0.95);
+          border-right: 1px solid rgba(0, 246, 255, 0.15);
           display: flex;
           flex-direction: column;
           overflow-y: auto;
+          position: relative;
         }
+        .left-sidebar::after { content:""; position:absolute; inset:0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px); pointer-events:none; }
 
-        .sidebar-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sidebar-tabs { display: flex; border-bottom: 2px solid rgba(255,255,255,0.03); background: rgba(0,0,0,0.2); }
         .s-tab {
-          flex: 1; text-align: center; padding: 12px; font-size: 12px;
-          font-weight: 600; color: rgba(255,255,255,0.5); cursor: pointer;
-          text-transform: uppercase; letter-spacing: 1px;
+          flex: 1; text-align: center; padding: 16px; font-size: 11px;
+          font-weight: 800; color: rgba(255,255,255,0.3); cursor: pointer;
+          text-transform: uppercase; letter-spacing: 2px;
+          transition: 0.3s;
         }
-        .s-tab.active { color: #10b981; border-bottom: 2px solid #10b981; background: rgba(16, 185, 129, 0.05); }
+        .s-tab.active { color: var(--kairo-cyan); border-bottom: 2px solid var(--kairo-cyan); background: rgba(0, 246, 255, 0.05); text-shadow: 0 0 10px rgba(0, 246, 255, 0.3); }
 
-        .sidebar-content { padding: 15px; }
+        .sidebar-content { padding: 20px; z-index: 2; }
         .search-box {
-          background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-          color: white; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box;
-          margin-bottom: 15px; outline: none;
+          background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+          color: white; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box;
+          margin-bottom: 20px; outline: none; font-family: 'Rajdhani', sans-serif; font-weight: 600;
+          transition: 0.3s;
         }
+        .search-box:focus { border-color: var(--kairo-cyan); background: rgba(255,255,255,0.05); box-shadow: 0 0 15px rgba(0,246,255,0.1); }
         
-        .block-category { font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; letter-spacing: 1px; font-weight: bold; }
-        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .block-category { font-size: 10px; text-transform: uppercase; color: var(--kairo-cyan); margin-bottom: 12px; letter-spacing: 2px; font-weight: 900; display:flex; align-items:center; gap:8px; opacity:0.6; }
+        .block-category::after { content:""; flex:1; height:1px; background: currentColor; opacity:0.2; }
+        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .block-item {
-          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
-          border-radius: 6px; padding: 12px 5px; display: flex; flex-direction: column; align-items: center; gap: 5px;
-          cursor: grab; transition: 0.2s;
+          background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 10px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+          cursor: grab; transition: 0.3s; border-left: 2px solid transparent;
         }
-        .block-item:hover { background: rgba(16, 185, 129, 0.1); border-color: #10b981; }
-        .block-item ha-icon { color: rgba(255,255,255,0.7); --mdc-icon-size: 20px; }
-        .block-item span { font-size: 11px; font-weight: 500; }
-
-        .layer-item { padding: 8px 10px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-radius: 4px; border: 1px solid transparent; color: rgba(255,255,255,0.7); transition: 0.2s; }
-        .layer-item:hover { background: rgba(255,255,255,0.03); }
-        .layer-item.active { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981; }
-
-        .linking-path.active { stroke-width: 4 !important; filter: drop-shadow(0 0 8px currentColor); }
+        .block-item:hover { background: rgba(0, 246, 255, 0.05); border-color: var(--kairo-cyan); border-left: 2px solid var(--kairo-cyan); transform: translateX(2px); }
+        .block-item ha-icon { color: rgba(255,255,255,0.4); --mdc-icon-size: 24px; transition: 0.3s; }
+        .block-item:hover ha-icon { color: var(--kairo-cyan); filter: drop-shadow(0 0 5px var(--kairo-cyan)); }
+        .block-item span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
 
         .canvas-area {
           grid-area: canvas;
-          background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%), #0f172a;
+          background: 
+            radial-gradient(circle at 50% 50%, rgba(0, 246, 255, 0.02) 0%, transparent 70%),
+            conic-gradient(from 180deg at 50% 50%, #080808 0deg, #000 180deg, #080808 360deg);
           position: relative;
           overflow: hidden;
           display: flex;
           justify-content: center;
           align-items: center;
-          background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-          background-size: 20px 20px;
+          background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+          background-size: 40px 40px;
         }
+        .canvas-area::before { content:""; position:absolute; inset:0; background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); opacity:0.1; pointer-events:none; mix-blend-mode: overlay; }
 
         .canvas-board {
           width: 400px;
           height: 600px;
-          background: linear-gradient(135deg, rgba(14, 25, 44, 0.8) 0%, rgba(10, 15, 28, 0.95) 100%);
-          border-radius: 32px;
-          box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: rgba(18, 18, 18, 0.9);
+          border-radius: 12px;
+          box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 40px rgba(0, 246, 255, 0.1);
+          border: 1px solid rgba(0, 246, 255, 0.2);
           backdrop-filter: blur(25px);
           position: relative;
           display: flex;
           flex-direction: column;
           padding: 24px;
-          background-image: 
-            radial-gradient(circle at 10px 10px, rgba(255,255,255,0.03) 1px, transparent 0);
-          background-size: 24px 24px;
+          overflow: hidden;
         }
-
-        #links-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; opacity:0.6; }
-        .linking-path { 
-           fill:none; 
-           stroke-width:2; 
-           stroke-dasharray:4, 12; 
-           animation: flow 3s linear infinite, glowPulse 2s ease-in-out infinite alternate; 
-           stroke-linecap: round;
-        }
-        @keyframes flow { to { stroke-dashoffset: -48; } }
-        @keyframes glowPulse { from { filter: drop-shadow(0 0 2px currentColor); opacity: 0.4; } to { filter: drop-shadow(0 0 10px currentColor); opacity: 0.9; } }
+        .canvas-board::before { content:""; position:absolute; top:0; left:0; width:100%; height:40px; background: linear-gradient(var(--kairo-cyan) 1px, transparent 1px); opacity:0.2; }
 
         .right-sidebar {
           grid-area: right;
-          background: rgba(15, 23, 42, 0.6);
-          border-left: 1px solid rgba(255,255,255,0.05);
+          background: rgba(8, 8, 8, 0.95);
+          border-left: 1px solid rgba(0, 246, 255, 0.15);
           display: flex;
           flex-direction: column;
           overflow-y: auto;
+          position: relative;
         }
+        .right-sidebar::before { content:""; position:absolute; inset:0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px); pointer-events:none; }
 
-        .prop-group { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 20px 15px; }
-        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 12px; }
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .prop-label { font-size: 11px; color: rgba(255,255,255,0.6); }
-        .prop-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 6px; border-radius: 4px; font-size: 11px; width: 80px; text-align: right; }
-        input[type="range"] { width: 120px; accent-color: #10b981; }
+        .prop-group { border-bottom: 2px solid rgba(255,255,255,0.03); padding: 25px 20px; z-index: 2; position:relative; }
+        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 800; color: var(--kairo-cyan); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 2px; }
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .prop-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .prop-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 6px; font-size: 11px; width: 100px; text-align: right; font-family: 'Rajdhani', sans-serif; font-weight: 600; }
+        .prop-input:focus { border-color: var(--kairo-cyan); outline: none; }
+        
+        input[type="range"] { height: 4px; border-radius: 4px; accent-color: var(--kairo-cyan); }
+        
+        .btn-primary { background: var(--kairo-cyan); color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 900; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 15px rgba(0,246,255,0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(0,246,255,0.4); }
 
-        .canvas-element {
-          position: absolute;
-          color: white;
-          padding: 8px;
-          border-radius: 12px;
-          cursor: move;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          user-select: none;
-          box-sizing: border-box;
-          transition: transform 0.1s, box-shadow 0.2s;
-          border: 1px solid transparent;
-        }
-        .canvas-element > * { pointer-events: none; } /* Prevents children from stealing drag events */
-        .canvas-element.selected { 
-          border: 1px solid #10b981 !important; 
-          box-shadow: 0 0 20px rgba(16,185,129,0.4), inset 0 0 10px rgba(16,185,129,0.2) !important; 
-          z-index: 100; 
-          background: rgba(16,185,129,0.05);
-        }
-
-        #links-overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
-        .linking-path { fill:none; stroke:#10b981; stroke-width:2; stroke-dasharray:5,5; animation: flow 1s linear infinite; filter: drop-shadow(0 0 5px #10b981); }
-        @keyframes flow { to { stroke-dashoffset: -10; } }
-
-        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); display:none; justify-content:center; align-items:center; z-index:1000; }
-        .modal-content { background:#0f172a; padding:30px; border-radius:16px; border:1px solid rgba(16,185,129,0.4); width:500px; color:white; display:flex; flex-direction:column; gap:15px; }
-        .modal-code { background:#000; padding:15px; border-radius:8px; font-family:monospace; font-size:12px; color:#a4b1cd; overflow-x:auto; white-space:pre-wrap; }
+        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); backdrop-filter:blur(30px); display:none; justify-content:center; align-items:center; z-index:1000; }
+        .modal-content { background:#0a0a0a; padding:40px; border-radius:12px; border:1px solid var(--kairo-cyan); width:600px; color:white; display:flex; flex-direction:column; gap:20px; box-shadow: 0 0 50px rgba(0, 246, 255, 0.2); position:relative; }
+        .modal-content::before { content:"EXPORT CODE"; position:absolute; top:-12px; left:20px; background:#000; padding:4px 15px; color:var(--kairo-cyan); font-size:10px; font-weight:900; border:1px solid var(--kairo-cyan); letter-spacing:2px; }
+        .modal-code { background:#000; padding:20px; border-radius:8px; font-family: 'Rajdhani', monospace; font-size:13px; color:#fff; overflow:auto; max-height:400px; border:1px solid rgba(255,255,255,0.05); }
       </style>
 
       <div class="builder-layout">
         <div class="header">
-          <div class="header-logo"><ha-icon icon="mdi:flash"></ha-icon> OpenKAIRO Builder</div>
+          <div class="header-logo"><ha-icon icon="mdi:flash"></ha-icon> KAIRO ARCHITECT</div>
+          
+          <div style="display:flex; gap:10px; align-items:center;">
+             <span style="font-size:10px; font-weight:900; color:rgba(255,255,255,0.4);">THEME PREVIEW:</span>
+             <select id="theme-selector" style="background:#000; border:1px solid var(--kairo-cyan); color:#fff; padding:5px 10px; border-radius:6px; font-size:11px; font-family:'Rajdhani'; font-weight:800; text-transform:uppercase;">
+                <option value="cyan">Platinum Cyan</option>
+                <option value="matrix">Matrix Green</option>
+                <option value="synth">Synth Night</option>
+                <option value="icarus">Icarus Gold</option>
+                <option value="overdrive">Overdrive Hologram</option>
+             </select>
+          </div>
+
           <div class="header-toolbar">
             <div class="tool-btn active" data-mode="ENTITIES"><ha-icon icon="mdi:shape-outline"></ha-icon> Entities</div>
             <div class="tool-btn" data-mode="ACTIONS"><ha-icon icon="mdi:gesture-tap"></ha-icon> Actions</div>
-            <div class="tool-btn" data-mode="MEDIA"><ha-icon icon="mdi:image-outline"></ha-icon> Media</div>
             <div class="tool-btn" data-mode="LAYOUT"><ha-icon icon="mdi:card-outline"></ha-icon> Layout</div>
             <div class="tool-btn" data-mode="LINK"><ha-icon icon="mdi:vector-line"></ha-icon> Link</div>
           </div>
           <div class="header-actions" style="display:flex; gap:10px;">
-            <button class="tool-btn" id="btn-preset-climate" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><ha-icon icon="mdi:thermostat"></ha-icon> Klima</button>
-            <button class="tool-btn" id="btn-preset-solar" style="background:rgba(251,191,36,0.1); color:#fbbf24;"><ha-icon icon="mdi:solar-power"></ha-icon> Solar</button>
-            <button class="tool-btn" id="btn-preset-home" style="background:rgba(16,185,129,0.1); color:#10b981;"><ha-icon icon="mdi:home-lightning-bolt"></ha-icon> Home</button>
-            <button class="tool-btn" id="btn-preset-cyber" style="background:rgba(168,85,247,0.1); color:#a855f7;"><ha-icon icon="mdi:robot"></ha-icon> Cyan-Cyber</button>
-            <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:content-save"></ha-icon> Speichern</button>
+            <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:content-save"></ha-icon> CODE GENERIEREN</button>
           </div>
         </div>
 
@@ -266,7 +261,28 @@ class OpenKairoBuilder extends HTMLElement {
     this.activeRightTab = 'STYLES';
     this.cardName = 'LIVING ROOM';
     this.activeLeftTab = 'BLOCKS';
-    this.cardStyle = { glow: 20, blur: 15, color: '#10b981', opacity: 0.45 };
+    this.cardStyle = { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 };
+
+    this._updateTheme = (theme) => {
+        const colors = {
+           cyan: '#00f6ff',
+           amber: '#ffb000',
+           magenta: '#ec4899',
+           gold: '#c6a34f',
+           matrix: '#00ff41'
+        };
+        const color = colors[theme.toLowerCase()] || colors.cyan;
+        this.cardStyle.color = color;
+        this.cardStyle.glow = theme === 'overdrive' ? 60 : 40;
+        this._updateCardStyle();
+        
+        // Update header color
+        const header = this.querySelector('#card-header-text');
+        if(header) header.style.color = color;
+        
+        // Update variables for styles
+        this.style.setProperty('--kairo-cyan', color);
+    };
 
     const updateCardStyle = () => {
         const board = this.querySelector('#drop-target');
@@ -441,8 +457,8 @@ class OpenKairoBuilder extends HTMLElement {
         const el = this.querySelector('#' + moveId);
         const ox = parseFloat(e.dataTransfer.getData('offsetX')) || 0;
         const oy = parseFloat(e.dataTransfer.getData('offsetY')) || 0;
-        let dropX = Math.round((e.clientX - canvasRect.left - ox) / gridSize) * gridSize;
-        let dropY = Math.round((e.clientY - canvasRect.top - oy) / gridSize) * gridSize;
+        let dropX = Math.round((e.clientX - canvasRect.left - ox) / 12) * 12;
+        let dropY = Math.round((e.clientY - canvasRect.top - oy) / 12) * 12;
         
         const b = this.canvasBlocks.find(x => x.id === moveId);
         if(b) {
@@ -472,8 +488,8 @@ class OpenKairoBuilder extends HTMLElement {
       }
       // 3. ADD NEW BLOCK
       else if (sourceType) {
-        let dropX = Math.round((e.clientX - canvasRect.left - 40) / gridSize) * gridSize;
-        let dropY = Math.round((e.clientY - canvasRect.top - 20) / gridSize) * gridSize;
+        let dropX = Math.round((e.clientX - canvasRect.left - 40) / 12) * 12;
+        let dropY = Math.round((e.clientY - canvasRect.top - 20) / 12) * 12;
         
         const targetBlock = e.target.closest('.canvas-element');
         let pId = null;
@@ -500,7 +516,9 @@ class OpenKairoBuilder extends HTMLElement {
         if(b.entity) yaml += `    entity: ${b.entity}\n`;
         if(b.text) yaml += `    text: "${b.text}"\n`;
         if(b.glow) yaml += `    glow: ${b.glow}\n`;
+        if(b.textGlow) yaml += `    textGlow: ${b.textGlow}\n`;
         if(b.blur) yaml += `    blur: ${b.blur}\n`;
+        if(b.opacity) yaml += `    opacity: ${b.opacity}\n`;
         if(b.action && b.action !== 'none') yaml += `    action: ${b.action}\n`;
         if(b.parentId) yaml += `    parentId: ${b.parentId}\n`;
       });
@@ -517,9 +535,9 @@ class OpenKairoBuilder extends HTMLElement {
       alert("Copied!");
     });
 
-    this.renderLeftSidebar();
-    this.selectBlock(null);
-    updateCardStyle();
+    this.querySelector('#theme-selector').addEventListener('change', e => {
+        this._updateTheme(e.target.value);
+    });
   }
 
   addBlockToCanvas(type, x, y, entityId = null, parentId = null) {
@@ -596,6 +614,36 @@ class OpenKairoBuilder extends HTMLElement {
                 </div>
              </div>
         `;
+    } else if (type === 'Hex-Power') {
+        el.style.width = '80px'; el.style.height = '90px'; el.style.background = 'transparent';
+        el.innerHTML = `
+             <div style="width:100%; height:100%; background:var(--kairo-cyan); clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center; opacity:0.8; box-shadow:0 0 20px var(--kairo-cyan);">
+                <div style="width:90%; height:90%; background:#000; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <ha-icon icon="mdi:flash" style="--mdc-icon-size:20px; color:var(--kairo-cyan);"></ha-icon>
+                    <div style="font-size:14px; font-weight:900; color:#fff;">ON</div>
+                </div>
+             </div>
+        `;
+    } else if (type === 'Pulse-Chart') {
+        el.style.width = '200px'; el.style.height = '80px'; el.style.background = 'rgba(0,0,0,0.4)';
+        el.style.borderRadius = '12px'; el.style.border = '1px solid rgba(255,255,255,0.05)';
+        el.innerHTML = `
+             <div style="width:100%; height:100%; padding:10px; display:flex; flex-direction:column;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="font-size:9px; color:var(--kairo-cyan); font-weight:900; letter-spacing:1px; text-transform:uppercase;">Network Load</span>
+                    <span style="font-size:9px; color:#fff; font-weight:900;">2.4 MB/s</span>
+                </div>
+                <div style="flex:1; display:flex; align-items:flex-end; gap:2px;">
+                    <div style="flex:1; background:var(--kairo-cyan); height:40%; opacity:0.3;"></div>
+                    <div style="flex:1; background:var(--kairo-cyan); height:60%; opacity:0.5;"></div>
+                    <div style="flex:1; background:var(--kairo-cyan); height:30%; opacity:0.3;"></div>
+                    <div style="flex:1; background:var(--kairo-cyan); height:80%; opacity:0.8; box-shadow:0 0 10px var(--kairo-cyan);"></div>
+                    <div style="flex:1; background:var(--kairo-cyan); height:50%; opacity:0.5;"></div>
+                </div>
+             </div>
+        `;
+    } else if (type === 'Glitch-Text') {
+        el.innerHTML = `<span style="text-shadow: 2px 0 red, -2px 0 blue; font-weight:900; letter-spacing:2px; font-size:18px;">${label}</span>`;
     } else {
         el.innerHTML = `<span style="text-shadow: 0 0 10px rgba(255,255,255,0.2);">${label}</span>`;
     }
@@ -680,10 +728,10 @@ class OpenKairoBuilder extends HTMLElement {
           right.innerHTML = `
             <div class="prop-group">
                 <div class="prop-header">Element Properties</div>
-                <div class="prop-row"><span class="prop-label">Anzeige-Text</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:120px;"></div>
-                <div class="prop-row"><span class="prop-label">Schriftgröße</span><input type="number" class="prop-input" id="p-size" value="${b.fontSize || 13}"></div>
-                <div class="prop-row"><span class="prop-label">HA-Entität</span>
-                    <select class="prop-input" id="p-entity" style="width:120px; font-size:10px;">
+                <div class="prop-row"><span class="prop-label">ANZEIGE-TEXT</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:140px;"></div>
+                <div class="prop-row"><span class="prop-label">SCHRIFTGRÖSSE</span><input type="number" class="prop-input" id="p-size" value="${b.fontSize || 13}"></div>
+                <div class="prop-row"><span class="prop-label">ENTITÄT</span>
+                    <select class="prop-input" id="p-entity" style="width:140px; font-size:10px;">
                         ${entityOptions}
                     </select>
                 </div>
@@ -833,13 +881,14 @@ class OpenKairoBuilder extends HTMLElement {
       { name: 'Badge', icon: 'mdi:badge-account-outline', cat: 'BASIC' },
       { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
       { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
+      { name: 'Glitch-Text', icon: 'mdi:format-text-variant-outline', cat: 'BASIC' },
       { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
       { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
-      { name: 'Button', icon: 'mdi:gesture-tap-button', cat: 'UI' },
+      { name: 'Hex-Power', icon: 'mdi:hexagon-outline', cat: 'UI' },
+      { name: 'Pulse-Chart', icon: 'mdi:chart-timeline-variant', cat: 'UI' },
       { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', cat: 'UI' },
-      { name: 'Modus-Schalter', icon: 'mdi:view-grid-outline', cat: 'UI' },
-      { name: 'Slider', icon: 'mdi:tune-variant', cat: 'UI' },
       { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' },
+      { name: 'Modus-Schalter', icon: 'mdi:view-grid-outline', cat: 'UI' },
       { name: 'Weather-Card', icon: 'mdi:weather-sunny', cat: 'UI' },
       { name: 'Media-Player', icon: 'mdi:play-circle-outline', cat: 'UI' }
     ];
