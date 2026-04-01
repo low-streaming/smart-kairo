@@ -1,0 +1,53 @@
+# OpenKAIRO OS - Platinum Cyber-Cyan V8 (Global Rajdhani Edition)
+# 🌌🕹️🚀 Version 4.1.8
+
+OpenKAIRO OS:
+  # Main Colors (Cyber-Cyan)
+  primary-color: "#00d1ff"
+  accent-color: "#00d1ff"
+  
+  # Typography (JETZT: Rajdhani für den kompromisslosen Tech-Look)
+  primary-font-family: "'Rajdhani', sans-serif"
+  paper-font-common-base_-_font-family: "var(--primary-font-family)"
+  paper-font-common-code_-_font-family: "var(--primary-font-family)"
+  paper-font-body1_-_font-family: "var(--primary-font-family)"
+  paper-font-subhead_-_font-family: "var(--primary-font-family)"
+  paper-font-headline_-_font-family: "var(--primary-font-family)"
+  paper-font-title_-_font-family: "var(--primary-font-family)"
+  paper-font-display1_-_font-family: "var(--primary-font-family)"
+  paper-font-display2_-_font-family: "var(--primary-font-family)"
+  paper-font-display3_-_font-family: "var(--primary-font-family)"
+  paper-font-display4_-_font-family: "var(--primary-font-family)"
+  paper-font-button_-_font-family: "var(--primary-font-family)"
+  paper-font-caption_-_font-family: "var(--primary-font-family)"
+  
+  # Background Registry (Fixes White Screen & Matches Builder)
+  primary-background-color: "#050811"
+  secondary-background-color: "#050811"
+  card-background-color: "#0f172a"
+  ha-card-background: "#0f172a"
+  paper-card-background-color: "#0f172a"
+  paper-listbox-background-color: "#0f172a"
+  
+  # Header & Navigation
+  app-header-background-color: "#050811"
+  app-header-text-color: "#ffffff"
+  paper-tabs-selection-bar-color: "#00d1ff"
+  
+  # Card Style (Neon Glow)
+  ha-card-border-radius: "16px"
+  ha-card-border-width: "1px"
+  ha-card-border-color: "#00d1ff"
+  ha-card-box-shadow: "0 0 15px rgba(0, 209, 255, 0.2)"
+  
+  # Text
+  primary-text-color: "#ffffff"
+  secondary-text-color: "rgba(255, 255, 255, 0.7)"
+  
+  # Dashboard Background
+  lovelace-background: "radial-gradient(circle, #0a1428 0%, #050811 100%)"
+  
+  modes:
+    dark:
+      primary-background-color: "#050811"
+      ha-card-background: "#0f172a"

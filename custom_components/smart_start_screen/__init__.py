@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import json
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers import discovery
@@ -47,7 +48,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         paths_to_register.append(StaticPathConfig("/smart_start_screen/entity-picker-card.js", picker_js_path, False))
 
     if paths_to_register:
-        cache_buster = str(time.time())
+        # Optimization: Use static version from manifest as cache buster to prevent conflicts on reload
+        manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
+        try:
+            with open(manifest_path, "r") as f:
+                manifest = json.load(f)
+            cache_buster = manifest.get("version", "1.0.0")
+        except Exception:
+            cache_buster = str(time.time())
+
         await hass.http.async_register_static_paths(paths_to_register)
         
         if os.path.exists(js_path):

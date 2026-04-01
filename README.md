@@ -38,12 +38,20 @@ Schluss mit schlecht lesbaren Karten!
 
 ---
 
+## 🎨 OpenKAIRO OS Theme 🌃🌌
+Das brandneue **OpenKAIRO OS Theme** bringt das Cyberpunk-Gefühl auf dein gesamtes Home Assistant.
+- **Glassmorphism everywhere**: Nicht nur Karten, auch die Seitenleiste und Header erhalten den Blur-Effekt.
+- **Unfiy Look**: Alle Standard-Elemente passen sich perfekt an deine OpenKAIRO Custom Cards an.
+- **Dark Mode Optimized**: Tiefes Blau und leuchtendes Smaragdgrün für ein ermüdungsfreies, edles Erlebnis.
+
 ## 🛠️ Installation & Setup
 
 1. **HACS**: Füge dieses Repository als "Custom Repository" hinzu.
 2. **Integration**: Suche nach *OpenKairo OS* und installiere die Komponente.
 3. **Builder**: Du findest den Builder direkt in deiner Home Assistant Seitenleiste unter dem OpenKAIRO-Logo.
-4. **Cache**: WICHTIG! Leere nach jedem Update deinen Browser-Cache (**STRG + F5**), damit die neuen Animationen und Skripte geladen werden.
+4. **Theme**: Kopiere die Datei `themes/openkairo_os.yaml` in deinen HA `themes/` Ordner und aktiviere "OpenKAIRO OS" in deinem Profil.
+5. **Schriften**: Für das volle Erlebnis empfehlen wir die Google Fonts **Orbitron** und **Inter** in deine `configuration.yaml` einzubinden.
+6. **Cache**: WICHTIG! Leere nach jedem Update deinen Browser-Cache (**STRG + F5**), damit die neuen Animationen und Skripte geladen werden.
 
 ---
 

@@ -32,7 +32,8 @@ async def _setup_internal(hass: HomeAssistant):
         )
     ])
 
-    for file_name in os.listdir(static_path):
+    files = await hass.async_add_executor_job(os.listdir, static_path)
+    for file_name in files:
         if file_name.endswith(".js"):
             _LOGGER.info(f"OpenKAIRO Resource detected: {file_name}")
 
