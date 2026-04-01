@@ -18,202 +18,188 @@ class OpenKairoBuilder extends HTMLElement {
           flex-direction: column;
           height: 100vh;
           width: 100%;
-          background: #000;
-          color: white;
-          font-family: 'Rajdhani', sans-serif;
+          background: #0d0d0d;
+          color: #f5f5f5;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           overflow: hidden;
           --kairo-cyan: #00f6ff;
-          --kairo-amber: #ffb000;
-          --kairo-magenta: #ec4899;
-          --kairo-gold: #c6a34f;
+          --accent-blue: #3b82f6;
+          --bg-sidebar: #151515;
+          --bg-canvas: #0f0f0f;
+          --border-color: rgba(255,255,255,0.06);
         }
 
         .builder-layout {
           display: grid;
-          grid-template-rows: 60px 1fr;
-          grid-template-columns: 280px 1fr 310px;
+          grid-template-rows: 56px 1fr;
+          grid-template-columns: 260px 1fr 320px;
           grid-template-areas:
             "header header header"
             "left canvas right";
           height: 100%;
           width: 100%;
-          background-image: 
-             linear-gradient(rgba(18,18,18,0.5) 1px, transparent 1px),
-             linear-gradient(90deg, rgba(18,18,18,0.5) 1px, transparent 1px);
-          background-size: 50px 50px;
         }
 
         .header {
           grid-area: header;
-          background: #000;
-          border-bottom: 2px solid rgba(0, 246, 255, 0.3);
+          background: rgba(13, 13, 13, 0.8);
+          border-bottom: 1px solid var(--border-color);
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 0 20px;
+          padding: 0 24px;
           backdrop-filter: blur(20px);
           z-index: 100;
-          box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         }
         
         .header-logo {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
           font-weight: 800;
-          font-size: 20px;
-          color: var(--kairo-cyan);
-          letter-spacing: 2px;
+          font-size: 15px;
+          color: #fff;
+          letter-spacing: 1px;
           text-transform: uppercase;
-          text-shadow: 0 0 10px rgba(0, 246, 255, 0.4);
         }
-        .header-logo ha-icon { color: #fff; --mdc-icon-size: 24px; }
+        .header-logo ha-icon { color: var(--kairo-cyan); --mdc-icon-size: 20px; }
 
-        .header-toolbar { display: flex; gap: 8px; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .header-toolbar { display: flex; gap: 4px; background: rgba(255,255,255,0.04); padding: 4px; border-radius: 10px; }
         .tool-btn {
           background: transparent;
-          color: rgba(255,255,255,0.4);
-          border: 1px solid transparent;
-          padding: 8px 14px;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 700;
+          color: rgba(255,255,255,0.5);
+          border: none;
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 8px;
-          transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          text-transform: uppercase;
-          letter-spacing: 1px;
+          gap: 6px;
+          transition: 0.2s ease;
+          text-transform: capitalize;
         }
         .tool-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .tool-btn.active { background: var(--kairo-cyan); color: #000; font-weight: 900; box-shadow: 0 0 15px rgba(0,246,255,0.3); }
+        .tool-btn.active { background: #fff; color: #000; font-weight: 700; }
 
         .left-sidebar {
           grid-area: left;
-          background: rgba(8, 8, 8, 0.95);
-          border-right: 1px solid rgba(0, 246, 255, 0.15);
+          background: var(--bg-sidebar);
+          border-right: 1px solid var(--border-color);
           display: flex;
           flex-direction: column;
           overflow-y: auto;
-          position: relative;
         }
-        .left-sidebar::after { content:""; position:absolute; inset:0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px); pointer-events:none; }
 
-        .sidebar-tabs { display: flex; border-bottom: 2px solid rgba(255,255,255,0.03); background: rgba(0,0,0,0.2); }
+        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.1); }
         .s-tab {
-          flex: 1; text-align: center; padding: 16px; font-size: 11px;
-          font-weight: 800; color: rgba(255,255,255,0.3); cursor: pointer;
-          text-transform: uppercase; letter-spacing: 2px;
-          transition: 0.3s;
+          flex: 1; text-align: center; padding: 14px; font-size: 10px;
+          font-weight: 700; color: rgba(255,255,255,0.4); cursor: pointer;
+          text-transform: uppercase; letter-spacing: 1px;
+          transition: 0.2s;
         }
-        .s-tab.active { color: var(--kairo-cyan); border-bottom: 2px solid var(--kairo-cyan); background: rgba(0, 246, 255, 0.05); text-shadow: 0 0 10px rgba(0, 246, 255, 0.3); }
+        .s-tab.active { color: #fff; border-bottom: 2px solid #fff; }
 
-        .sidebar-content { padding: 20px; z-index: 2; }
+        .sidebar-content { padding: 16px; }
         .search-box {
-          background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
-          color: white; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box;
-          margin-bottom: 20px; outline: none; font-family: 'Rajdhani', sans-serif; font-weight: 600;
-          transition: 0.3s;
+          background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);
+          color: white; padding: 10px 12px; border-radius: 8px; width: 100%; box-sizing: border-box;
+          margin-bottom: 16px; outline: none; font-size: 12px;
+          transition: 0.2s;
         }
-        .search-box:focus { border-color: var(--kairo-cyan); background: rgba(255,255,255,0.05); box-shadow: 0 0 15px rgba(0,246,255,0.1); }
+        .search-box:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
         
-        .block-category { font-size: 10px; text-transform: uppercase; color: var(--kairo-cyan); margin-bottom: 12px; letter-spacing: 2px; font-weight: 900; display:flex; align-items:center; gap:8px; opacity:0.6; }
-        .block-category::after { content:""; flex:1; height:1px; background: currentColor; opacity:0.2; }
-        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+        .block-category { font-size: 9px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 10px; letter-spacing: 1px; font-weight: 800; display:flex; align-items:center; gap:8px; }
+        .block-category::after { content:""; flex:1; height:1px; background: currentColor; opacity:0.1; }
+        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
         .block-item {
-          background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05);
-          border-radius: 10px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-          cursor: grab; transition: 0.3s; border-left: 2px solid transparent;
+          background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);
+          border-radius: 8px; padding: 12px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+          cursor: grab; transition: 0.2s;
         }
-        .block-item:hover { background: rgba(0, 246, 255, 0.05); border-color: var(--kairo-cyan); border-left: 2px solid var(--kairo-cyan); transform: translateX(2px); }
-        .block-item ha-icon { color: rgba(255,255,255,0.4); --mdc-icon-size: 24px; transition: 0.3s; }
-        .block-item:hover ha-icon { color: var(--kairo-cyan); filter: drop-shadow(0 0 5px var(--kairo-cyan)); }
-        .block-item span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
+        .block-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); transform: translateY(-1px); }
+        .block-item ha-icon { color: rgba(255,255,255,0.3); --mdc-icon-size: 20px; transition: 0.2s; }
+        .block-item:hover ha-icon { color: #fff; }
+        .block-item span { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.5); }
 
         .canvas-area {
           grid-area: canvas;
-          background: 
-            radial-gradient(circle at 50% 50%, rgba(0, 246, 255, 0.02) 0%, transparent 70%),
-            conic-gradient(from 180deg at 50% 50%, #080808 0deg, #000 180deg, #080808 360deg);
+          background: var(--bg-canvas);
           position: relative;
           overflow: hidden;
           display: flex;
           justify-content: center;
           align-items: center;
           background-image: 
-            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-          background-size: 40px 40px;
+            radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+          background-size: 32px 32px;
         }
         .canvas-area::before { content:""; position:absolute; inset:0; background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); opacity:0.1; pointer-events:none; mix-blend-mode: overlay; }
 
         .canvas-board {
           width: 400px;
           height: 600px;
-          background: rgba(18, 18, 18, 0.9);
-          border-radius: 12px;
-          box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 40px rgba(0, 246, 255, 0.1);
-          border: 1px solid rgba(0, 246, 255, 0.2);
-          backdrop-filter: blur(25px);
+          background: #000;
+          border-radius: 16px;
+          box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+          border: 1px solid rgba(255,255,255,0.08);
           position: relative;
           display: flex;
           flex-direction: column;
           padding: 24px;
           overflow: hidden;
         }
-        .canvas-board::before { content:""; position:absolute; top:0; left:0; width:100%; height:40px; background: linear-gradient(var(--kairo-cyan) 1px, transparent 1px); opacity:0.2; }
 
         .right-sidebar {
           grid-area: right;
-          background: rgba(8, 8, 8, 0.95);
-          border-left: 1px solid rgba(0, 246, 255, 0.15);
+          background: var(--bg-sidebar);
+          border-left: 1px solid var(--border-color);
           display: flex;
           flex-direction: column;
           overflow-y: auto;
-          position: relative;
         }
-        .right-sidebar::before { content:""; position:absolute; inset:0; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px); pointer-events:none; }
 
-        .prop-group { border-bottom: 2px solid rgba(255,255,255,0.03); padding: 25px 20px; z-index: 2; position:relative; }
-        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 800; color: var(--kairo-cyan); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 2px; }
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .prop-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
-        .prop-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 6px; font-size: 11px; width: 100px; text-align: right; font-family: 'Rajdhani', sans-serif; font-weight: 600; }
-        .prop-input:focus { border-color: var(--kairo-cyan); outline: none; }
+        .prop-group { border-bottom: 1px solid var(--border-color); padding: 20px; }
+        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .prop-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        .prop-input { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; font-size: 11px; width: 100px; text-align: right; }
+        .prop-input:focus { border-color: rgba(255,255,255,0.2); outline: none; }
         
-        input[type="range"] { height: 4px; border-radius: 4px; accent-color: var(--kairo-cyan); }
+        input[type="range"] { height: 2px; accent-color: #fff; }
         
-        .btn-primary { background: var(--kairo-cyan); color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 900; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 15px rgba(0,246,255,0.2); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(0,246,255,0.4); }
+        .btn-primary { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
 
-        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); backdrop-filter:blur(30px); display:none; justify-content:center; align-items:center; z-index:1000; }
-        .modal-content { background:#0a0a0a; padding:40px; border-radius:12px; border:1px solid var(--kairo-cyan); width:600px; color:white; display:flex; flex-direction:column; gap:20px; box-shadow: 0 0 50px rgba(0, 246, 255, 0.2); position:relative; }
-        .modal-content::before { content:"EXPORT CODE"; position:absolute; top:-12px; left:20px; background:#000; padding:4px 15px; color:var(--kairo-cyan); font-size:10px; font-weight:900; border:1px solid var(--kairo-cyan); letter-spacing:2px; }
-        .modal-code { background:#000; padding:20px; border-radius:8px; font-family: 'Rajdhani', monospace; font-size:13px; color:#fff; overflow:auto; max-height:400px; border:1px solid rgba(255,255,255,0.05); }
+        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(20px); display:none; justify-content:center; align-items:center; z-index:1000; }
+        .modal-content { background:#111; padding:32px; border-radius:16px; border:1px solid var(--border-color); width:560px; color:white; display:flex; flex-direction:column; gap:16px; position:relative; }
+        .modal-code { background:#000; padding:16px; border-radius:8px; font-family: monospace; font-size:12px; color:#fff; overflow:auto; max-height:400px; border:1px solid var(--border-color); }
         .canvas-element {
           position: absolute;
-          cursor: grab;
+          cursor: default;
           user-select: none;
-          transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           display: flex;
           align-items: center;
           justify-content: center;
+          border: 1px solid transparent;
         }
-        .canvas-element:active { cursor: grabbing; transform: scale(0.98); }
+        .canvas-element:hover { border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); }
         .canvas-element.selected { 
-          border: 1px dashed var(--kairo-cyan) !important; 
-          box-shadow: 0 0 25px rgba(0,246,255,0.4) !important; 
+          border: 1px solid #fff !important; 
           z-index: 100; 
-          background: rgba(0, 246, 255, 0.08);
         }
-        .canvas-element.selected::before { 
-          content:""; position:absolute; inset:-4px; 
-          border: 1px solid var(--kairo-cyan); 
-          clip-path: polygon(0 0, 10px 0, 0 10px, 100% 0, 100% 10px, 90% 0, 100% 100%, 90% 100%, 100% 90%, 0 100%, 0 90%, 10px 100%);
-          animation: corners 2s infinite alternate;
+        
+        /* Resize Handles */
+        .resizer {
+          width: 6px; height: 6px; background: #fff; border-radius: 50%;
+          position: absolute; display: none;
         }
-        @keyframes corners { from { opacity: 0.2; } to { opacity: 0.8; } }
+        .canvas-element.selected .resizer { display: block; }
+        .resizer.nw { top: -3px; left: -3px; cursor: nw-resize; }
+        .resizer.ne { top: -3px; right: -3px; cursor: ne-resize; }
+        .resizer.sw { bottom: -3px; left: -3px; cursor: sw-resize; }
+        .resizer.se { bottom: -3px; right: -3px; cursor: se-resize; }
       </style>
 
       <div class="builder-layout">
@@ -245,6 +231,7 @@ class OpenKairoBuilder extends HTMLElement {
         <div class="left-sidebar">
           <div class="sidebar-tabs">
             <div class="s-tab active" data-tab="BLOCKS">Blocks</div>
+            <div class="s-tab" data-tab="TEMPLATES">Templates</div>
             <div class="s-tab" data-tab="LAYERS">Layers</div>
           </div>
           <div class="sidebar-content" id="left-sidebar-container"></div>
@@ -477,7 +464,29 @@ class OpenKairoBuilder extends HTMLElement {
         } else return;
 
         e.preventDefault();
-        this.selectBlock(b.id); // Triggers UI update
+        this.selectBlock(b.id);
+    });
+
+    this.querySelector('#drop-target').addEventListener('dragover', e => e.preventDefault());
+    this.querySelector('#drop-target').addEventListener('drop', e => {
+      e.preventDefault();
+      const moveId = e.dataTransfer.getData('move_id');
+      const type = e.dataTransfer.getData('block_type');
+      const r = this.querySelector('#drop-target').getBoundingClientRect();
+
+      if (moveId) {
+        const b = this.canvasBlocks.find(x => x.id === moveId);
+        const offsetX = e.dataTransfer.getData('offsetX');
+        const offsetY = e.dataTransfer.getData('offsetY');
+        // Snapping: 12px
+        b.x = Math.round((e.clientX - r.left - offsetX) / 12) * 12;
+        b.y = Math.round((e.clientY - r.top - offsetY) / 12) * 12;
+        this.selectBlock(moveId);
+      } else if (type) {
+        const x = Math.round((e.clientX - r.left - 20) / 12) * 12;
+        const y = Math.round((e.clientY - r.top - 20) / 12) * 12;
+        this.addBlockToCanvas(type, x, y);
+      }
     });
   }
 
@@ -599,15 +608,116 @@ class OpenKairoBuilder extends HTMLElement {
 
     el.setAttribute('draggable', 'true');
     el.addEventListener('dragstart', e => {
+      if (e.target.classList.contains('resizer')) { e.preventDefault(); return; }
       e.dataTransfer.setData('move_id', blockId);
       const r = el.getBoundingClientRect();
       e.dataTransfer.setData('offsetX', e.clientX - r.left);
       e.dataTransfer.setData('offsetY', e.clientY - r.top);
     });
 
+    // Add Resizers
+    const resizers = ['nw','ne','sw','se'];
+    resizers.forEach(pos => {
+        const r = document.createElement('div');
+        r.className = `resizer ${pos}`;
+        el.appendChild(r);
+        r.addEventListener('mousedown', e => {
+            e.stopPropagation();
+            this._startResizing(e, blockId, pos);
+        });
+    });
+
+    // Inline Editing
+    if (el.querySelector('span')) {
+        const span = el.querySelector('span');
+        span.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            const input = document.createElement('input');
+            input.value = b.text;
+            input.style.cssText = `background: #000; color: #fff; border: 1px solid #fff; font-family: inherit; font-size: ${b.fontSize}px; width: 100%; text-align: center; outline: none; z-index: 1000;`;
+            span.replaceWith(input);
+            input.focus();
+            const finish = () => {
+                b.text = input.value;
+                input.replaceWith(span);
+                this.selectBlock(blockId);
+            };
+            input.addEventListener('blur', finish);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') finish(); });
+        });
+    }
+
     this.querySelector('#drop-target').appendChild(el);
-    this.canvasBlocks.push(b);
+    this.canvasBlocks.push({
+        id: blockId, type: type, x: x, y: y, w: el.offsetWidth || 100, h: el.offsetHeight || 40,
+        color: '#ffffff', entity: entityId, 
+        text: type === 'Text' ? 'Dein Text' : (entityId ? entityId.split('.')[1] : type),
+        glow: 0, textGlow: 0, blur: 0, opacity: 1, fontSize: 13,
+        action: 'none', parentId: parentId
+    });
     this.selectBlock(blockId);
+  }
+
+  _injectTemplate(type) {
+    const r = this.querySelector('#drop-target').getBoundingClientRect();
+    const cx = 100, cy = 100;
+    
+    if (type === 'Climate') {
+        const cId = 'b' + Date.now();
+        this.addBlockToCanvas('Container', cx, cy);
+        const b = this.canvasBlocks[this.canvasBlocks.length-1];
+        b.w = 280; b.h = 180; b.blur = 20; b.opacity = 0.3;
+        this.addBlockToCanvas('Klima-Bogen', cx + 70, cy + 20, null, cId);
+        this.addBlockToCanvas('Text', cx + 10, cy + 10, null, cId);
+        this.canvasBlocks[this.canvasBlocks.length-1].text = "WOHNZIMMER";
+    } else if (type === 'Energy') {
+        this.addBlockToCanvas('Card', cx, cy);
+        const b = this.canvasBlocks[this.canvasBlocks.length-1];
+        b.w = 320; b.h = 240; b.color = '#00f6ff'; b.glow = 30;
+        const cId = b.id;
+        this.addBlockToCanvas('Pulse-Chart', cx + 20, cy + 60, null, cId);
+        this.addBlockToCanvas('Hex-Power', cx + 230, cy + 100, null, cId);
+    } else if (type === 'Switch') {
+        this.addBlockToCanvas('Container', cx, cy);
+        const b = this.canvasBlocks[this.canvasBlocks.length-1];
+        b.w = 120; b.h = 120; b.blur = 10;
+        this.addBlockToCanvas('Hex-Power', cx + 20, cy + 15, null, b.id);
+    }
+  }
+
+  _startResizing(e, id, pos) {
+    const b = this.canvasBlocks.find(x => x.id === id);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = b.w;
+    const startH = b.h;
+    const startPosX = b.x;
+    const startPosY = b.y;
+
+    const onMouseMove = (moveE) => {
+        const dx = moveE.clientX - startX;
+        const dy = moveE.clientY - startY;
+
+        if (pos.includes('e')) b.w = Math.max(20, startW + dx);
+        if (pos.includes('w')) {
+            const newW = Math.max(20, startW - dx);
+            if (newW > 20) { b.w = newW; b.x = startPosX + dx; }
+        }
+        if (pos.includes('s')) b.h = Math.max(20, startH + dy);
+        if (pos.includes('n')) {
+            const newH = Math.max(20, startH - dy);
+            if (newH > 20) { b.h = newH; b.y = startPosY + dy; }
+        }
+        this.selectBlock(id); // Updatet HUD-UI
+    };
+
+    const onMouseUp = () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   }
 
   duplicateBlock(id) {
@@ -675,6 +785,8 @@ class OpenKairoBuilder extends HTMLElement {
         if(!el) return;
         el.style.left = b.x + 'px';
         el.style.top = b.y + 'px';
+        el.style.width = b.w + 'px';
+        el.style.height = b.h + 'px';
         el.style.color = b.color;
         el.style.boxShadow = b.glow > 0 ? `0 0 ${b.glow}px ${b.color}` : 'none';
         el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
@@ -686,13 +798,13 @@ class OpenKairoBuilder extends HTMLElement {
         }
         
         // Update Labels
-        this.querySelector('#l-x').innerText = `X POS (${b.x}px)`;
-        this.querySelector('#l-y').innerText = `Y POS (${b.y}px)`;
-        this.querySelector('#l-size').innerText = `Schrift (${b.fontSize}px)`;
-        this.querySelector('#l-glow').innerText = `GLOW (${b.glow})`;
-        this.querySelector('#l-tglow').innerText = `TEXT GLOW (${b.textGlow})`;
-        this.querySelector('#l-blur').innerText = `BLUR (${b.blur})`;
-        this.querySelector('#l-opacity').innerText = `DECKKRAFT (${Math.round((b.opacity || 1)*100)}%)`;
+        this.querySelector('#l-x').innerText = `Abstand Links (${Math.round(b.x)}px)`;
+        this.querySelector('#l-y').innerText = `Abstand Oben (${Math.round(b.y)}px)`;
+        this.querySelector('#l-size').innerText = `Textgröße (${b.fontSize}px)`;
+        this.querySelector('#l-glow').innerText = `Außen-Leuchten (${b.glow})`;
+        this.querySelector('#l-tglow').innerText = `Text-Leuchten (${b.textGlow})`;
+        this.querySelector('#l-blur').innerText = `Glas-Effekt (${b.blur})`;
+        this.querySelector('#l-opacity').innerText = `Sichtbarkeit (${Math.round((b.opacity || 1)*100)}%)`;
         
         this.renderLinks();
       };
@@ -706,38 +818,38 @@ class OpenKairoBuilder extends HTMLElement {
 
       right.innerHTML = `
         <div class="prop-group">
-            <div class="prop-header">Transform</div>
-            <div class="prop-row"><span class="prop-label" id="l-x">X POS (${b.x}px)</span><input type="range" id="p-x" min="0" max="400" value="${b.x}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-y">Y POS (${b.y}px)</span><input type="range" id="p-y" min="0" max="600" value="${b.y}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-size">Schrift (${b.fontSize || 13}px)</span><input type="range" id="p-size" min="10" max="80" value="${b.fontSize || 13}"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                <button class="btn-primary" id="btn-up" style="background:#222; font-size:9px; padding:5px;">LAYER UP</button>
-                <button class="btn-primary" id="btn-down" style="background:#222; font-size:9px; padding:5px;">LAYER DOWN</button>
+            <div class="prop-header">Abmessungen & Position</div>
+            <div class="prop-row"><span class="prop-label" id="l-x">Abstand Links (${Math.round(b.x)}px)</span><input type="range" id="p-x" min="0" max="400" value="${b.x}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-y">Abstand Oben (${Math.round(b.y)}px)</span><input type="range" id="p-y" min="0" max="600" value="${b.y}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-size">Textgröße (${b.fontSize || 13}px)</span><input type="range" id="p-size" min="10" max="80" value="${b.fontSize || 13}"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;">
+                <button class="btn-primary" id="btn-up" style="background:#222; font-size:9px; padding:6px; color:#fff;">NACH VORNE</button>
+                <button class="btn-primary" id="btn-down" style="background:#222; font-size:9px; padding:6px; color:#fff;">NACH HINTEN</button>
             </div>
         </div>
         
         <div class="prop-group">
-            <div class="prop-header">Design</div>
+            <div class="prop-header">Optik & Effekte</div>
             <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-glow">GLOW (${b.glow || 0})</span><input type="range" id="p-glow" min="0" max="100" value="${b.glow || 0}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-tglow">TEXT GLOW (${b.textGlow || 0})</span><input type="range" id="p-textglow" min="0" max="100" value="${b.textGlow || 0}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-blur">BLUR (${b.blur || 0})</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-opacity">DECKKRAFT (${Math.round((b.opacity !== undefined ? b.opacity : 1) * 100)}%)</span><input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${b.opacity !== undefined ? b.opacity : 1}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-glow">Außen-Leuchten (${b.glow || 0})</span><input type="range" id="p-glow" min="0" max="100" value="${b.glow || 0}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-tglow">Text-Leuchten (${b.textGlow || 0})</span><input type="range" id="p-textglow" min="0" max="100" value="${b.textGlow || 0}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-blur">Glas-Effekt (${b.blur || 0})</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
+            <div class="prop-row"><span class="prop-label" id="l-opacity">Sichtbarkeit (${Math.round((b.opacity !== undefined ? b.opacity : 1) * 100)}%)</span><input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${b.opacity !== undefined ? b.opacity : 1}"></div>
         </div>
 
         <div class="prop-group">
-            <div class="prop-header">Inhalt & Logik</div>
-            <div class="prop-row"><span class="prop-label">NAME/TEXT</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:140px;"></div>
-            <div class="prop-row"><span class="prop-label">ENTITÄT</span>
-                <select class="prop-input" id="p-entity" style="width:140px; font-size:10px;">
+            <div class="prop-header">Inhalt & Steuerung</div>
+            <div class="prop-row"><span class="prop-label">Bezeichnung</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:140px; text-align:left;"></div>
+            <div class="prop-row"><span class="prop-label">Entität</span>
+                <select class="prop-input" id="p-entity" style="width:140px; font-size:10px; text-align:left;">
                     ${entityOptions}
                 </select>
             </div>
-            <div class="prop-row"><span class="prop-label">AKTION</span>
-                <select class="prop-input" id="p-action" style="width:140px;">
+            <div class="prop-row"><span class="prop-label">Aktion</span>
+                <select class="prop-input" id="p-action" style="width:140px; text-align:left;">
                     <option value="none" ${b.action === 'none' ? 'selected' : ''}>Keine</option>
                     <option value="more-info" ${(b.action === 'more-info' || !b.action) ? 'selected' : ''}>Info-Fenster</option>
-                    <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Toggle</option>
+                    <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Toggle (An/Aus)</option>
                 </select>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
@@ -809,16 +921,16 @@ class OpenKairoBuilder extends HTMLElement {
       if(this.activeRightTab === 'STYLES') {
         right.innerHTML = `
           <div class="prop-group">
-              <div class="prop-header">Card Styling (Global)</div>
-              <div class="prop-row"><span class="prop-label">Glow Farbe</span><input type="color" id="p-card-color" value="${this.cardStyle.color}"></div>
-              <div class="prop-row"><span class="prop-label">Card Glow</span><input type="range" id="p-card-glow" min="0" max="100" value="${this.cardStyle.glow}"></div>
-              <div class="prop-row"><span class="prop-label">Card Blur</span><input type="range" id="p-card-blur" min="0" max="50" value="${this.cardStyle.blur}"></div>
-              <div class="prop-row"><span class="prop-label">Transparenz</span><input type="range" id="p-card-opacity" min="0" max="1" step="0.05" value="${this.cardStyle.opacity}"></div>
-              <button class="btn-primary" id="btn-premium-look" style="width:100%; margin-top:10px; background: linear-gradient(135deg, #10b981, #3b82f6); border:none;">✨ Premium Look anwenden</button>
+              <div class="prop-header">Design & Atmosphäre</div>
+              <div class="prop-row"><span class="prop-label">Hauptfarbe</span><input type="color" id="p-card-color" value="${this.cardStyle.color}"></div>
+              <div class="prop-row"><span class="prop-label">Leucht-Intensität</span><input type="range" id="p-card-glow" min="0" max="100" value="${this.cardStyle.glow}"></div>
+              <div class="prop-row"><span class="prop-label">Glas-Effekt (Blur)</span><input type="range" id="p-card-blur" min="0" max="50" value="${this.cardStyle.blur}"></div>
+              <div class="prop-row"><span class="prop-label">Sichtbarkeit</span><input type="range" id="p-card-opacity" min="0" max="1" step="0.05" value="${this.cardStyle.opacity}"></div>
+              <button class="btn-primary" id="btn-premium-look" style="width:100%; margin-top:20px; background: #fff; color:#000;">✨ Premium Look anwenden</button>
           </div>
           <div class="prop-group">
-              <div class="prop-header">Karten-Navigation</div>
-              <div class="prop-row"><span class="prop-label">Karten-Name</span><input type="text" class="prop-input" id="p-card-name" value="${this.cardName}" style="width:120px;"></div>
+              <div class="prop-header">Karten-Identität</div>
+              <div class="prop-row"><span class="prop-label">Name der Karte</span><input type="text" class="prop-input" id="p-card-name" value="${this.cardName}" style="width:140px; text-align:left;"></div>
           </div>
         `;
         this.querySelector('#p-card-color').addEventListener('input', e => { this.cardStyle.color = e.target.value; this._updateCardStyle(); });
@@ -831,16 +943,18 @@ class OpenKairoBuilder extends HTMLElement {
             if(h) h.innerText = this.cardName;
         });
         this.querySelector('#btn-premium-look').addEventListener('click', () => {
-            this.cardStyle = { glow: 40, blur: 25, color: '#10b981', opacity: 0.3 };
+            this.cardStyle = { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 };
             this._updateCardStyle();
             this.selectBlock(null);
         });
       } else {
         right.innerHTML = `
           <div class="prop-group">
-              <div class="prop-header">Karten-Info</div>
-              <div class="prop-row"><span class="prop-label">Name</span><span>${this.cardName}</span></div>
-              <div style="font-size:10px; opacity:0.5; margin-top:10px;">Wähle ein Element aus, um dessen Eigenschaften zu bearbeiten.</div>
+              <div class="prop-header">Geführter Editor</div>
+              <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.6; margin-top:10px;">
+                Wähle ein Element auf der Karte aus, um seine Eigenschaften wie Farbe, Größe oder Verbindung zu bearbeiten.<br><br>
+                Tipp: Doppelklicke auf Texte, um sie direkt zu ändern.
+              </div>
           </div>
         `;
       }
@@ -895,6 +1009,30 @@ class OpenKairoBuilder extends HTMLElement {
     const container = this.querySelector('#left-sidebar-container');
     if(!container) return;
     
+    if (this.activeLeftTab === 'TEMPLATES') {
+        let html = `<div class="block-category">Premium Vorlagen</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 10px;">`;
+        const templates = [
+            { id: 'Climate', name: 'Klima & Komfort', desc: 'Raumtemperatur & Luftfeuchtigkeit' },
+            { id: 'Energy', name: 'Energie-Zentrale', desc: 'Verbrauch & Solar-Produktion' },
+            { id: 'Switch', name: 'Intelligenz-Schalter', desc: 'Kompakte Steuerung' }
+        ];
+        templates.forEach(t => {
+            html += `
+                <div class="block-item template-item" data-id="${t.id}" style="height:auto; padding:16px; align-items:flex-start; text-align:left; background:rgba(255,255,255,0.02);">
+                    <ha-icon icon="mdi:auto-fix" style="--mdc-icon-size:18px; color:var(--kairo-cyan); margin-bottom:8px;"></ha-icon>
+                    <span style="font-size:12px; font-weight:700; color:#fff;">${t.name}</span>
+                    <span style="font-size:9px; opacity:0.4; text-transform:none; margin-top:4px;">${t.desc}</span>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+        container.querySelectorAll('.template-item').forEach(item => {
+            item.addEventListener('click', () => this._injectTemplate(item.dataset.id));
+        });
+        return;
+    }
+
     const allBlocks = [
       { name: 'Box', icon: 'mdi:square-outline', cat: 'BASIC' },
       { name: 'Circle', icon: 'mdi:circle-outline', cat: 'BASIC' },
@@ -914,7 +1052,7 @@ class OpenKairoBuilder extends HTMLElement {
     ];
 
     if (this.activeLeftTab === 'LAYERS') {
-        let html = `<div class="block-category">Struktur & Ebenen</div>`;
+        let html = `<div class="block-category">Ebenen & Struktur</div>`;
         const renderLayer = (parentId = null, level = 0) => {
             const children = this.canvasBlocks.filter(b => b.parentId === parentId);
             children.forEach(b => {
@@ -923,10 +1061,9 @@ class OpenKairoBuilder extends HTMLElement {
                 const label = b.text && b.text !== b.type ? b.text : b.type;
                 html += `
                     <div class="layer-item ${isSelected ? 'active' : ''}" style="padding-left:${level * 15 + 10}px; display:flex; align-items:center; gap:8px;" id="layer-${b.id}">
-                        <ha-icon icon="${blockInfo.icon}" style="--mdc-icon-size:14px; opacity:0.6; color:#10b981;"></ha-icon>
+                        <ha-icon icon="${blockInfo.icon}" style="--mdc-icon-size:12px; opacity:0.6; color:#fff;"></ha-icon>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:11px; font-weight:bold; color:#fff;">${label}</span>
-                            <span style="font-size:9px; opacity:0.4; text-transform:uppercase;">${b.type}</span>
+                            <span style="font-size:11px; font-weight:600; color:#fff;">${label}</span>
                         </div>
                     </div>
                 `;
@@ -945,10 +1082,10 @@ class OpenKairoBuilder extends HTMLElement {
         return;
     }
 
-    let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Search..." value="${this.sidebarSearchQuery}">`;
+    let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Bausteine suchen..." value="${this.sidebarSearchQuery}">`;
     const searchVal = (this.sidebarSearchQuery || '').toLowerCase();
     
-    // 1. ALWAYS show BASIC blocks (persistent tools)
+    // 1. ALWAYS show BASIC blocks
     const basicBlocks = allBlocks.filter(b => b.cat === 'BASIC' || b.name === 'Card' || b.name === 'Container');
     html += `<div class="block-category">Bausteine</div><div class="block-grid">`;
     basicBlocks.forEach(b => {
@@ -960,27 +1097,22 @@ class OpenKairoBuilder extends HTMLElement {
     });
     html += `</div>`;
 
-    // 2. Dynamic Section based on Toolbar Mode
+    // 2. Dynamic Section
     if (this.activeToolbarMode === 'ENTITIES') {
-        html += `<div class="block-category" style="margin-top:20px; color:#10b981;">Home Assistant Entitäten</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 6px;">`;
+        html += `<div class="block-category" style="margin-top:20px;">Deine Geräte (Entities)</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 4px;">`;
         if (this._hass && this._hass.states) {
             const eIds = Object.keys(this._hass.states)
                 .filter(id => id.toLowerCase().includes(searchVal))
                 .sort()
                 .slice(0, 50);
             
-            if (eIds.length === 0) {
-                html += `<div style="padding:20px; text-align:center; color:rgba(255,255,255,0.3); font-size:11px;">Keine Entitäten gefunden</div>`;
-            }
-
             eIds.forEach(eid => {
                 const name = eid.split('.')[1];
                 html += `
-                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:auto; padding:8px; flex-direction:row; align-items:center; gap:10px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
-                        <ha-icon icon="mdi:database-outline" style="--mdc-icon-size:14px; color:#10b981; opacity:0.7;"></ha-icon>
+                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:auto; padding:6px 10px; flex-direction:row; align-items:center; gap:10px; background:rgba(255,255,255,0.02); border-radius:10px; border:1px solid var(--border-color);">
+                        <ha-icon icon="mdi:database" style="--mdc-icon-size:12px; color:rgba(255,255,255,0.4);"></ha-icon>
                         <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
-                            <span style="font-size:10px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff;">${name}</span>
-                            <span style="font-size:8px; color:rgba(255,255,255,0.4); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eid}</span>
+                            <span style="font-size:10px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff; text-transform:none;">${name}</span>
                         </div>
                     </div>
                 `;
@@ -990,7 +1122,6 @@ class OpenKairoBuilder extends HTMLElement {
     } else {
         const modeLabel = this.activeToolbarMode === 'ACTIONS' ? 'Bedienung & UI' : this.activeToolbarMode;
         const filtered = allBlocks.filter(b => {
-             if (this.activeToolbarMode === 'MEDIA' && b.name === 'Image') return true;
              if (this.activeToolbarMode === 'ACTIONS' && b.cat === 'UI') return true;
              if (this.activeToolbarMode === 'LAYOUT' && b.cat === 'LAYOUT') return true;
              return false;
