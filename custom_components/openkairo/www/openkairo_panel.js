@@ -164,8 +164,9 @@ class OpenKairoBuilder extends HTMLElement {
         .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
         .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .prop-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-        .prop-input { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; font-size: 11px; width: 100px; text-align: right; }
+        .prop-input { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; font-size: 11px; width: 140px; text-align: left; color-scheme: dark; }
         .prop-input:focus { border-color: rgba(255,255,255,0.2); outline: none; }
+        .prop-input option { background: #111; color: white; padding: 8px; }
         
         input[type="range"] { height: 2px; accent-color: #fff; }
         
@@ -412,19 +413,61 @@ class OpenKairoBuilder extends HTMLElement {
     });
 
     this.querySelector('#btn-save').addEventListener('click', () => {
-      let yaml = `type: custom:openkairo-custom-card\nname: "${this.cardName}"\nglow: ${this.cardStyle.glow}\nblur: ${this.cardStyle.blur}\nopacity: ${this.cardStyle.opacity}\nlayout:\n`;
-      this.canvasBlocks.forEach(b => {
-        yaml += `  - type: ${b.type}\n    id: ${b.id}\n    x: ${b.x}\n    y: ${b.y}\n    color: "${b.color}"\n`;
-        if(b.entity) yaml += `    entity: ${b.entity}\n`;
-        if(b.text) yaml += `    text: "${b.text}"\n`;
-        if(b.glow) yaml += `    glow: ${b.glow}\n`;
-        if(b.textGlow) yaml += `    textGlow: ${b.textGlow}\n`;
-        if(b.blur) yaml += `    blur: ${b.blur}\n`;
-        if(b.opacity) yaml += `    opacity: ${b.opacity}\n`;
-        if(b.action && b.action !== 'none') yaml += `    action: ${b.action}\n`;
-        if(b.parentId) yaml += `    parentId: ${b.parentId}\n`;
-      });
-      this.querySelector('#export-code-box').innerText = yaml;
+      let exportObj = {
+          type: 'custom:openkairo-custom-card',
+          name: this.cardName,
+          glow: parseInt(this.cardStyle.glow),
+          blur: parseInt(this.cardStyle.blur),
+          opacity: parseFloat(this.cardStyle.opacity),
+          layout: this.canvasBlocks.map(b => {
+              let item = {
+                  type: b.type,
+                  id: b.id,
+                  x: b.x,
+                  y: b.y,
+                  color: b.color
+              };
+              if (b.w !== undefined) item.w = b.w;
+              if (b.h !== undefined) item.h = b.h;
+              if (b.entity) item.entity = b.entity;
+              if (b.text) item.text = b.text;
+              if (b.glow) item.glow = parseInt(b.glow);
+              if (b.textGlow) item.textGlow = parseInt(b.textGlow);
+              if (b.blur) item.blur = parseInt(b.blur);
+              if (b.opacity !== undefined) item.opacity = parseFloat(b.opacity);
+              if (b.action && b.action !== 'none') item.action = b.action;
+              if (b.parentId) item.parentId = b.parentId;
+              if (b.fontSize) item.fontSize = parseInt(b.fontSize);
+              return item;
+          })
+      };
+
+      // Simple YAML stringifier
+      const toYaml = (obj, indent = 0) => {
+          let res = '';
+          const spaces = ' '.repeat(indent);
+          for (let key in obj) {
+              const val = obj[key];
+              if (Array.isArray(val)) {
+                  res += `${spaces}${key}:\n`;
+                  val.forEach(item => {
+                      res += `${spaces}  - `;
+                      let first = true;
+                      for (let subKey in item) {
+                          const subVal = item[subKey];
+                          if (!first) res += `${spaces}    `;
+                          res += `${subKey}: ${typeof subVal === 'string' ? `"${subVal}"` : subVal}\n`;
+                          first = false;
+                      }
+                  });
+              } else {
+                  res += `${spaces}${key}: ${typeof val === 'string' ? `"${val}"` : val}\n`;
+              }
+          }
+          return res;
+      };
+
+      this.querySelector('#export-code-box').innerText = toYaml(exportObj);
       this.querySelector('#export-modal').style.display = 'flex';
     });
     
