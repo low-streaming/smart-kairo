@@ -1,0 +1,56 @@
+# OpenKAIRO OS - The Icarus Edition V11 (Luxury Gold)
+# 🌌🌟⬛⚜️ Version 11.0.0
+
+OpenKAIRO Icarus:
+  # Main Colors (Liquid Gold / Amber)
+  primary-color: "#ff9a00" 
+  accent-color: "#ffbf00"
+  
+  # Typography (Tech-Optimized Rajdhani)
+  primary-font-family: "'Rajdhani', sans-serif"
+  paper-font-common-base_-_font-family: "var(--primary-font-family)"
+  paper-font-headline_-_font-family: "var(--primary-font-family)"
+  paper-font-title_-_font-family: "var(--primary-font-family)"
+  
+  # Background Registry (Honey-Ghost Glass)
+  primary-background-color: "#050505"
+  secondary-background-color: "#0a0c14"
+  card-background-color: "rgba(22, 18, 12, 0.85)"
+  ha-card-background: "rgba(22, 18, 12, 0.85)"
+  paper-card-background-color: "rgba(22, 18, 12, 0.85)"
+  
+  # Header & Navigation (Luxury Flow)
+  app-header-background-color: "#050505"
+  app-header-text-color: "#ff9a00"
+  paper-tabs-selection-bar-color: "#ff9a00"
+  
+  # Card Style (Gold Glow & Sharp Edges)
+  ha-card-border-radius: "4px" # Kantiger für den High-Tech-Look
+  ha-card-border-width: "1.5px"
+  ha-card-border-color: "rgba(255, 154, 0, 0.4)"
+  ha-card-box-shadow: "0 8px 32px 0 rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 154, 0, 0.15)"
+  
+  # Sidebar
+  sidebar-background-color: "#050505"
+  sidebar-selected-text-color: "#ff9a00"
+  sidebar-selected-icon-color: "#ff9a00"
+  
+  # Text
+  primary-text-color: "#ffffff"
+  secondary-text-color: "rgba(255, 154, 0, 0.7)"
+  
+  # Dashboard Background (Geometric Lux Grid)
+  lovelace-background: >
+    linear-gradient(30deg, #050505 12%, transparent 12.5%, transparent 87%, #050505 87.5%, #050505),
+    linear-gradient(150deg, #050505 12%, transparent 12.5%, transparent 87%, #050505 87.5%, #050505),
+    linear-gradient(30deg, #050505 12%, transparent 12.5%, transparent 87%, #050505 87.5%, #050505),
+    linear-gradient(150deg, #050505 12%, transparent 12.5%, transparent 87%, #050505 87.5%, #050505),
+    linear-gradient(60deg, rgba(255, 154, 0, 0.05) 25%, transparent 25.5%, transparent 75%, rgba(255, 154, 0, 0.05) 75%, rgba(255, 154, 0, 0.05)),
+    linear-gradient(60deg, rgba(255, 154, 0, 0.05) 25%, transparent 25.5%, transparent 75%, rgba(255, 154, 0, 0.05) 75%, rgba(255, 154, 0, 0.05)),
+    #050505
+  background-size: "80px 140px"
+  
+  modes:
+    dark:
+      primary-background-color: "#050505"
+      ha-card-background: "rgba(22, 18, 12, 0.85)"

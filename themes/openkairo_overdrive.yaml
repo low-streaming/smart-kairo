@@ -1,0 +1,71 @@
+# OpenKAIRO OS - Project OVERDRIVE (The Singularity V15)
+# 🌌💎🕹️ Version 15.0.0 (Professional Edition)
+
+OpenKAIRO Overdrive:
+  # Main Colors (Pure Cyan & Carbon White)
+  primary-color: "#00f6ff"
+  accent-color: "#00f6ff"
+  
+  # Typography (Tech-Optimized Rajdhani)
+  primary-font-family: "'Rajdhani', sans-serif"
+  paper-font-common-base_-_font-family: "var(--primary-font-family)"
+  paper-font-body1_-_font-family: "var(--primary-font-family)"
+  paper-font-headline_-_font-family: "var(--primary-font-family)"
+  paper-font-title_-_font-family: "var(--primary-font-family)"
+  paper-font-button_-_font-family: "var(--primary-font-family)"
+  
+  # Background Registry (Absolute OLED Dark)
+  primary-background-color: "#000000"
+  secondary-background-color: "#080808"
+  # Frost-Glass Cards (0.9 opacity for perfect readability)
+  card-background-color: "rgba(18, 18, 18, 0.9)"
+  ha-card-background: "rgba(18, 18, 18, 0.9)"
+  paper-card-background-color: "rgba(18, 18, 18, 0.9)"
+  paper-listbox-background-color: "#080808"
+  
+  # DIALOG & POPUP FIX (Absolute Consistency)
+  # Diese Variablen decken fast alle Popups in Home Assistant ab
+  paper-dialog-background-color: "#121212"
+  ha-dialog-background-color: "#121212"
+  mdc-theme-surface: "#121212"
+  dialog-backdrop-filter: "blur(15px) grayscale(100%)"
+  paper-dialog-color: "#ffffff"
+  
+  # Header & Navigation (OLED Integration)
+  app-header-background-color: "#000000"
+  app-header-text-color: "#00f6ff"
+  paper-tabs-selection-bar-color: "#00f6ff"
+  
+  # Sidebar (Smooth Fade)
+  sidebar-background-color: "#000000"
+  sidebar-selected-text-color: "#00f6ff"
+  sidebar-selected-icon-color: "#00f6ff"
+  sidebar-icon-color: "rgba(255, 255, 255, 0.5)"
+  
+  # Card Style (Laminar High-Tech)
+  ha-card-border-radius: "8px"
+  ha-card-border-width: "1px"
+  ha-card-border-color: "rgba(0, 246, 255, 0.4)" # Kristallklarer Cyan-Rand
+  ha-card-box-shadow: "0 4px 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 246, 255, 0.1)"
+  
+  # Text
+  primary-text-color: "#ffffff"
+  secondary-text-color: "rgba(0, 246, 255, 0.8)"
+  disabled-text-color: "rgba(255, 255, 255, 0.3)"
+  
+  # Dashboard Background (The Singularity Pattern)
+  # NUR im Lovelace Dashboard sichtbar (vermeidet Chaos auf Einstellungs-Seiten)
+  lovelace-background: >
+    radial-gradient(circle at 50% 50%, rgba(0, 246, 255, 0.03) 0%, transparent 100%),
+    linear-gradient(rgba(0, 246, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 246, 255, 0.02) 1px, transparent 1px),
+    #000000
+  background-size: "100% 100%, 50px 50px, 50px 50px"
+  
+  modes:
+    dark:
+      primary-background-color: "#000000"
+      ha-card-background: "rgba(18, 18, 18, 0.9)"
+      paper-dialog-background-color: "#121212"
+      ha-dialog-background-color: "#121212"
+      mdc-theme-surface: "#121212"
