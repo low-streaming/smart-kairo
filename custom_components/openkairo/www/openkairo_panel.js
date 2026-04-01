@@ -13,10 +13,11 @@ class OpenKairoBuilder extends HTMLElement {
   setupDOM() {
     if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
     this.shadowRoot.innerHTML = `
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
       <style>
         :host {
           --bg-color: #000000;
-          --sidebar-bg: rgba(14, 14, 16, 0.85);
+          --sidebar-bg: rgba(10, 10, 12, 0.85);
           --border-color: rgba(255, 255, 255, 0.08);
           --accent-color: #00f6ff;
           --kairo-cyan: #00f6ff;
@@ -25,19 +26,21 @@ class OpenKairoBuilder extends HTMLElement {
           --text-secondary: rgba(255, 255, 255, 0.5);
           --input-bg: rgba(255, 255, 255, 0.05);
           font-family: 'Outfit', 'Inter', sans-serif;
-          display: flex; flex-direction: column; height: 100%; min-height: 100vh; width: 100%; overflow: hidden; background: #000; color: #fff;
+          position: absolute; inset: 0; background: #000; color: #fff; overflow: hidden;
         }
         
-        #builder-container { display: flex; flex-direction: column; flex: 1; height: 100%; width: 100%; overflow: hidden; background: #000; position: relative; }
+        #builder-container { 
+          display: grid; grid-template-rows: 66px 1fr; 
+          position: absolute; inset: 0; overflow: hidden; 
+        }
         
         .header { 
-          height: 100%; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; 
-          background: #000; z-index: 100;
+          border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; 
+          background: #000; z-index: 100; height: 66px;
         }
-        header { height: 56px; }
 
-        .header-branding { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 0.5px; font-size: 13px; text-transform: uppercase; color: #fff; }
-        .header-branding ha-icon { color: var(--kairo-cyan); filter: drop-shadow(0 0 5px var(--kairo-cyan)); --mdc-icon-size: 20px; }
+        .header-branding { display: flex; align-items: center; gap: 12px; font-weight: 900; letter-spacing: 2px; font-size: 14px; text-transform: uppercase; color: #fff; }
+        .header-branding ha-icon { color: var(--kairo-cyan); filter: drop-shadow(0 0 10px var(--kairo-cyan)); --mdc-icon-size: 24px; }
         
         .header-center { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
         .header-breadcrumb { color: #fff; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: 0.2s; border: 1px solid transparent; }
@@ -45,10 +48,8 @@ class OpenKairoBuilder extends HTMLElement {
         .header-breadcrumb ha-icon { --mdc-icon-size: 14px; opacity: 0.6; }
 
         .main-layout { 
-          display: grid; 
-          grid-template-columns: 280px 1fr 340px; 
-          flex: 1; height: calc(100% - 66px); width: 100%; 
-          overflow: hidden; background: #000;
+          display: grid; grid-template-columns: 320px 1fr 360px; 
+          height: 100%; width: 100%; overflow: hidden; background: #000;
         }
         
         .sidebar { 
@@ -61,15 +62,15 @@ class OpenKairoBuilder extends HTMLElement {
         .sidebar-right { border-left: 1px solid var(--border-color); border-right: none; }
         
         .sidebar-tabs { 
-            display: flex; background: rgba(0,0,0,0.4); border-radius: 12px; margin: 12px; padding: 4px; gap: 4px; height: auto; min-height: auto;
-            border: 1px solid var(--border-color);
+            display: flex; background: rgba(0,0,0,0.5); border-radius: 14px; margin: 20px; padding: 5px; gap: 5px; height: auto; min-height: auto;
+            border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
         }
         .s-tab { 
             flex: 1; text-align: center; font-size: 10px; font-weight: 900; text-transform: uppercase; color: var(--text-secondary); 
-            cursor: pointer; padding: 8px 4px; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); letter-spacing: 1px; border: none;
+            cursor: pointer; padding: 10px 4px; border-radius: 10px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); letter-spacing: 1.5px; border: none;
         }
-        .s-tab.active { background: rgba(0, 246, 255, 0.1); color: var(--kairo-cyan); box-shadow: 0 0 0 1px rgba(0, 246, 255, 0.2); }
-        .s-tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: #fff; }
+        .s-tab.active { background: var(--kairo-cyan); color: #000; box-shadow: 0 4px 15px rgba(0, 246, 255, 0.4); }
+        .s-tab:hover:not(.active) { background: rgba(255,255,255,0.08); color: #fff; }
         .s-tab::after { display: none; }
 
         .sidebar-content { flex: 1; overflow-y: auto; padding: 24px; min-height: 100%; }
@@ -99,7 +100,9 @@ class OpenKairoBuilder extends HTMLElement {
         
         #drop-target::before {
             content: ""; position: absolute; inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%),
+                repeating-linear-gradient(0deg, transparent 0px, rgba(255,255,255,0.01) 1px, transparent 2px);
             pointer-events: none;
         }
 
@@ -148,13 +151,13 @@ class OpenKairoBuilder extends HTMLElement {
         .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .prop-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
         .prop-input { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 8px 10px; border-radius: 6px; font-size: 11px; width: 150px; text-align: left; color-scheme: dark; transition: 0.3s; }
-        .prop-input:focus { border-color: var(--kairo-cyan); outline: none; background: rgba(0,0,0,0.5); }
+        .prop-input:focus { border-color: var(--kairo-cyan); outline: none; background: rgba(0,0,0,0.5); box-shadow: 0 0 15px rgba(0,246,255,0.15); }
         
         /* Pro Sliders */
         input[type="range"] { -webkit-appearance: none; background: transparent; cursor: pointer; height: 24px; width: 100%; }
         input[type="range"]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.05); height: 3px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.03); }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #fff; margin-top: -6.5px; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: 0.2s; border: 2px solid #000; }
-        input[type="range"]:active::-webkit-slider-thumb { background: var(--kairo-cyan); transform: scale(1.1); box-shadow: 0 0 15px var(--kairo-cyan); }
+        input[type="range"]:active::-webkit-slider-thumb { background: var(--kairo-cyan); transform: scale(1.15); box-shadow: 0 0 20px var(--kairo-cyan); }
         
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(30px); display:none; justify-content:center; align-items:center; z-index:1000; }
         .modal-content { background:#111; padding:32px; border-radius:24px; border:1px solid var(--border-color); width:560px; color:white; display:flex; flex-direction:column; gap:20px; position:relative; }
@@ -185,10 +188,10 @@ class OpenKairoBuilder extends HTMLElement {
         /* Component Styles */
         .studio-pro-arc { 
             position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; 
-            background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 30px #10b98130;
+            background:rgba(0,0,0,0.4); border:1px solid rgba(0,246,255,0.15); 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 30px #10b98130, 0 0 20px rgba(0,246,255,0.1);
         }
-        .studio-pro-arc .val { font-size:36px; font-weight:900; color:#fff; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+        .studio-pro-arc .val { font-size:36px; font-weight:900; color:#fff; text-shadow: 0 0 25px rgba(255,255,255,0.4); font-family: 'Outfit'; }
       </style>
 
       <div id="builder-container">
@@ -416,8 +419,17 @@ class OpenKairoBuilder extends HTMLElement {
         // Specialized rendering for Studio blocks
         if (b.type === 'Klima-Bogen') {
             el.innerHTML = `<div class="studio-pro-arc"><div class="val">${b.text || '21°'}</div></div>`;
+        } else if (b.type === 'Energie-Ring') {
+            el.innerHTML = `
+                <div class="studio-pro-arc" style="border-style:dashed; border-color:var(--kairo-magenta); box-shadow: 0 0 30px rgba(255,0,255,0.15), inset 0 0 20px rgba(255,0,255,0.1);">
+                    <ha-icon icon="mdi:flash" style="position:absolute; top:15%; color:var(--kairo-magenta); --mdc-icon-size:16px; filter:drop-shadow(0 0 5px var(--kairo-magenta));"></ha-icon>
+                    <div class="val" style="color:var(--kairo-magenta); font-size:28px;">${b.text || '850W'}</div>
+                </div>`;
         } else if (b.type === 'Neon-Switch') {
-            el.innerHTML = `<div style="border:1px solid ${b.color}; border-radius:10px; padding:4px 8px; font-size:10px; font-weight:900;">SWITCH</div>`;
+            el.innerHTML = `
+                <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border:1px solid ${b.color}; border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow: 0 0 20px ${b.color}40, inset 0 0 10px ${b.color}20;">
+                    <div style="font-size:10px; font-weight:900; letter-spacing:2px; color:${b.color}; text-shadow: 0 0 10px ${b.color};">SWITCH</div>
+                </div>`;
         } else {
             el.innerHTML = `<span>${b.text || b.type}</span>`;
         }
