@@ -435,7 +435,12 @@ class OpenKairoBuilder extends HTMLElement {
         if (type === 'Klima-Bogen') { b.w = 140; b.h = 140; b.color = '#10b981'; }
         this.state.blocks.push(b); this.selectBlock(id);
     }
-    _renderAll() { this._renderCanvas(); this._renderSidebars(); this._updateGlobalStyles(); }
+    _renderAll() { 
+        this._renderCanvas(); 
+        this._renderSidebars(); 
+        this._renderRightSidebar(); 
+        this._updateGlobalStyles(); 
+    }
     _renderCanvas() {
         const board = this.shadowRoot.querySelector('#drop-target'); if (!board) return;
         const header = board.querySelector('#card-header-text'); board.innerHTML = ''; if(header) board.appendChild(header);
@@ -466,9 +471,31 @@ class OpenKairoBuilder extends HTMLElement {
     }
     _renderSidebars() {
         const left = this.shadowRoot.querySelector('#left-sidebar-container');
+        if (!left) return;
+        
         if (this.activeLeftTab === 'BLOCKS') {
-            left.innerHTML = `<div class="block-category open">Standard Library</div><div class="block-grid">${BlockRegistry.getStandardBlocks().map(b => `<div class="block-item b-item" data-type="${b.type}"><div class="block-preview">${b.preview}</div><span>${b.type}</span></div>`).join('')}</div>`;
-            left.querySelectorAll('.b-item').forEach(i => { i.setAttribute('draggable', 'true'); i.addEventListener('dragstart', e => e.dataTransfer.setData('source_type', i.dataset.type)); });
+            const blocks = BlockRegistry.getStandardBlocks();
+            left.innerHTML = `
+                <div class="block-category-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; padding-left: 5px;">Standard Library</div>
+                <div class="block-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    ${blocks.map(b => `
+                        <div class="block-item b-item" data-type="${b.type}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: grab; transition: 0.3s;">
+                            <div class="block-preview" style="--mdc-icon-size: 24px;">${b.preview}</div>
+                            <span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6);">${b.type}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            left.querySelectorAll('.b-item').forEach(i => { 
+                i.setAttribute('draggable', 'true'); 
+                i.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('source_type', i.dataset.type);
+                    i.style.opacity = '0.5';
+                });
+                i.addEventListener('dragend', () => i.style.opacity = '1');
+            });
+        } else {
+            left.innerHTML = `<div style="text-align:center; padding-top:100px; opacity:0.3; font-size:11px; font-weight:900; letter-spacing:2px;">EMPTY SLOT</div>`;
         }
     }
     selectBlock(id) { this.selectedBlockId = id; this._renderCanvas(); this._renderRightSidebar(); }
