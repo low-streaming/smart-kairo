@@ -11,7 +11,7 @@ class OpenKairoBuilder extends HTMLElement {
   }
 
   setupDOM() {
-    this.attachShadow({ mode: 'open' });
+    if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -24,10 +24,10 @@ class OpenKairoBuilder extends HTMLElement {
           --text-secondary: rgba(255,255,255,0.4);
           --input-bg: #18181b;
           font-family: 'Inter', sans-serif;
-          display: flex; flex-direction: column; height: 100vh; width: 100%; overflow: hidden; background: var(--bg-color); color: var(--text-primary);
+          display: flex; flex-direction: column; height: 100%; min-height: 100vh; width: 100%; overflow: hidden; background: #000; color: var(--text-primary);
         }
         
-        #builder-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        #builder-container { display: flex; flex-direction: column; flex: 1; height: 100%; width: 100%; overflow: hidden; background: #000; position: relative; }
         
         .header { 
           height: 100%; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; 
@@ -43,20 +43,25 @@ class OpenKairoBuilder extends HTMLElement {
         .header-breadcrumb:hover { background: rgba(255,255,255,0.05); border-color: var(--border-color); }
         .header-breadcrumb ha-icon { --mdc-icon-size: 14px; opacity: 0.6; }
 
-        .main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
+        .main-layout { 
+          display: grid; 
+          grid-template-columns: 260px 1fr 300px; 
+          flex: 1; min-height: 500px; height: calc(100vh - 60px); width: 100%; 
+          overflow: hidden; background: #000; border-top: 1px solid var(--border-color); 
+        }
         
-        .sidebar { width: 260px; background: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
-        .sidebar-right { border-left: 1px solid var(--border-color); border-right: none; width: 300px; }
+        .sidebar { height: 100%; background: #111114 !important; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .sidebar-right { border-left: 1px solid var(--border-color); border-right: none; }
         
-        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border-color); height: 44px; align-items: center; padding: 0 10px; gap: 10px; background: rgba(0,0,0,0.2); }
+        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border-color); height: 44px; min-height: 44px; align-items: center; padding: 0 10px; gap: 10px; background: rgba(0,0,0,0.3); }
         .s-tab { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); cursor: pointer; padding: 12px 10px; border-bottom: 2px solid transparent; transition: 0.3s; letter-spacing: 1px; }
         .s-tab.active { color: #fff; border-color: var(--kairo-cyan); }
         .s-tab:hover { color: #fff; }
 
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; min-height: 100%; }
         
         .canvas-area { 
-          flex: 1; background: var(--bg-color); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;
+          height: 100%; background: #09090b; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;
           background-image: radial-gradient(circle at 1.5px 1.5px, #27272a 1px, transparent 0);
           background-size: 24px 24px;
         }
@@ -179,7 +184,7 @@ class OpenKairoBuilder extends HTMLElement {
               <div class="s-tab" data-tab="TEMPLATES" id="tab-left-templates">Templates</div>
               <div class="s-tab" data-tab="LAYERS" id="tab-left-layers">Layers</div>
             </div>
-            <div class="sidebar-content" id="left-sidebar-container"></div>
+            <div class="sidebar-content" id="left-sidebar-container">STUDIO INITIALISIERUNG...</div>
           </div>
 
           <div class="canvas-area">
@@ -191,10 +196,10 @@ class OpenKairoBuilder extends HTMLElement {
 
           <div class="sidebar sidebar-right">
              <div class="sidebar-tabs">
-                <div class="s-tab active" id="tab-props">Properties</div>
-                <div class="s-tab" id="tab-styles">Styles</div>
+                <div class="s-tab active" data-tab="PROPS" id="tab-props">Properties</div>
+                <div class="s-tab" data-tab="STYLES" id="tab-styles">Styles</div>
              </div>
-             <div class="sidebar-content" id="right-sidebar"></div>
+             <div class="sidebar-content" id="right-sidebar">EIGENSCHAFTEN LADEN...</div>
           </div>
         </div>
 
@@ -258,8 +263,20 @@ class OpenKairoBuilder extends HTMLElement {
         });
     });
 
+    this.shadowRoot.querySelector('#btn-rename-card').addEventListener('click', () => {
+        const newName = prompt('Enter Card Name:', this.cardName);
+        if (newName) {
+            this.cardName = newName;
+            this.shadowRoot.querySelector('#breadcrumb-card-name').innerText = newName;
+            const header = this.shadowRoot.querySelector('#card-header-text');
+            if (header) header.innerText = newName;
+            this.selectBlock(null); // Refresh Global sidebar if open
+        }
+    });
+
     this.shadowRoot.querySelectorAll('.sidebar-left .s-tab').forEach(tab => {
         tab.addEventListener('click', () => {
+            if (!tab.dataset.tab) return;
             this.shadowRoot.querySelectorAll('.sidebar-left .s-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             this.activeLeftTab = tab.dataset.tab;
@@ -267,8 +284,16 @@ class OpenKairoBuilder extends HTMLElement {
         });
     });
 
-    this.renderLeftSidebar();
-    this.selectBlock(null);
+    // 5. Finalize Setup with micro-delay for HA readiness
+    setTimeout(() => {
+      try {
+        if (this.shadowRoot) {
+            this.renderCanvas();
+            this.renderLeftSidebar();
+            this.selectBlock(null);
+        }
+      } catch (e) { console.error("OpenKairo Architect Init Error:", e); }
+    }, 200);
   }
 
   _handleDrop(e) {
@@ -515,8 +540,35 @@ class OpenKairoBuilder extends HTMLElement {
   showExport() {
     const modal = this.shadowRoot.querySelector('#export-modal');
     const box = this.shadowRoot.querySelector('#export-code-box');
-    const yaml = `type: custom:openkairo-custom-card\nname: ${this.cardName}\nlayout:\n` + 
-                 this.canvasBlocks.map(b => `  - type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}`).join('\n');
+    
+    let yaml = `type: 'custom:openkairo-custom-card'\n`;
+    yaml += `name: '${this.cardName}'\n`;
+    yaml += `glow: ${this.cardStyle.glow}\n`;
+    yaml += `blur: ${this.cardStyle.blur}\n`;
+    yaml += `color: '${this.cardStyle.color}'\n`;
+    yaml += `opacity: ${this.cardStyle.opacity}\n`;
+    yaml += `layout:\n`;
+    
+    this.canvasBlocks.forEach(b => {
+        yaml += `  - id: ${b.id}\n`;
+        yaml += `    type: ${b.type}\n`;
+        yaml += `    x: ${b.x}\n`;
+        yaml += `    y: ${b.y}\n`;
+        yaml += `    w: ${b.w || 100}\n`;
+        yaml += `    h: ${b.h || 40}\n`;
+        yaml += `    text: '${b.text || ''}'\n`;
+        if (b.entity) yaml += `    entity: ${b.entity}\n`;
+        yaml += `    color: '${b.color || '#fff'}'\n`;
+        if (b.glow) yaml += `    glow: ${b.glow}\n`;
+        if (b.textGlow) yaml += `    textGlow: ${b.textGlow}\n`;
+        if (b.blur) yaml += `    blur: ${b.blur}\n`;
+        if (b.animation && b.animation !== 'none') {
+            yaml += `    animation: ${b.animation}\n`;
+            yaml += `    animDuration: ${b.animDuration || 2}\n`;
+        }
+        if (b.tapAction) yaml += `    tapAction: ${b.tapAction}\n`;
+    });
+    
     box.innerText = yaml;
     modal.style.display = 'flex';
   }
@@ -592,8 +644,9 @@ class OpenKairoBuilder extends HTMLElement {
         item.addEventListener('dragstart', e => e.dataTransfer.setData('source_type', item.dataset.type));
     });
     const src = container.querySelector('#s-search');
-    src.addEventListener('input', e => { this.sidebarSearchQuery = e.target.value; this.renderLeftSidebar(); });
-    src.focus();
+    if (src) {
+        src.addEventListener('input', e => { this.sidebarSearchQuery = e.target.value; this.renderLeftSidebar(); });
+    }
   }
 }
 customElements.define("openkairo-panel", OpenKairoBuilder);
