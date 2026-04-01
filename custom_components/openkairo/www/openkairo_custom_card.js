@@ -22,6 +22,23 @@ class OpenKairoCustomCard extends HTMLElement {
     }
   }
 
+  static getConfigElement() {
+    return document.createElement("openkairo-custom-card-editor");
+  }
+
+  static getStubConfig() {
+    return {
+      name: "CYBER HUB",
+      glow: 40,
+      blur: 25,
+      color: "#00f6ff",
+      opacity: 0.3,
+      layout: [
+        { type: "Text", id: "t1", x: 140, y: 40, text: "SYSTEM STATUS", color: "#00f6ff", glow: 20 }
+      ]
+    };
+  }
+
   set hass(hass) {
     this._hass = hass;
     if (!this.content) {
@@ -346,4 +363,89 @@ class OpenKairoCustomCard extends HTMLElement {
 
 if (!customElements.get("openkairo-custom-card")) {
   customElements.define("openkairo-custom-card", OpenKairoCustomCard);
+}
+
+class OpenKairoCustomCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = config;
+    this.render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+  }
+
+  render() {
+    if (!this._config) return;
+    this.innerHTML = `
+      <style>
+        .editor-container { font-family: 'Rajdhani', sans-serif; color: #fff; display: flex; flex-direction: column; gap: 15px; padding: 10px; background: #000; border-radius: 12px; }
+        .editor-row { display: flex; flex-direction: column; gap: 5px; }
+        .editor-label { font-size: 11px; font-weight: 800; color: #00f6ff; text-transform: uppercase; letter-spacing: 1px; }
+        .editor-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px; border-radius: 6px; font-family: 'Rajdhani'; font-size: 13px; outline: none; }
+        .editor-input:focus { border-color: #00f6ff; }
+        .architect-btn { background: #00f6ff; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; transition: 0.3s; }
+        .architect-btn:hover { box-shadow: 0 0 20px rgba(0, 246, 255, 0.4); transform: translateY(-2px); }
+      </style>
+      <div class="editor-container">
+        <div class="editor-row">
+            <span class="editor-label">Karten-Name</span>
+            <input class="editor-input" id="name" type="text" value="${this._config.name || ''}">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="editor-row">
+                <span class="editor-label">Glow-Intensität (${this._config.glow || 0})</span>
+                <input class="editor-input" id="glow" type="range" min="0" max="100" value="${this._config.glow || 0}">
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Blur-Effekt (${this._config.blur || 0})</span>
+                <input class="editor-input" id="blur" type="range" min="0" max="50" value="${this._config.blur || 0}">
+            </div>
+        </div>
+        <div class="editor-row">
+            <span class="editor-label">Akzent-Farbe</span>
+            <input class="editor-input" id="color" type="color" value="${this._config.color || '#00f6ff'}" style="height:40px; padding:2px;">
+        </div>
+        
+        <div style="border-top:1px solid rgba(255,255,255,0.1); margin:10px 0;"></div>
+        
+        <div class="editor-row">
+            <span class="editor-label" style="opacity:0.6;">Visual Architect (Pro Modus)</span>
+            <button class="architect-btn" id="open-builder">
+                <ha-icon icon="mdi:view-dashboard-edit"></ha-icon> ARCHITECT ÖFFNEN
+            </button>
+            <span style="font-size:9px; color:rgba(255,255,255,0.3); margin-top:5px; text-align:center;">Nutze den Architect für Drag & Drop Layouts.</span>
+        </div>
+      </div>
+    `;
+
+    this.querySelectorAll('.editor-input').forEach(input => {
+        input.addEventListener('change', (ev) => this._valueChanged(ev));
+        if(input.type === 'range') input.addEventListener('input', (ev) => this._valueChanged(ev));
+    });
+
+    this.querySelector('#open-builder').addEventListener('click', () => {
+        window.history.pushState(null, null, '/openkairo');
+        window.dispatchEvent(new CustomEvent('location-changed'));
+    });
+  }
+
+  _valueChanged(ev) {
+    if (!this._config || !this._hass) return;
+    const target = ev.target;
+    const value = target.type === 'range' ? parseInt(target.value) : target.value;
+    
+    const newConfig = { ...this._config, [target.id]: value };
+    
+    const event = new CustomEvent("config-changed", {
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+}
+
+if (!customElements.get("openkairo-custom-card-editor")) {
+  customElements.define("openkairo-custom-card-editor", OpenKairoCustomCardEditor);
 }
