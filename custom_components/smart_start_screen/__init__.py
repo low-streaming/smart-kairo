@@ -21,6 +21,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     gauge_js_path = os.path.join(www_dir, "openkairo_gauge_card.js")
     button_js_path = os.path.join(www_dir, "openkairo_button_card.js")
     alert_js_path = os.path.join(www_dir, "openkairo_alert_card.js")
+    picker_js_path = os.path.join(www_dir, "entity-picker-card.js")
     
     paths_to_register = []
     
@@ -41,6 +42,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         
     if os.path.exists(alert_js_path):
         paths_to_register.append(StaticPathConfig("/smart_start_screen/openkairo_alert_card.js", alert_js_path, False))
+        
+    if os.path.exists(picker_js_path):
+        paths_to_register.append(StaticPathConfig("/smart_start_screen/entity-picker-card.js", picker_js_path, False))
 
     if paths_to_register:
         cache_buster = str(time.time())
@@ -58,6 +62,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             add_extra_js_url(hass, f"/smart_start_screen/openkairo_button_card.js?v={cache_buster}")
         if os.path.exists(alert_js_path):
             add_extra_js_url(hass, f"/smart_start_screen/openkairo_alert_card.js?v={cache_buster}")
+        if os.path.exists(picker_js_path):
+            add_extra_js_url(hass, f"/smart_start_screen/entity-picker-card.js?v={cache_buster}")
             
         _LOGGER.info("SmartStartScreen: UIs registered successfully (Cache Busted)")
     else:
