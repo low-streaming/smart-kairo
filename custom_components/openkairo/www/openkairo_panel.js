@@ -11,255 +11,181 @@ class OpenKairoBuilder extends HTMLElement {
   }
 
   setupDOM() {
-    this.innerHTML = `
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `
       <style>
         :host {
-          display: flex;
-          flex-direction: column;
-          height: 100vh;
-          width: 100%;
-          background: #0d0d0d;
-          color: #f5f5f5;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          overflow: hidden;
+          --bg-color: #09090b;
+          --sidebar-bg: #111114;
+          --border-color: #27272a;
+          --accent-color: #3b82f6;
           --kairo-cyan: #00f6ff;
-          --accent-blue: #3b82f6;
-          --bg-sidebar: #151515;
-          --bg-canvas: #0f0f0f;
-          --border-color: rgba(255,255,255,0.06);
-        }
-
-        .builder-layout {
-          display: grid;
-          grid-template-rows: 56px 1fr;
-          grid-template-columns: 260px 1fr 320px;
-          grid-template-areas:
-            "header header header"
-            "left canvas right";
-          height: 100%;
-          width: 100%;
-        }
-
-        .header {
-          grid-area: header;
-          background: rgba(13, 13, 13, 0.8);
-          border-bottom: 1px solid var(--border-color);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0 24px;
-          backdrop-filter: blur(20px);
-          z-index: 100;
+          --text-primary: #ffffff;
+          --text-secondary: rgba(255,255,255,0.4);
+          --input-bg: #18181b;
+          font-family: 'Inter', sans-serif;
+          display: flex; flex-direction: column; height: 100vh; width: 100%; overflow: hidden; background: var(--bg-color); color: var(--text-primary);
         }
         
-        .header-logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-weight: 800;
-          font-size: 15px;
-          color: #fff;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-        .header-logo ha-icon { color: var(--kairo-cyan); --mdc-icon-size: 20px; }
-
-        .header-toolbar { display: flex; gap: 4px; background: rgba(255,255,255,0.04); padding: 4px; border-radius: 10px; }
-        .tool-btn {
-          background: transparent;
-          color: rgba(255,255,255,0.5);
-          border: none;
-          padding: 6px 12px;
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          transition: 0.2s ease;
-          text-transform: capitalize;
-        }
-        .tool-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .tool-btn.active { background: #fff; color: #000; font-weight: 700; }
-
-        .left-sidebar {
-          grid-area: left;
-          background: var(--bg-sidebar);
-          border-right: 1px solid var(--border-color);
-          display: flex;
-          flex-direction: column;
-          overflow-y: auto;
-        }
-
-        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.1); }
-        .s-tab {
-          flex: 1; text-align: center; padding: 14px; font-size: 10px;
-          font-weight: 700; color: rgba(255,255,255,0.4); cursor: pointer;
-          text-transform: uppercase; letter-spacing: 1px;
-          transition: 0.2s;
-        }
-        .s-tab.active { color: #fff; border-bottom: 2px solid #fff; }
-
-        .sidebar-content { padding: 16px; }
-        .search-box {
-          background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);
-          color: white; padding: 10px 12px; border-radius: 8px; width: 100%; box-sizing: border-box;
-          margin-bottom: 16px; outline: none; font-size: 12px;
-          transition: 0.2s;
-        }
-        .search-box:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+        #builder-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
         
-        .block-category { font-size: 9px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 10px; letter-spacing: 1px; font-weight: 800; display:flex; align-items:center; gap:8px; }
-        .block-category::after { content:""; flex:1; height:1px; background: currentColor; opacity:0.1; }
-        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-        .block-item {
-          background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);
-          border-radius: 8px; padding: 12px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px;
-          cursor: grab; transition: 0.2s;
+        .header { 
+          height: 100%; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; 
+          background: #000; z-index: 100;
         }
-        .block-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); transform: translateY(-1px); }
-        .block-item ha-icon { color: rgba(255,255,255,0.3); --mdc-icon-size: 20px; transition: 0.2s; }
-        .block-item:hover ha-icon { color: #fff; }
-        .block-item span { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.5); }
+        header { height: 56px; }
 
-        .canvas-area {
-          grid-area: canvas;
-          background: var(--bg-canvas);
-          position: relative;
-          overflow: hidden;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background-image: 
-            radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
-          background-size: 32px 32px;
+        .header-branding { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 0.5px; font-size: 13px; text-transform: uppercase; color: #fff; }
+        .header-branding ha-icon { color: var(--kairo-cyan); filter: drop-shadow(0 0 5px var(--kairo-cyan)); --mdc-icon-size: 20px; }
+        
+        .header-center { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .header-breadcrumb { color: #fff; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: 0.2s; border: 1px solid transparent; }
+        .header-breadcrumb:hover { background: rgba(255,255,255,0.05); border-color: var(--border-color); }
+        .header-breadcrumb ha-icon { --mdc-icon-size: 14px; opacity: 0.6; }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
+        
+        .sidebar { width: 260px; background: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar-right { border-left: 1px solid var(--border-color); border-right: none; width: 300px; }
+        
+        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border-color); height: 44px; align-items: center; padding: 0 10px; gap: 10px; background: rgba(0,0,0,0.2); }
+        .s-tab { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); cursor: pointer; padding: 12px 10px; border-bottom: 2px solid transparent; transition: 0.3s; letter-spacing: 1px; }
+        .s-tab.active { color: #fff; border-color: var(--kairo-cyan); }
+        .s-tab:hover { color: #fff; }
+
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .canvas-area { 
+          flex: 1; background: var(--bg-color); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;
+          background-image: radial-gradient(circle at 1.5px 1.5px, #27272a 1px, transparent 0);
+          background-size: 24px 24px;
         }
-        .canvas-area::before { content:""; position:absolute; inset:0; background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); opacity:0.1; pointer-events:none; mix-blend-mode: overlay; }
-
-        .canvas-board {
-          width: 400px;
-          height: 600px;
+        
+        #drop-target {
           background: #000;
-          border-radius: 16px;
-          box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-          border: 1px solid rgba(255,255,255,0.08);
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          padding: 24px;
-          overflow: hidden;
+          width: 320px; min-height: 480px; border-radius: 16px;
+          position: relative; box-shadow: 0 50px 100px rgba(0,0,0,0.8), 0 0 1px rgba(255,255,255,0.2);
+          transform-origin: center center;
+          border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .right-sidebar {
-          grid-area: right;
-          background: var(--bg-sidebar);
-          border-left: 1px solid var(--border-color);
-          display: flex;
-          flex-direction: column;
-          overflow-y: auto;
+        .btn-primary { 
+          background: var(--kairo-cyan); color: #000; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 900; font-size: 10px; text-transform: uppercase;
+          cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; font-family: 'Rajdhani'; letter-spacing: 0.5px;
         }
+        .btn-primary:hover { box-shadow: 0 0 20px rgba(0,246,255,0.4); transform: translateY(-1px); }
+        .btn-primary ha-icon { --mdc-icon-size: 16px; }
 
-        .prop-group { border-bottom: 1px solid var(--border-color); padding: 20px; }
-        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .prop-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-        .prop-input { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; font-size: 11px; width: 140px; text-align: left; color-scheme: dark; }
-        .prop-input:focus { border-color: rgba(255,255,255,0.2); outline: none; }
-        .prop-input option { background: #111; color: white; padding: 8px; }
+        .search-box { background: var(--input-bg); border: 1px solid var(--border-color); color: white; padding: 10px 12px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; outline: none; font-size: 11px; }
+        .search-box:focus { border-color: var(--kairo-cyan); }
         
-        input[type="range"] { height: 2px; accent-color: #fff; }
+        .block-category { 
+          font-size: 10px; text-transform: uppercase; color: var(--text-secondary); margin: 4px 0; letter-spacing: 1.5px; font-weight: 800; 
+          display:flex; align-items:center; justify-content: space-between; cursor: pointer; padding: 10px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.03); transition: 0.2s;
+        }
+        .block-category:hover { color: #fff; }
+        .block-category ha-icon { --mdc-icon-size: 14px; transition: 0.3s; }
+        .block-category.open ha-icon { transform: rotate(180deg); color: var(--kairo-cyan); }
         
-        .btn-primary { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
-        .btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
+        .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; height: auto; overflow: hidden; transition: 0.3s ease-out; }
+        .block-grid.collapsed { height: 0; margin-bottom: 0px; opacity: 0; pointer-events: none; }
+        
+        .block-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: grab; transition: 0.2s; }
+        .block-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
+        .block-item ha-icon { color: var(--text-secondary); --mdc-icon-size: 18px; }
+        .block-item:hover ha-icon { color: var(--kairo-cyan); }
+        .block-item span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
 
-        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(20px); display:none; justify-content:center; align-items:center; z-index:1000; }
-        .modal-content { background:#111; padding:32px; border-radius:16px; border:1px solid var(--border-color); width:560px; color:white; display:flex; flex-direction:column; gap:16px; position:relative; }
-        .modal-code { background:#000; padding:16px; border-radius:8px; font-family: monospace; font-size:12px; color:#fff; overflow:auto; max-height:400px; border:1px solid var(--border-color); }
-        .canvas-element {
-          position: absolute;
-          cursor: default;
-          user-select: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid transparent;
-        }
-        .canvas-element:hover { border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); }
-        .canvas-element.selected { 
-          border: 1px solid #fff !important; 
-          z-index: 100; 
-        }
-        
-        /* Resize Handles */
-        .resizer {
-          width: 6px; height: 6px; background: #fff; border-radius: 50%;
-          position: absolute; display: none;
-        }
+        .canvas-element { position: absolute; cursor: default; user-select: none; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; }
+        .canvas-element.selected { border: 1px solid #fff !important; z-index: 100; }
+        .resizer { width: 6px; height: 6px; background: #fff; border-radius: 50%; position: absolute; display: none; border: 1.5px solid var(--bg-color); }
         .canvas-element.selected .resizer { display: block; }
         .resizer.nw { top: -3px; left: -3px; cursor: nw-resize; }
         .resizer.ne { top: -3px; right: -3px; cursor: ne-resize; }
         .resizer.sw { bottom: -3px; left: -3px; cursor: sw-resize; }
         .resizer.se { bottom: -3px; right: -3px; cursor: se-resize; }
+        
+        .prop-group { border-bottom: 1px solid var(--border-color); padding: 20px; }
+        .prop-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 800; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .prop-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        .prop-input { background: var(--input-bg); border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; font-size: 11px; width: 140px; text-align: left; color-scheme: dark; }
+        .prop-input:focus { border-color: var(--kairo-cyan); outline: none; }
+        
+        .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(20px); display:none; justify-content:center; align-items:center; z-index:1000; }
+        .modal-content { background:#111; padding:32px; border-radius:24px; border:1px solid var(--border-color); width:560px; color:white; display:flex; flex-direction:column; gap:20px; position:relative; }
+        .modal-code { background:#000; padding:20px; border-radius:12px; font-family: monospace; font-size:12px; color:#10b981; overflow:auto; max-height:400px; border:1px solid var(--border-color); }
       </style>
 
-      <div class="builder-layout">
-        <div class="header">
-          <div class="header-logo"><ha-icon icon="mdi:flash"></ha-icon> KAIRO ARCHITECT</div>
+      <div id="builder-container">
+        <header class="header">
+          <div class="header-branding">
+            <ha-icon icon="mdi:lightning-bolt"></ha-icon> KAIRO ARCHITECT
+          </div>
           
-          <div style="display:flex; gap:10px; align-items:center;">
-             <span style="font-size:10px; font-weight:900; color:rgba(255,255,255,0.4);">THEME PREVIEW:</span>
-             <select id="theme-selector" style="background:#000; border:1px solid var(--kairo-cyan); color:#fff; padding:5px 10px; border-radius:6px; font-size:11px; font-family:'Rajdhani'; font-weight:800; text-transform:uppercase;">
-                <option value="cyan">Platinum Cyan</option>
-                <option value="matrix">Matrix Green</option>
-                <option value="synth">Synth Night</option>
-                <option value="icarus">Icarus Gold</option>
-                <option value="overdrive">Overdrive Hologram</option>
-             </select>
+          <div class="header-center">
+            <div class="header-breadcrumb" id="btn-rename-card">
+              <ha-icon icon="mdi:view-dashboard"></ha-icon>
+              <span id="breadcrumb-card-name">${this.cardName}</span>
+              <ha-icon icon="mdi:chevron-down"></ha-icon>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:16px; align-items:center;">
+             <div style="display:flex; gap:10px; align-items:center; background:rgba(255,255,255,0.04); padding:4px 10px; border-radius:8px; border:1px solid var(--border-color);">
+                <span style="font-size:9px; font-weight:900; color:var(--text-secondary);">PREVIEW</span>
+                <select id="theme-selector" style="background:transparent; border:none; color:#fff; font-size:10px; font-weight:800; text-transform:uppercase; outline:none; cursor:pointer;">
+                    <option value="cyan">Platinum Cyan</option>
+                    <option value="matrix">Matrix Green</option>
+                    <option value="synth">Synth Night</option>
+                    <option value="icarus">Icarus Gold</option>
+                    <option value="overdrive">Overdrive Hologram</option>
+                </select>
+             </div>
+             <button class="btn-primary" id="btn-save">
+                <ha-icon icon="mdi:code-braces"></ha-icon> CODE GENERIEREN
+             </button>
+          </div>
+        </header>
+
+        <div class="main-layout">
+          <div class="sidebar sidebar-left">
+            <div class="sidebar-tabs">
+              <div class="s-tab active" data-tab="BLOCKS" id="tab-left-blocks">Blocks</div>
+              <div class="s-tab" data-tab="TEMPLATES" id="tab-left-templates">Templates</div>
+              <div class="s-tab" data-tab="LAYERS" id="tab-left-layers">Layers</div>
+            </div>
+            <div class="sidebar-content" id="left-sidebar-container"></div>
           </div>
 
-          <div class="header-toolbar">
-            <div class="tool-btn active" data-mode="ENTITIES"><ha-icon icon="mdi:shape-outline"></ha-icon> Entities</div>
-            <div class="tool-btn" data-mode="ACTIONS"><ha-icon icon="mdi:gesture-tap"></ha-icon> Actions</div>
-            <div class="tool-btn" data-mode="LAYOUT"><ha-icon icon="mdi:card-outline"></ha-icon> Layout</div>
-            <div class="tool-btn" data-mode="LINK"><ha-icon icon="mdi:vector-line"></ha-icon> Link</div>
+          <div class="canvas-area">
+             <div id="drop-target">
+                <div id="card-header-text" style="text-align:center; font-family:'Inter'; color:var(--kairo-cyan); font-weight:900; filter:drop-shadow(0 0 10px var(--kairo-cyan)); opacity:0.8; font-size:20px; letter-spacing:4px; text-transform:uppercase; margin-top:20px;">LIVING ROOM</div>
+                <svg id="links-overlay" style="position:absolute; inset:0; pointer-events:none;"></svg>
+             </div>
           </div>
-          <div class="header-actions" style="display:flex; gap:10px;">
-            <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:content-save"></ha-icon> CODE GENERIEREN</button>
+
+          <div class="sidebar sidebar-right">
+             <div class="sidebar-tabs">
+                <div class="s-tab active" id="tab-props">Properties</div>
+                <div class="s-tab" id="tab-styles">Styles</div>
+             </div>
+             <div class="sidebar-content" id="right-sidebar"></div>
           </div>
         </div>
-
-        <div class="left-sidebar">
-          <div class="sidebar-tabs">
-            <div class="s-tab active" data-tab="BLOCKS">Blocks</div>
-            <div class="s-tab" data-tab="TEMPLATES">Templates</div>
-            <div class="s-tab" data-tab="LAYERS">Layers</div>
-          </div>
-          <div class="sidebar-content" id="left-sidebar-container"></div>
+        
+        <div id="export-modal" class="modal-overlay">
+           <div class="modal-content">
+              <div style="font-size:18px; font-weight:900; color:#fff;">KARTE EXPORTIEREN</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Kopiere diesen YAML-Code in dein Home Assistant Dashboard.</div>
+              <pre id="export-code-box" class="modal-code"></pre>
+              <div style="display:flex; justify-content:flex-end; gap:12px;">
+                <button class="btn-primary" style="background:rgba(255,255,255,0.05); color:#fff;" id="btn-close-modal">Abbrechen</button>
+                <button class="btn-primary" id="btn-copy-code">Kopieren</button>
+              </div>
+           </div>
         </div>
-
-        <div class="canvas-area">
-          <div class="canvas-board" id="drop-target">
-            <div id="card-header-text" style="text-align:center; font-family:sans-serif; color:#10b981; font-weight:900; opacity:0.8; font-size:18px; letter-spacing:4px; text-transform:uppercase; text-shadow: 0 0 10px currentColor; margin-top:10px;">LIVING ROOM</div>
-            <svg id="links-overlay"></svg>
-          </div>
-        </div>
-
-        <div class="right-sidebar">
-          <div class="sidebar-tabs">
-            <div class="s-tab" id="tab-props">Properties</div>
-            <div class="s-tab active" id="tab-styles">Styles</div>
-          </div>
-          <div class="sidebar-content" id="right-sidebar-container"></div>
-        </div>
-      </div>
-
-      <div class="modal-overlay" id="export-modal">
-         <div class="modal-content">
-            <div class="modal-header"><span>Export Code</span> <ha-icon class="modal-close" icon="mdi:close" id="btn-close-modal" style="cursor:pointer;"></ha-icon></div>
-            <div class="modal-code" id="export-code-box"></div>
-            <button class="btn-primary" id="btn-copy-code" style="justify-content:center;">Copy</button>
-         </div>
       </div>
     `;
 
@@ -288,7 +214,7 @@ class OpenKairoBuilder extends HTMLElement {
         this._updateCardStyle();
         
         // Update header color
-        const header = this.querySelector('#card-header-text');
+        const header = this.shadowRoot.querySelector('#card-header-text');
         if(header) header.style.color = color;
         
         // Update variables for styles
@@ -296,56 +222,58 @@ class OpenKairoBuilder extends HTMLElement {
     };
 
     const updateCardStyle = () => {
-        const board = this.querySelector('#drop-target');
+        const board = this.shadowRoot.querySelector('#drop-target');
         if (!board) return;
         board.style.boxShadow = this.cardStyle.glow > 0 ? `0 30px 60px rgba(0,0,0,0.8), 0 0 ${this.cardStyle.glow}px ${this.cardStyle.color}` : '0 30px 60px rgba(0,0,0,0.8)';
         board.style.backdropFilter = `blur(${this.cardStyle.blur}px)`;
         board.style.border = `1px solid ${this.cardStyle.color}40`;
-        const header = this.querySelector('#card-header-text');
+        const header = this.shadowRoot.querySelector('#card-header-text');
         if(header) header.style.color = this.cardStyle.color;
     };
     this._updateCardStyle = updateCardStyle;
 
 
-
-    const toolBtns = this.querySelectorAll('.tool-btn');
-    toolBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mode = btn.dataset.mode;
-        if (!mode) return;
-        this.activeToolbarMode = mode;
-        toolBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.linkMode = (mode === 'LINK');
-        this.renderLeftSidebar();
-        this.renderLinks();
-      });
-    });
-
-    const leftTabs = this.querySelectorAll('.left-sidebar .s-tab');
-    leftTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-           leftTabs.forEach(t => t.classList.remove('active'));
-           tab.classList.add('active');
-           this.activeLeftTab = tab.dataset.tab;
-           this.renderLeftSidebar();
-        });
-    });
-
-    const rightTabs = this.querySelectorAll('.right-sidebar .s-tab');
+    // Tab Handlers Right
+    const rightTabs = this.shadowRoot.querySelectorAll('.sidebar-right .s-tab');
     rightTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-           rightTabs.forEach(t => t.classList.remove('active'));
-           tab.classList.add('active');
-           this.activeRightTab = tab.innerText.trim().toUpperCase();
-           this.selectBlock(this.selectedBlockId);
+            rightTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.activeRightTab = tab.innerText.toUpperCase();
+            this.selectBlock(this.selectedBlockId);
         });
     });
 
-    const canvas = this.querySelector('#drop-target');
-    // Using the previously defined updateCardStyle via this._updateCardStyle if needed, 
-    // but we can just use the reference from the top of the function.
+    const leftTabs = this.shadowRoot.querySelectorAll('.sidebar-left .s-tab');
+    leftTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            leftTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.activeLeftTab = tab.dataset.tab;
+            this.renderLeftSidebar();
+        });
+    });
 
+    // Other Handlers
+    this.shadowRoot.querySelector('#btn-save').addEventListener('click', () => this.showExport());
+    this.shadowRoot.querySelector('#btn-close-modal').addEventListener('click', () => { this.shadowRoot.querySelector('#export-modal').style.display = 'none'; });
+    this.shadowRoot.querySelector('#btn-copy-code').addEventListener('click', () => {
+        const code = this.shadowRoot.querySelector('#export-code-box').innerText;
+        navigator.clipboard.writeText(code);
+        const btn = this.shadowRoot.querySelector('#btn-copy-code');
+        btn.innerText = 'KOPIERT!';
+        setTimeout(() => btn.innerText = 'KOPIEREN', 2000);
+    });
+
+    this.shadowRoot.querySelector('#theme-selector').addEventListener('change', e => {
+        this._updateTheme(e.target.value);
+    });
+
+    this.shadowRoot.querySelector('#drop-target').addEventListener('click', (e) => {
+        if(e.target.id === 'drop-target') this.selectBlock(null);
+    });
+
+    const canvas = this.shadowRoot.querySelector('#drop-target');
     canvas.addEventListener('dragover', e => e.preventDefault());
     canvas.addEventListener('drop', e => {
       e.preventDefault();
@@ -721,10 +649,20 @@ class OpenKairoBuilder extends HTMLElement {
         this.addBlockToCanvas('Pulse-Chart', cx + 20, cy + 60, null, cId);
         this.addBlockToCanvas('Hex-Power', cx + 230, cy + 100, null, cId);
     } else if (type === 'Switch') {
+        const cId = 'b' + Date.now();
         this.addBlockToCanvas('Container', cx, cy);
         const b = this.canvasBlocks[this.canvasBlocks.length-1];
         b.w = 120; b.h = 120; b.blur = 10;
         this.addBlockToCanvas('Hex-Power', cx + 20, cy + 15, null, b.id);
+    } else if (type === 'SmartSuite') {
+        const cId = 'b' + Date.now();
+        this.addBlockToCanvas('Card', cx, cy);
+        const b = this.canvasBlocks[this.canvasBlocks.length-1];
+        b.w = 340; b.h = 300; b.color = '#7c3aed'; b.glow = 40;
+        this.addBlockToCanvas('Status-Pill', cx + 20, cy + 20, null, b.id);
+        this.addBlockToCanvas('Neon-Switch', cx + 20, cy + 60, null, b.id);
+        this.addBlockToCanvas('Slider-Dimmer', cx + 20, cy + 180, null, b.id);
+        this.addBlockToCanvas('Glass-Action', cx + 180, cy + 60, null, b.id);
     }
   }
 
@@ -768,6 +706,7 @@ class OpenKairoBuilder extends HTMLElement {
     if (!b) return;
     const newId = 'b' + Date.now();
     const newBlock = JSON.parse(JSON.stringify(b));
+    newId = 'b' + Math.random().toString(36).substr(2, 9);
     newBlock.id = newId;
     newBlock.x += 20;
     newBlock.y += 20;
@@ -781,7 +720,7 @@ class OpenKairoBuilder extends HTMLElement {
     el.style.zIndex = newBlock.parentId ? '20' : '10';
     
     // Copy innerHTML from source
-    const sourceEl = this.querySelector('#' + id);
+    const sourceEl = this.shadowRoot.querySelector('#' + id);
     if(sourceEl) el.innerHTML = sourceEl.innerHTML;
     
     el.addEventListener('click', e => {
@@ -797,13 +736,13 @@ class OpenKairoBuilder extends HTMLElement {
       e.dataTransfer.setData('offsetY', e.clientY - r.top);
     });
 
-    this.querySelector('#drop-target').appendChild(el);
+    this.shadowRoot.querySelector('#drop-target').appendChild(el);
     this.canvasBlocks.push(newBlock);
     this.selectBlock(newId);
   }
 
   moveLayer(id, dir) {
-    const el = this.querySelector('#' + id);
+    const el = this.shadowRoot.querySelector('#' + id);
     if(!el) return;
     const currentZ = parseInt(el.style.zIndex) || 10;
     const newZ = dir === 'up' ? currentZ + 1 : Math.max(1, currentZ - 1);
@@ -816,20 +755,18 @@ class OpenKairoBuilder extends HTMLElement {
     this.selectedBlockId = id;
     if (id) this.selectedLinkId = null;
     this.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
-    const right = this.querySelector('#right-sidebar-container');
+    const right = this.shadowRoot.querySelector('#right-sidebar');
     if(!right) return;
 
     if(id) {
-      const el = this.querySelector('#' + id);
+      const el = this.shadowRoot.querySelector('#' + id);
       el.classList.add('selected');
       const b = this.canvasBlocks.find(x => x.id === id);
 
       const updateUI = () => {
         if(!el) return;
-        el.style.left = b.x + 'px';
-        el.style.top = b.y + 'px';
-        el.style.width = b.w + 'px';
-        el.style.height = b.h + 'px';
+        el.style.left = b.x + 'px'; el.style.top = b.y + 'px';
+        el.style.width = b.w + 'px'; el.style.height = b.h + 'px';
         el.style.color = b.color;
         el.style.boxShadow = b.glow > 0 ? `0 0 ${b.glow}px ${b.color}` : 'none';
         el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
@@ -837,105 +774,110 @@ class OpenKairoBuilder extends HTMLElement {
         el.style.opacity = b.opacity !== undefined ? b.opacity : 1;
         if(el.querySelector('span')) {
             el.querySelector('span').innerText = b.text;
-            el.querySelector('span').style.fontSize = b.fontSize + 'px';
+            el.querySelector('span').style.fontSize = (b.fontSize || 13) + 'px';
         }
-        
-        // Update Labels
-        this.querySelector('#l-x').innerText = `Abstand Links (${Math.round(b.x)}px)`;
-        this.querySelector('#l-y').innerText = `Abstand Oben (${Math.round(b.y)}px)`;
-        this.querySelector('#l-size').innerText = `Textgröße (${b.fontSize}px)`;
-        this.querySelector('#l-glow').innerText = `Außen-Leuchten (${b.glow})`;
-        this.querySelector('#l-tglow').innerText = `Text-Leuchten (${b.textGlow})`;
-        this.querySelector('#l-blur').innerText = `Glas-Effekt (${b.blur})`;
-        this.querySelector('#l-opacity').innerText = `Sichtbarkeit (${Math.round((b.opacity || 1)*100)}%)`;
-        
         this.renderLinks();
       };
 
-      let entityOptions = '<option value="">Keine</option>';
-      if (this._hass && this._hass.states) {
-          entityOptions += Object.keys(this._hass.states).sort().map(eid => 
-              `<option value="${eid}" ${b.entity === eid ? 'selected' : ''}>${eid}</option>`
-          ).join('');
+      if (!this._openedProps) this._openedProps = new Set(['LAYOUT', 'APPEARANCE', 'CONTENT']);
+
+      let html = '';
+      if (this.activeRightTab === 'STYLES') {
+          html = `
+            <div class="block-category ${this._openedProps.has('LAYOUT') ? 'open' : ''}" data-prop="LAYOUT">Layout <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-grid ${this._openedProps.has('LAYOUT') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
+                <div class="prop-row"><span class="prop-label">Horizontal (X)</span><input type="range" id="p-x" min="0" max="400" value="${b.x}"></div>
+                <div class="prop-row"><span class="prop-label">Vertikal (Y)</span><input type="range" id="p-y" min="0" max="600" value="${b.y}"></div>
+                <div class="prop-row"><span class="prop-label">Breite (W)</span><input type="range" id="p-w" min="10" max="400" value="${b.w || 100}"></div>
+                <div class="prop-row"><span class="prop-label">Höhe (H)</span><input type="range" id="p-h" min="10" max="600" value="${b.h || 100}"></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                    <button class="btn-primary" id="btn-up" style="background:var(--input-bg); color:#fff; font-size:9px;">VORNE</button>
+                    <button class="btn-primary" id="btn-down" style="background:var(--input-bg); color:#fff; font-size:9px;">HINTEN</button>
+                </div>
+            </div>
+
+            <div class="block-category ${this._openedProps.has('APPEARANCE') ? 'open' : ''}" data-prop="APPEARANCE">Appearance <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-grid ${this._openedProps.has('APPEARANCE') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
+                <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}" style="background:none; border:none; width:40px; height:24px;"></div>
+                <div class="prop-row"><span class="prop-label">Glanz (Outer)</span><input type="range" id="p-glow" min="0" max="100" value="${b.glow || 0}"></div>
+                <div class="prop-row"><span class="prop-label">Glanz (Text)</span><input type="range" id="p-textglow" min="0" max="100" value="${b.textGlow || 0}"></div>
+                <div class="prop-row"><span class="prop-label">Glas-Effekt</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
+                <div class="prop-row"><span class="prop-label">Deckkraft</span><input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${b.opacity !== undefined ? b.opacity : 1}"></div>
+            </div>
+          `;
+      } else {
+          let entityOptions = '<option value="">Keine</option>';
+          if (this._hass && this._hass.states) {
+              entityOptions += Object.keys(this._hass.states).sort().map(eid => 
+                  `<option value="${eid}" ${b.entity === eid ? 'selected' : ''}>${eid}</option>`
+              ).join('');
+          }
+          html = `
+            <div class="block-category ${this._openedProps.has('CONTENT') ? 'open' : ''}" data-prop="CONTENT">Content & Actions <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-grid ${this._openedProps.has('CONTENT') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
+                <div class="prop-row"><span class="prop-label">Text</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}"></div>
+                <div class="prop-row"><span class="prop-label">Text-Größe</span><input type="range" id="p-size" min="8" max="60" value="${b.fontSize || 13}"></div>
+                <div class="prop-row"><span class="prop-label">Entität</span><select class="prop-input" id="p-entity">${entityOptions}</select></div>
+                <div class="prop-row"><span class="prop-label">Aktion</span>
+                    <select class="prop-input" id="p-action">
+                        <option value="none" ${b.action === 'none' ? 'selected' : ''}>Keine</option>
+                        <option value="more-info" ${(b.action === 'more-info' || !b.action) ? 'selected' : ''}>Info-Fenster</option>
+                        <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Toggle (An/Aus)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
+                <button class="btn-primary" id="btn-dup" style="background:var(--input-bg); color:#fff; font-size:10px;">DUPLIZIEREN</button>
+                <button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff; font-size:10px;">LÖSCHEN</button>
+            </div>
+          `;
       }
+      right.innerHTML = html;
 
-      right.innerHTML = `
-        <div class="prop-group">
-            <div class="prop-header">Abmessungen & Position</div>
-            <div class="prop-row"><span class="prop-label" id="l-x">Abstand Links (${Math.round(b.x)}px)</span><input type="range" id="p-x" min="0" max="400" value="${b.x}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-y">Abstand Oben (${Math.round(b.y)}px)</span><input type="range" id="p-y" min="0" max="600" value="${b.y}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-size">Textgröße (${b.fontSize || 13}px)</span><input type="range" id="p-size" min="10" max="80" value="${b.fontSize || 13}"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;">
-                <button class="btn-primary" id="btn-up" style="background:#222; font-size:9px; padding:6px; color:#fff;">NACH VORNE</button>
-                <button class="btn-primary" id="btn-down" style="background:#222; font-size:9px; padding:6px; color:#fff;">NACH HINTEN</button>
-            </div>
-        </div>
-        
-        <div class="prop-group">
-            <div class="prop-header">Optik & Effekte</div>
-            <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-glow">Außen-Leuchten (${b.glow || 0})</span><input type="range" id="p-glow" min="0" max="100" value="${b.glow || 0}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-tglow">Text-Leuchten (${b.textGlow || 0})</span><input type="range" id="p-textglow" min="0" max="100" value="${b.textGlow || 0}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-blur">Glas-Effekt (${b.blur || 0})</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
-            <div class="prop-row"><span class="prop-label" id="l-opacity">Sichtbarkeit (${Math.round((b.opacity !== undefined ? b.opacity : 1) * 100)}%)</span><input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${b.opacity !== undefined ? b.opacity : 1}"></div>
-        </div>
-
-        <div class="prop-group">
-            <div class="prop-header">Inhalt & Steuerung</div>
-            <div class="prop-row"><span class="prop-label">Bezeichnung</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}" style="width:140px; text-align:left;"></div>
-            <div class="prop-row"><span class="prop-label">Entität</span>
-                <select class="prop-input" id="p-entity" style="width:140px; font-size:10px; text-align:left;">
-                    ${entityOptions}
-                </select>
-            </div>
-            <div class="prop-row"><span class="prop-label">Aktion</span>
-                <select class="prop-input" id="p-action" style="width:140px; text-align:left;">
-                    <option value="none" ${b.action === 'none' ? 'selected' : ''}>Keine</option>
-                    <option value="more-info" ${(b.action === 'more-info' || !b.action) ? 'selected' : ''}>Info-Fenster</option>
-                    <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Toggle (An/Aus)</option>
-                </select>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
-                <button class="btn-primary" id="btn-dup" style="background:#222; color:#fff; font-size:11px;">
-                    <ha-icon icon="mdi:content-copy" style="--mdc-icon-size:14px;"></ha-icon> KOPIEREN
-                </button>
-                <button class="btn-primary" id="btn-del" style="background:#f43f5e; color:#fff; font-size:11px;">
-                    <ha-icon icon="mdi:delete" style="--mdc-icon-size:14px;"></ha-icon> LÖSCHEN
-                </button>
-            </div>
-        </div>
-      `;
-
-      this.querySelector('#btn-dup').addEventListener('click', () => this.duplicateBlock(id));
-      this.querySelector('#btn-up').addEventListener('click', () => this.moveLayer(id, 'up'));
-      this.querySelector('#btn-down').addEventListener('click', () => this.moveLayer(id, 'down'));
-
-      this.querySelector('#p-x').addEventListener('input', e => { b.x = parseInt(e.target.value); updateUI(); });
-      this.querySelector('#p-y').addEventListener('input', e => { b.y = parseInt(e.target.value); updateUI(); });
-      this.querySelector('#p-size').addEventListener('input', e => { b.fontSize = parseInt(e.target.value); updateUI(); });
-      this.querySelector('#p-color').addEventListener('input', e => { b.color = e.target.value; updateUI(); });
-      this.querySelector('#p-glow').addEventListener('input', e => { b.glow = parseInt(e.target.value); updateUI(); });
-      this.querySelector('#p-textglow').addEventListener('input', e => { b.textGlow = parseInt(e.target.value); updateUI(); });
-      this.querySelector('#p-blur').addEventListener('input', e => { b.blur = parseInt(e.target.value); updateUI(); });
-      this.querySelector('#p-opacity').addEventListener('input', e => { b.opacity = parseFloat(e.target.value); updateUI(); });
-      this.querySelector('#p-text').addEventListener('input', e => { 
-            b.text = e.target.value; 
-            updateUI();
+      // Listeners
+      right.querySelectorAll('.block-category').forEach(header => {
+          header.addEventListener('click', () => {
+              const p = header.dataset.prop;
+              if (this._openedProps.has(p)) this._openedProps.delete(p);
+              else this._openedProps.add(p);
+              this.selectBlock(id);
+          });
       });
-      this.querySelector('#p-entity').addEventListener('change', e => { 
-            b.entity = e.target.value; 
-            if(!b.text || b.text === b.type) {
-                b.text = b.entity.split('.')[1];
-                this.querySelector('#p-text').value = b.text;
-                updateUI();
-            }
+
+      const bind = (id, field, isInt = true, isFloat = false) => {
+          const el = this.shadowRoot.querySelector(id);
+          if (el) el.addEventListener('input', e => {
+              let val = e.target.value;
+              if (isInt) b[field] = parseInt(val);
+              else if (isFloat) b[field] = parseFloat(val);
+              else b[field] = val;
+              updateUI();
+          });
+      };
+
+      bind('#p-x', 'x'); bind('#p-y', 'y'); bind('#p-w', 'w'); bind('#p-h', 'h');
+      bind('#p-size', 'fontSize'); bind('#p-color', 'color', false);
+      bind('#p-glow', 'glow'); bind('#p-textglow', 'textGlow');
+      bind('#p-blur', 'blur'); bind('#p-opacity', 'opacity', false, true);
+      bind('#p-text', 'text', false);
+
+      if (this.shadowRoot.querySelector('#btn-up')) this.shadowRoot.querySelector('#btn-up').addEventListener('click', () => this.moveLayer(id, 'up'));
+      if (this.shadowRoot.querySelector('#btn-down')) this.shadowRoot.querySelector('#btn-down').addEventListener('click', () => this.moveLayer(id, 'down'));
+      if (this.shadowRoot.querySelector('#btn-dup')) this.shadowRoot.querySelector('#btn-dup').addEventListener('click', () => this.duplicateBlock(id));
+      if (this.shadowRoot.querySelector('#btn-del')) this.shadowRoot.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
+      
+      const pEntity = this.shadowRoot.querySelector('#p-entity');
+      if (pEntity) pEntity.addEventListener('change', e => { 
+          b.entity = e.target.value; 
+          if(!b.text || b.text === b.type) { 
+              b.text = b.entity.split('.')[1]; 
+              if (this.shadowRoot.querySelector('#p-text')) this.shadowRoot.querySelector('#p-text').value = b.text;
+              updateUI();
+          } 
       });
-      this.querySelector('#p-action').addEventListener('change', e => { b.action = e.target.value; });
-      this.querySelector('#btn-del').addEventListener('click', () => { 
-            el.remove(); 
-            this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); 
-            this.selectBlock(null); 
-      });
+      const pAction = this.shadowRoot.querySelector('#p-action');
+      if (pAction) pAction.addEventListener('change', e => { b.action = e.target.value; });
+
       updateUI();
     } else if (this.selectedLinkId !== null) {
       const l = this.canvasLinks[this.selectedLinkId];
@@ -952,9 +894,9 @@ class OpenKairoBuilder extends HTMLElement {
             <button class="btn-primary" id="btn-del-link" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Link löschen</button>
         </div>
       `;
-      this.querySelector('#p-link-color').addEventListener('input', e => { l.color = e.target.value; this.renderLinks(); });
-      this.querySelector('#p-link-anim').addEventListener('change', e => { l.animated = (e.target.value === 'true'); this.renderLinks(); });
-      this.querySelector('#btn-del-link').addEventListener('click', () => {
+      this.shadowRoot.querySelector('#p-link-color').addEventListener('input', e => { l.color = e.target.value; this.renderLinks(); });
+      this.shadowRoot.querySelector('#p-link-anim').addEventListener('change', e => { l.animated = (e.target.value === 'true'); this.renderLinks(); });
+      this.shadowRoot.querySelector('#btn-del-link').addEventListener('click', () => {
           this.canvasLinks.splice(this.selectedLinkId, 1);
           this.selectedLinkId = null;
           this.selectBlock(null);
@@ -976,16 +918,16 @@ class OpenKairoBuilder extends HTMLElement {
               <div class="prop-row"><span class="prop-label">Name der Karte</span><input type="text" class="prop-input" id="p-card-name" value="${this.cardName}" style="width:140px; text-align:left;"></div>
           </div>
         `;
-        this.querySelector('#p-card-color').addEventListener('input', e => { this.cardStyle.color = e.target.value; this._updateCardStyle(); });
-        this.querySelector('#p-card-glow').addEventListener('input', e => { this.cardStyle.glow = e.target.value; this._updateCardStyle(); });
-        this.querySelector('#p-card-blur').addEventListener('input', e => { this.cardStyle.blur = e.target.value; this._updateCardStyle(); });
-        this.querySelector('#p-card-opacity').addEventListener('input', e => { this.cardStyle.opacity = e.target.value; this._updateCardStyle(); });
-        this.querySelector('#p-card-name').addEventListener('input', e => { 
+        this.shadowRoot.querySelector('#p-card-color').addEventListener('input', e => { this.cardStyle.color = e.target.value; this._updateCardStyle(); });
+        this.shadowRoot.querySelector('#p-card-glow').addEventListener('input', e => { this.cardStyle.glow = e.target.value; this._updateCardStyle(); });
+        this.shadowRoot.querySelector('#p-card-blur').addEventListener('input', e => { this.cardStyle.blur = e.target.value; this._updateCardStyle(); });
+        this.shadowRoot.querySelector('#p-card-opacity').addEventListener('input', e => { this.cardStyle.opacity = e.target.value; this._updateCardStyle(); });
+        this.shadowRoot.querySelector('#p-card-name').addEventListener('input', e => { 
             this.cardName = e.target.value; 
-            const h = this.querySelector('#card-header-text');
+            const h = this.shadowRoot.querySelector('#card-header-text');
             if(h) h.innerText = this.cardName;
         });
-        this.querySelector('#btn-premium-look').addEventListener('click', () => {
+        this.shadowRoot.querySelector('#btn-premium-look').addEventListener('click', () => {
             this.cardStyle = { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 };
             this._updateCardStyle();
             this.selectBlock(null);
@@ -1005,11 +947,12 @@ class OpenKairoBuilder extends HTMLElement {
   }
 
   renderLinks() {
-    const svg = this.querySelector('#links-overlay');
+    const svg = this.shadowRoot.querySelector('#links-overlay');
+    if(!svg) return;
     svg.innerHTML = '';
     this.canvasLinks.forEach((l, idx) => {
-      const s = this.querySelector('#' + l.source);
-      const t = this.querySelector('#' + l.target);
+      const s = this.shadowRoot.querySelector('#' + l.source);
+      const t = this.shadowRoot.querySelector('#' + l.target);
       if(s && t) {
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         const x1 = s.offsetLeft + s.offsetWidth/2, y1 = s.offsetTop + s.offsetHeight/2;
@@ -1049,7 +992,8 @@ class OpenKairoBuilder extends HTMLElement {
   }
 
   renderLeftSidebar() {
-    const container = this.querySelector('#left-sidebar-container');
+    const container = this.shadowRoot.querySelector('#left-sidebar-container');
+    if (!container) return;
     if(!container) return;
     
     if (this.activeLeftTab === 'TEMPLATES') {
@@ -1057,7 +1001,8 @@ class OpenKairoBuilder extends HTMLElement {
         const templates = [
             { id: 'Climate', name: 'Klima & Komfort', desc: 'Raumtemperatur & Luftfeuchtigkeit' },
             { id: 'Energy', name: 'Energie-Zentrale', desc: 'Verbrauch & Solar-Produktion' },
-            { id: 'Switch', name: 'Intelligenz-Schalter', desc: 'Kompakte Steuerung' }
+            { id: 'Switch', name: 'Intelligenz-Schalter', desc: 'Kompakte Steuerung' },
+            { id: 'SmartSuite', name: 'Smart Scene Suite', desc: 'Premium Schalter-Bundle' }
         ];
         templates.forEach(t => {
             html += `
@@ -1085,17 +1030,24 @@ class OpenKairoBuilder extends HTMLElement {
       { name: 'Glitch-Text', icon: 'mdi:format-text-variant-outline', cat: 'BASIC' },
       { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
       { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
+      { name: 'Grid', icon: 'mdi:grid', cat: 'LAYOUT' },
+      { name: 'Stack', icon: 'mdi:layers-outline', cat: 'LAYOUT' },
+      { name: 'Neon-Switch', icon: 'mdi:toggle-switch-outline', cat: 'UI' },
+      { name: 'Status-Pill', icon: 'mdi:pill', cat: 'UI' },
+      { name: 'Glass-Action', icon: 'mdi:gesture-tap-button', cat: 'UI' },
+      { name: 'Slider-Dimmer', icon: 'mdi:tune-variant', cat: 'UI' },
       { name: 'Hex-Power', icon: 'mdi:hexagon-outline', cat: 'UI' },
       { name: 'Pulse-Chart', icon: 'mdi:chart-timeline-variant', cat: 'UI' },
       { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', cat: 'UI' },
       { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' },
-      { name: 'Modus-Schalter', icon: 'mdi:view-grid-outline', cat: 'UI' },
-      { name: 'Weather-Card', icon: 'mdi:weather-sunny', cat: 'UI' },
-      { name: 'Media-Player', icon: 'mdi:play-circle-outline', cat: 'UI' }
+      { name: 'Media-Player', icon: 'mdi:play-circle-outline', cat: 'UI' },
+      { name: 'Weather-Card', icon: 'mdi:weather-sunny', cat: 'UI' }
     ];
 
+    if (!this._openedCats) this._openedCats = new Set(['BASIC', 'UI']);
+
     if (this.activeLeftTab === 'LAYERS') {
-        let html = `<div class="block-category">Ebenen & Struktur</div>`;
+        let html = `<div class="block-category open">Ebenen & Struktur <ha-icon icon="mdi:layers"></ha-icon></div>`;
         const renderLayer = (parentId = null, level = 0) => {
             const children = this.canvasBlocks.filter(b => b.parentId === parentId);
             children.forEach(b => {
@@ -1103,11 +1055,9 @@ class OpenKairoBuilder extends HTMLElement {
                 const blockInfo = allBlocks.find(ab => ab.name === b.type) || { icon: 'mdi:cube-outline' };
                 const label = b.text && b.text !== b.type ? b.text : b.type;
                 html += `
-                    <div class="layer-item ${isSelected ? 'active' : ''}" style="padding-left:${level * 15 + 10}px; display:flex; align-items:center; gap:8px;" id="layer-${b.id}">
+                    <div class="layer-item ${isSelected ? 'active' : ''}" style="padding-left:${level * 15 + 10}px; padding-top:8px; padding-bottom:8px; display:flex; align-items:center; gap:8px; cursor:pointer;" id="layer-${b.id}">
                         <ha-icon icon="${blockInfo.icon}" style="--mdc-icon-size:12px; opacity:0.6; color:#fff;"></ha-icon>
-                        <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:11px; font-weight:600; color:#fff;">${label}</span>
-                        </div>
+                        <span style="font-size:11px; font-weight:600; color:#fff;">${label}</span>
                     </div>
                 `;
                 renderLayer(b.id, level + 1);
@@ -1117,72 +1067,67 @@ class OpenKairoBuilder extends HTMLElement {
         if (this.canvasBlocks.length === 0) html += `<div style="padding:20px; opacity:0.3; font-size:11px;">Keine Elemente vorhanden</div>`;
         container.innerHTML = html;
         container.querySelectorAll('.layer-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const id = item.id.replace('layer-', '');
-                this.selectBlock(id);
-            });
+            item.addEventListener('click', () => this.selectBlock(item.id.replace('layer-', '')));
         });
         return;
     }
 
-    let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Bausteine suchen..." value="${this.sidebarSearchQuery}">`;
+    let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Suche..." value="${this.sidebarSearchQuery}">`;
     const searchVal = (this.sidebarSearchQuery || '').toLowerCase();
-    
-    // 1. ALWAYS show BASIC blocks
-    const basicBlocks = allBlocks.filter(b => b.cat === 'BASIC' || b.name === 'Card' || b.name === 'Container');
-    html += `<div class="block-category">Bausteine</div><div class="block-grid">`;
-    basicBlocks.forEach(b => {
-      if (searchVal && !b.name.toLowerCase().includes(searchVal)) return;
-      html += `<div class="block-item" data-type="${b.name}">
-          <ha-icon icon="${b.icon}"></ha-icon>
-          <span>${b.name}</span>
-      </div>`;
-    });
-    html += `</div>`;
 
-    // 2. Dynamic Section
-    if (this.activeToolbarMode === 'ENTITIES') {
-        html += `<div class="block-category" style="margin-top:20px;">Deine Geräte (Entities)</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 4px;">`;
-        if (this._hass && this._hass.states) {
-            const eIds = Object.keys(this._hass.states)
-                .filter(id => id.toLowerCase().includes(searchVal))
-                .sort()
-                .slice(0, 50);
-            
-            eIds.forEach(eid => {
-                const name = eid.split('.')[1];
+    const categories = [
+        { id: 'BASIC', label: 'Basics' },
+        { id: 'LAYOUT', label: 'Layout' },
+        { id: 'UI', label: 'Premium UI' },
+        { id: 'ENTITIES', label: 'Entitäten' }
+    ];
+
+    categories.forEach(cat => {
+        const title = cat.label;
+        const isOpen = this._openedCats.has(cat.id) || searchVal;
+        
+        let catBlocks = [];
+        if (cat.id === 'ENTITIES') {
+            if (this._hass && this._hass.states) {
+                catBlocks = Object.keys(this._hass.states)
+                    .filter(eid => eid.toLowerCase().includes(searchVal))
+                    .sort().slice(0, searchVal ? 50 : 20)
+                    .map(eid => ({ name: eid.split('.')[1], icon: 'mdi:database', entity: eid }));
+            }
+        } else {
+            catBlocks = allBlocks.filter(b => b.cat === cat.id);
+            if (searchVal) catBlocks = catBlocks.filter(b => b.name.toLowerCase().includes(searchVal));
+        }
+
+        if (catBlocks.length > 0) {
+            html += `<div class="block-category ${isOpen ? 'open' : ''}" data-cat="${cat.id}">
+                        ${title} <ha-icon icon="mdi:chevron-down"></ha-icon>
+                     </div>`;
+            html += `<div class="block-grid ${isOpen ? '' : 'collapsed'}" id="grid-${cat.id}">`;
+            catBlocks.forEach(b => {
                 html += `
-                    <div class="block-item entity-item" data-type="Entity State" data-entity="${eid}" style="justify-content:flex-start; height:auto; padding:6px 10px; flex-direction:row; align-items:center; gap:10px; background:rgba(255,255,255,0.02); border-radius:10px; border:1px solid var(--border-color);">
-                        <ha-icon icon="mdi:database" style="--mdc-icon-size:12px; color:rgba(255,255,255,0.4);"></ha-icon>
-                        <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
-                            <span style="font-size:10px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#fff; text-transform:none;">${name}</span>
-                        </div>
+                    <div class="block-item" data-type="${b.entity ? 'Entity State' : b.name}" ${b.entity ? `data-entity="${b.entity}"` : ''} style="${b.entity ? 'height:auto; padding:8px 4px;' : ''}">
+                        <ha-icon icon="${b.icon}"></ha-icon>
+                        <span style="${b.entity ? 'text-transform:none; font-size:8px; line-height:1.2; text-align:center;' : ''}">${b.name}</span>
                     </div>
                 `;
             });
-        }
-        html += `</div>`;
-    } else {
-        const modeLabel = this.activeToolbarMode === 'ACTIONS' ? 'Bedienung & UI' : this.activeToolbarMode;
-        const filtered = allBlocks.filter(b => {
-             if (this.activeToolbarMode === 'ACTIONS' && b.cat === 'UI') return true;
-             if (this.activeToolbarMode === 'LAYOUT' && b.cat === 'LAYOUT') return true;
-             return false;
-        });
-
-        if (filtered.length > 0) {
-            html += `<div class="block-category" style="margin-top:20px;">${modeLabel}</div><div class="block-grid">`;
-            filtered.forEach(b => {
-                html += `<div class="block-item" data-type="${b.name}">
-                    <ha-icon icon="${b.icon}"></ha-icon>
-                    <span>${b.name}</span>
-                </div>`;
-            });
             html += `</div>`;
         }
-    }
+    });
 
     container.innerHTML = html;
+    
+    // Handlers
+    container.querySelectorAll('.block-category').forEach(header => {
+        header.addEventListener('click', () => {
+            const catId = header.dataset.cat;
+            if (this._openedCats.has(catId)) this._openedCats.delete(catId);
+            else this._openedCats.add(catId);
+            this.renderLeftSidebar();
+        });
+    });
+
     container.querySelectorAll('.block-item').forEach(item => {
       item.setAttribute('draggable', 'true');
       item.addEventListener('dragstart', e => {
@@ -1190,7 +1135,11 @@ class OpenKairoBuilder extends HTMLElement {
         if(item.dataset.entity) e.dataTransfer.setData('source_entity', item.dataset.entity);
       });
     });
-    container.querySelector('#sidebar-search').addEventListener('input', e => { this.sidebarSearchQuery = e.target.value; this.renderLeftSidebar(); });
+
+    container.querySelector('#sidebar-search').addEventListener('input', e => { 
+        this.sidebarSearchQuery = e.target.value; 
+        this.renderLeftSidebar(); 
+    });
   }
 }
 customElements.define("openkairo-panel", OpenKairoBuilder);

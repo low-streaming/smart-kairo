@@ -126,6 +126,17 @@ class OpenKairoCustomCard extends HTMLElement {
         }
         @keyframes flow { to { stroke-dashoffset: -48; } }
         @keyframes glowPulse { from { filter: drop-shadow(0 0 2px currentColor); opacity: 0.4; } to { filter: drop-shadow(0 0 10px currentColor); opacity: 0.9; } }
+        @keyframes breathe { 0%, 100% { opacity: 0.3; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+        
+        input[type=range].kairo-slider {
+          -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range].kairo-slider::-webkit-slider-runnable-track {
+          width: 100%; height: 6px; cursor: pointer; background: rgba(255,255,255,0.05); border-radius: 3px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        input[type=range].kairo-slider::-webkit-slider-thumb {
+          height: 16px; width: 16px; border-radius: 50%; background: #fff; cursor: pointer; -webkit-appearance: none; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
       </style>
       <ha-card>
         <div class="header">${cardName}</div>
@@ -237,8 +248,8 @@ class OpenKairoCustomCard extends HTMLElement {
        }
 
        if (b.type === 'Klima-Bogen') {
-           const temp = stateObj ? stateObj.attributes.current_temperature || val : "21";
-           const target = stateObj ? stateObj.attributes.temperature || val : "22";
+           const temp = stateObj ? (stateObj.attributes.current_temperature || val) : "21";
+           const target = stateObj ? (stateObj.attributes.temperature || val) : "22";
            const hvacAction = stateObj ? (stateObj.attributes.hvac_action || stateObj.state) : "idle";
            const accentColor = hvacAction === 'heating' ? '#f59e0b' : (hvacAction === 'cooling' ? '#3b82f6' : '#10b981');
            
@@ -268,7 +279,6 @@ class OpenKairoCustomCard extends HTMLElement {
                 </div>
            `;
        } else if (b.type === 'Pulse-Chart') {
-           const flowVal = parseFloat(val) || 0;
            const color = b.color || '#00f6ff';
            el.innerHTML = `
                 <div style="width:200px; height:80px; background:rgba(0,0,0,0.4); border-radius:12px; border:1px solid rgba(255,255,255,0.05); padding:10px; display:flex; flex-direction:column;">
@@ -348,6 +358,54 @@ class OpenKairoCustomCard extends HTMLElement {
                 </div>
              </div>
            `;
+       } else if (b.type === 'Neon-Switch') {
+           const isOn = stateObj ? stateObj.state === 'on' : false;
+           const color = b.color || '#10b981';
+           el.innerHTML = `
+             <div style="width:120px; padding:12px; background:rgba(0,0,0,0.5); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:16px; display:flex; flex-direction:column; gap:8px; box-shadow: ${isOn ? `0 0 20px ${color}30` : 'none'}; transition:0.4s;">
+               <div style="display:flex; justify-content:space-between; align-items:center;">
+                 <ha-icon icon="${isOn ? 'mdi:lightbulb-on' : 'mdi:lightbulb-off'}" style="color:${isOn ? color : 'rgba(255,255,255,0.2)'};"></ha-icon>
+                 <div style="width:34px; height:20px; background:${isOn ? color : '#333'}; border-radius:10px; position:relative; overflow:hidden;">
+                   <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:3px; left:${isOn ? '17px' : '3px'}; transition:0.3s; box-shadow:0 0 10px rgba(255,255,255,0.5);"></div>
+                 </div>
+               </div>
+               <div style="font-size:10px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:1px;">${b.text || (entityId ? entityId.split('.')[1] : 'Schalter')}</div>
+             </div>
+           `;
+       } else if (b.type === 'Status-Pill') {
+           const color = b.color || '#10b981';
+           el.innerHTML = `
+             <div style="padding:6px 14px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:20px; display:flex; align-items:center; gap:8px; backdrop-filter:blur(10px);">
+               <div style="width:8px; height:8px; background:${color}; border-radius:50%; box-shadow:0 0 10px ${color}; animation: breathe 2s ease-in-out infinite;"></div>
+               <div style="font-size:10px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:1px;">${b.text || val}</div>
+             </div>
+           `;
+       } else if (b.type === 'Glass-Action') {
+           el.innerHTML = `
+             <div style="width:60px; height:60px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:16px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transition:0.3s;"
+                  onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.transform='scale(1.05)'"
+                  onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.transform='scale(1)'">
+               <ha-icon icon="mdi:flash" style="color:#fff;"></ha-icon>
+             </div>
+           `;
+       } else if (b.type === 'Slider-Dimmer') {
+           const brightness = stateObj ? Math.round((stateObj.attributes.brightness || 0) / 255 * 100) : 0;
+           const color = b.color || '#10b981';
+           el.innerHTML = `
+             <div style="width:200px; padding:15px; background:rgba(0,0,0,0.4); border-radius:20px; border:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:10px;" onclick="event.stopPropagation()">
+               <div style="display:flex; justify-content:space-between; align-items:center;">
+                 <span style="font-size:10px; font-weight:900; color:rgba(255,255,255,0.4); text-transform:uppercase;">${b.text || 'Helligkeit'}</span>
+                 <span style="font-size:10px; font-weight:900; color:${color};">${brightness}%</span>
+               </div>
+               <input type="range" class="kairo-slider" min="0" max="255" value="${stateObj ? (stateObj.attributes.brightness || 0) : 0}" 
+                      style="accent-color:${color};"
+                      onchange="this.dispatchEvent(new CustomEvent('ok-dim', {detail: {v: this.value}, bubbles: true}))">
+             </div>
+           `;
+           const input = el.querySelector('input');
+           input.addEventListener('ok-dim', (e) => {
+               this._hass.callService('homeassistant', 'turn_on', { entity_id: entityId, brightness: e.detail.v });
+           });
        } else {
            let displayContent = b.text || b.type;
            if (entityId && stateObj) displayContent = `${val}${metric}`;
