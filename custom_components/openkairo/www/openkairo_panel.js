@@ -97,7 +97,10 @@ class OpenKairoBuilder extends HTMLElement {
         .block-item:hover ha-icon { color: var(--kairo-cyan); }
         .block-item span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
 
-        .canvas-element { position: absolute; cursor: default; user-select: none; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; }
+        .canvas-element { 
+            position: absolute; cursor: default; user-select: none; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; 
+            transition: box-shadow 0.3s, backdrop-filter 0.3s;
+        }
         .canvas-element.selected { border: 1px solid #fff !important; z-index: 100; }
         .resizer { width: 6px; height: 6px; background: #fff; border-radius: 50%; position: absolute; display: none; border: 1.5px solid var(--bg-color); }
         .canvas-element.selected .resizer { display: block; }
@@ -138,6 +141,13 @@ class OpenKairoBuilder extends HTMLElement {
         .anim-breathe { animation: kairo-breathe var(--dur, 3s) infinite ease-in-out; }
         .anim-float { animation: kairo-float var(--dur, 3s) infinite ease-in-out; }
         .anim-glitch { animation: kairo-glitch var(--dur, 0.3s) infinite; }
+
+        /* Component Styles */
+        .studio-pro-arc { 
+            position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; 
+            background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 15px #10b98120;
+        }
+        .studio-pro-arc .val { font-size:32px; font-weight:900; color:#fff; line-height:1; }
       </style>
 
       <div id="builder-container">
@@ -145,35 +155,21 @@ class OpenKairoBuilder extends HTMLElement {
           <div class="header-branding">
             <ha-icon icon="mdi:lightning-bolt"></ha-icon> KAIRO ARCHITECT
           </div>
-          
           <div class="header-center">
             <div class="header-breadcrumb" id="btn-rename-card">
               <ha-icon icon="mdi:view-dashboard"></ha-icon>
-              <span id="breadcrumb-card-name">${this.cardName}</span>
+              <span id="breadcrumb-card-name">LIVING ROOM</span>
               <ha-icon icon="mdi:chevron-down"></ha-icon>
             </div>
           </div>
-          
-              <div style="display:flex; gap:10px; align-items:center; background:rgba(255,255,255,0.04); padding:4px; border-radius:10px; border:1px solid var(--border-color); margin-right:10px;">
-                <div class="dev-btn active" id="dev-desktop" title="Desktop View"><ha-icon icon="mdi:monitor"></ha-icon></div>
-                <div class="dev-btn" id="dev-tablet" title="Tablet View"><ha-icon icon="mdi:tablet-android"></ha-icon></div>
-                <div class="dev-btn" id="dev-mobile" title="Mobile View"><ha-icon icon="mdi:cellphone"></ha-icon></div>
-              </div>
-
-              <div style="display:flex; gap:10px; align-items:center; background:rgba(255,255,255,0.04); padding:4px 10px; border-radius:8px; border:1px solid var(--border-color);">
-                <span style="font-size:9px; font-weight:900; color:var(--text-secondary);">PREVIEW</span>
-                <select id="theme-selector" style="background:transparent; border:none; color:#fff; font-size:10px; font-weight:800; text-transform:uppercase; outline:none; cursor:pointer;">
-                    <option value="cyan">Platinum Cyan</option>
-                    <option value="matrix">Matrix Green</option>
-                    <option value="synth">Synth Night</option>
-                    <option value="icarus">Icarus Gold</option>
-                    <option value="overdrive">Overdrive Hologram</option>
-                </select>
-              </div>
-              <button class="btn-primary" id="btn-save">
-                <ha-icon icon="mdi:code-braces"></ha-icon> CODE GENERIEREN
-              </button>
-           </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+             <div style="display:flex; background:rgba(255,255,255,0.04); padding:4px; border-radius:10px; border:1px solid var(--border-color); margin-right:10px;">
+                <div class="dev-btn active" id="dev-desktop"><ha-icon icon="mdi:monitor"></ha-icon></div>
+                <div class="dev-btn" id="dev-tablet"><ha-icon icon="mdi:tablet-android"></ha-icon></div>
+                <div class="dev-btn" id="dev-mobile"><ha-icon icon="mdi:cellphone"></ha-icon></div>
+             </div>
+             <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:code-braces"></ha-icon> CODE GENERIEREN</button>
+          </div>
         </header>
 
         <div class="main-layout">
@@ -188,7 +184,7 @@ class OpenKairoBuilder extends HTMLElement {
 
           <div class="canvas-area">
              <div id="drop-target">
-                <div id="card-header-text" style="text-align:center; font-family:'Inter'; color:var(--kairo-cyan); font-weight:900; filter:drop-shadow(0 0 10px var(--kairo-cyan)); opacity:0.8; font-size:20px; letter-spacing:4px; text-transform:uppercase; margin-top:20px;">LIVING ROOM</div>
+                <div id="card-header-text" style="text-align:center; color:var(--kairo-cyan); font-weight:900; filter:drop-shadow(0 0 10px var(--kairo-cyan)); opacity:0.8; font-size:20px; letter-spacing:4px; padding-top:20px;">LIVING ROOM</div>
                 <svg id="links-overlay" style="position:absolute; inset:0; pointer-events:none;"></svg>
              </div>
           </div>
@@ -201,11 +197,10 @@ class OpenKairoBuilder extends HTMLElement {
              <div class="sidebar-content" id="right-sidebar"></div>
           </div>
         </div>
-        
+
         <div id="export-modal" class="modal-overlay">
            <div class="modal-content">
-              <div style="font-size:18px; font-weight:900; color:#fff;">KARTE EXPORTIEREN</div>
-              <div style="font-size:11px; color:var(--text-secondary);">Kopiere diesen YAML-Code in dein Home Assistant Dashboard.</div>
+              <div style="font-size:18px; font-weight:900;">KARTE EXPORTIEREN</div>
               <pre id="export-code-box" class="modal-code"></pre>
               <div style="display:flex; justify-content:flex-end; gap:12px;">
                 <button class="btn-primary" style="background:rgba(255,255,255,0.05); color:#fff;" id="btn-close-modal">Abbrechen</button>
@@ -227,61 +222,7 @@ class OpenKairoBuilder extends HTMLElement {
     this.activeLeftTab = 'BLOCKS';
     this.cardStyle = { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 };
 
-    this._updateTheme = (theme) => {
-        const colors = {
-           cyan: '#00f6ff',
-           amber: '#ffb000',
-           magenta: '#ec4899',
-           gold: '#c6a34f',
-           matrix: '#00ff41'
-        };
-        const color = colors[theme.toLowerCase()] || colors.cyan;
-        this.cardStyle.color = color;
-        this.cardStyle.glow = theme === 'overdrive' ? 60 : 40;
-        this._updateCardStyle();
-        
-        // Update header color
-        const header = this.shadowRoot.querySelector('#card-header-text');
-        if(header) header.style.color = color;
-        
-        // Update variables for styles
-        this.style.setProperty('--kairo-cyan', color);
-    };
-
-    const updateCardStyle = () => {
-        const board = this.shadowRoot.querySelector('#drop-target');
-        if (!board) return;
-        board.style.boxShadow = this.cardStyle.glow > 0 ? `0 30px 60px rgba(0,0,0,0.8), 0 0 ${this.cardStyle.glow}px ${this.cardStyle.color}` : '0 30px 60px rgba(0,0,0,0.8)';
-        board.style.backdropFilter = `blur(${this.cardStyle.blur}px)`;
-        board.style.border = `1px solid ${this.cardStyle.color}40`;
-        const header = this.shadowRoot.querySelector('#card-header-text');
-        if(header) header.style.color = this.cardStyle.color;
-    };
-    this._updateCardStyle = updateCardStyle;
-
-
-    // Tab Handlers Right
-    const rightTabs = this.shadowRoot.querySelectorAll('.sidebar-right .s-tab');
-    rightTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            rightTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            this.activeRightTab = tab.innerText.toUpperCase();
-            this.selectBlock(this.selectedBlockId);
-        });
-    });
-
-    const leftTabs = this.shadowRoot.querySelectorAll('.sidebar-left .s-tab');
-    leftTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            leftTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            this.activeLeftTab = tab.dataset.tab;
-            this.renderLeftSidebar();
-        });
-    });
-
-    // Other Handlers
+    // Register Event Listeners
     this.shadowRoot.querySelector('#btn-save').addEventListener('click', () => this.showExport());
     this.shadowRoot.querySelector('#btn-close-modal').addEventListener('click', () => { this.shadowRoot.querySelector('#export-modal').style.display = 'none'; });
     this.shadowRoot.querySelector('#btn-copy-code').addEventListener('click', () => {
@@ -292,1031 +233,367 @@ class OpenKairoBuilder extends HTMLElement {
         setTimeout(() => btn.innerText = 'KOPIEREN', 2000);
     });
 
-    this.shadowRoot.querySelector('#theme-selector').addEventListener('change', e => {
-        this._updateTheme(e.target.value);
-    });
-
     const setDevice = (type) => {
         const canvas = this.shadowRoot.querySelector('#drop-target');
         this.shadowRoot.querySelectorAll('.dev-btn').forEach(b => b.classList.remove('active'));
-        if (type === 'desktop') { canvas.style.width = '320px'; this.shadowRoot.querySelector('#dev-desktop').classList.add('active'); }
-        if (type === 'tablet') { canvas.style.width = '600px'; this.shadowRoot.querySelector('#dev-tablet').classList.add('active'); }
-        if (type === 'mobile') { canvas.style.width = '320px'; this.shadowRoot.querySelector('#dev-mobile').classList.add('active'); }
+        if (type === 'desktop') canvas.style.width = '320px';
+        if (type === 'tablet') canvas.style.width = '600px';
+        if (type === 'mobile') canvas.style.width = '320px';
+        this.shadowRoot.querySelector('#dev-' + type).classList.add('active');
         this.renderLinks();
     };
-    this.shadowRoot.querySelector('#dev-desktop').addEventListener('click', () => setDevice('desktop'));
-    this.shadowRoot.querySelector('#dev-tablet').addEventListener('click', () => setDevice('tablet'));
-    this.shadowRoot.querySelector('#dev-mobile').addEventListener('click', () => setDevice('mobile'));
+    ['desktop', 'tablet', 'mobile'].forEach(d => this.shadowRoot.querySelector('#dev-' + d).addEventListener('click', () => setDevice(d)));
 
-    this.shadowRoot.querySelector('#drop-target').addEventListener('click', (e) => {
-        if(e.target.id === 'drop-target') this.selectBlock(null);
+    const dropTarget = this.shadowRoot.querySelector('#drop-target');
+    dropTarget.addEventListener('dragover', e => e.preventDefault());
+    dropTarget.addEventListener('drop', e => { e.preventDefault(); this._handleDrop(e); });
+    dropTarget.addEventListener('click', e => { if(e.target.id === 'drop-target') this.selectBlock(null); });
+
+    this.shadowRoot.querySelectorAll('.sidebar-right .s-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            this.shadowRoot.querySelectorAll('.sidebar-right .s-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.activeRightTab = tab.innerText.toUpperCase();
+            this.selectBlock(this.selectedBlockId);
+        });
     });
 
-    const canvas = this.shadowRoot.querySelector('#drop-target');
-    canvas.addEventListener('dragover', e => e.preventDefault());
-    canvas.addEventListener('drop', e => {
-      e.preventDefault();
-      const moveId = e.dataTransfer.getData('move_id');
-      const sourceType = e.dataTransfer.getData('source_type');
-      const sourceEntity = e.dataTransfer.getData('source_entity');
-      const canvasRect = canvas.getBoundingClientRect();
-      const gridSize = 20;
+    this.shadowRoot.querySelectorAll('.sidebar-left .s-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            this.shadowRoot.querySelectorAll('.sidebar-left .s-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            this.activeLeftTab = tab.dataset.tab;
+            this.renderLeftSidebar();
+        });
+    });
 
-      // 1. MOVE EXISTING BLOCK
-      if (moveId) {
-        const el = this.querySelector('#' + moveId);
+    this.renderLeftSidebar();
+    this.selectBlock(null);
+  }
+
+  _handleDrop(e) {
+    const canvas = this.shadowRoot.querySelector('#drop-target');
+    const rect = canvas.getBoundingClientRect();
+    const moveId = e.dataTransfer.getData('move_id');
+    const type = e.dataTransfer.getData('source_type');
+
+    if (moveId) {
+        const b = this.canvasBlocks.find(x => x.id === moveId);
         const ox = parseFloat(e.dataTransfer.getData('offsetX')) || 0;
         const oy = parseFloat(e.dataTransfer.getData('offsetY')) || 0;
-        let dropX = Math.round((e.clientX - canvasRect.left - ox) / 12) * 12;
-        let dropY = Math.round((e.clientY - canvasRect.top - oy) / 12) * 12;
-        
-        const b = this.canvasBlocks.find(x => x.id === moveId);
-        if(b) {
-          const dx = dropX - b.x;
-          const dy = dropY - b.y;
-          b.x = dropX; b.y = dropY;
-          el.style.left = dropX + 'px';
-          el.style.top = dropY + 'px';
-          
-          this.canvasBlocks.filter(x => x.parentId === moveId).forEach(child => {
-            child.x += dx; child.y += dy;
-            const childEl = this.querySelector('#' + child.id);
-            if(childEl) { childEl.style.left = child.x + 'px'; childEl.style.top = child.y + 'px'; }
-          });
-        }
+        b.x = Math.round((e.clientX - rect.left - ox) / 12) * 12;
+        b.y = Math.round((e.clientY - rect.top - oy) / 12) * 12;
+        this.renderCanvas();
         this.selectBlock(moveId);
-      } 
-      // 2. ASSIGN ENTITY TO EXISTING BLOCK
-      else if (sourceEntity && e.target.closest('.canvas-element')) {
-        const targetEl = e.target.closest('.canvas-element');
-        const b = this.canvasBlocks.find(x => x.id === targetEl.id);
-        if(b) {
-            b.entity = sourceEntity;
-            if(!b.text || b.text === b.type) b.text = sourceEntity.split('.')[1];
-            this.selectBlock(b.id);
-        }
-      }
-      // 3. CREATE NEW FROM CUSTOM TEMPLATE
-      else if (sourceType === 'CUSTOM_TEMPLATE') {
-          const templateIdx = e.dataTransfer.getData('template_idx');
-          const temps = JSON.parse(localStorage.getItem('kairo_custom_templates') || '[]');
-          const t = temps[parseInt(templateIdx)];
-          if (t) {
-              const newId = 'b' + Math.random().toString(36).substr(2, 9);
-              let dropX = Math.round((e.clientX - canvasRect.left - 40) / 12) * 12;
-              let dropY = Math.round((e.clientY - canvasRect.top - 20) / 12) * 12;
-              const newBlock = { ...t, id: newId, x: dropX, y: dropY };
-              this.canvasBlocks.push(newBlock);
-              this.renderCanvas();
-              this.selectBlock(newId);
-          }
-      }
-      // 4. ADD NEW BLOCK
-      else if (sourceType) {
-        let dropX = Math.round((e.clientX - canvasRect.left - 40) / 12) * 12;
-        let dropY = Math.round((e.clientY - canvasRect.top - 20) / 12) * 12;
-        
-        const targetBlock = e.target.closest('.canvas-element');
-        let pId = null;
-        if (targetBlock) {
-          const tb = this.canvasBlocks.find(x => x.id === targetBlock.id);
-          if (tb && (tb.type === 'Container' || tb.type === 'Card')) pId = tb.id;
-        }
-        
-        const type = sourceType === 'Entity State' ? 'Badge' : sourceType;
-        this.addBlockToCanvas(type, dropX, dropY, sourceEntity, pId);
-      }
-      this.renderLinks();
-    });
-
-    canvas.addEventListener('click', () => {
-      this.selectedLinkId = null;
-      this.selectBlock(null);
-    });
-
-    this.querySelector('#btn-save').addEventListener('click', () => {
-      let exportObj = {
-          type: 'custom:openkairo-custom-card',
-          name: this.cardName,
-          glow: parseInt(this.cardStyle.glow),
-          blur: parseInt(this.cardStyle.blur),
-          opacity: parseFloat(this.cardStyle.opacity),
-          layout: this.canvasBlocks.map(b => {
-              let item = {
-                  type: b.type,
-                  id: b.id,
-                  x: b.x,
-                  y: b.y,
-                  color: b.color
-              };
-              if (b.w !== undefined) item.w = b.w;
-              if (b.h !== undefined) item.h = b.h;
-              if (b.entity) item.entity = b.entity;
-              if (b.text) item.text = b.text;
-              if (b.glow) item.glow = parseInt(b.glow);
-              if (b.textGlow) item.textGlow = parseInt(b.textGlow);
-              if (b.blur) item.blur = parseInt(b.blur);
-              if (b.opacity !== undefined) item.opacity = parseFloat(b.opacity);
-              if (b.action && b.action !== 'none') item.action = b.action;
-              if (b.tapAction) item.tapAction = b.tapAction;
-              if (b.doubleTapAction) item.doubleTapAction = b.doubleTapAction;
-              if (b.holdAction) item.holdAction = b.holdAction;
-              if (b.animation && b.animation !== 'none') {
-                  item.animation = b.animation;
-                  item.animDuration = parseFloat(b.animDuration || 2);
-                  item.animDelay = parseFloat(b.animDelay || 0);
-              }
-              if (b.parentId) item.parentId = b.parentId;
-              if (b.fontSize) item.fontSize = parseInt(b.fontSize);
-              return item;
-          })
-      };
-
-      // Simple YAML stringifier
-      const toYaml = (obj, indent = 0) => {
-          let res = '';
-          const spaces = ' '.repeat(indent);
-          for (let key in obj) {
-              const val = obj[key];
-              if (Array.isArray(val)) {
-                  res += `${spaces}${key}:\n`;
-                  val.forEach(item => {
-                      res += `${spaces}  - `;
-                      let first = true;
-                      for (let subKey in item) {
-                          const subVal = item[subKey];
-                          if (!first) res += `${spaces}    `;
-                          res += `${subKey}: ${typeof subVal === 'string' ? `"${subVal}"` : subVal}\n`;
-                          first = false;
-                      }
-                  });
-              } else {
-                  res += `${spaces}${key}: ${typeof val === 'string' ? `"${val}"` : val}\n`;
-              }
-          }
-          return res;
-      };
-
-      this.querySelector('#export-code-box').innerText = toYaml(exportObj);
-      this.querySelector('#export-modal').style.display = 'flex';
-    });
-    
-    // Add global updateCardStyle to be accessible in selectBlock
-    this._updateCardStyle = updateCardStyle;
-
-    this.querySelector('#btn-close-modal').addEventListener('click', () => this.querySelector('#export-modal').style.display = 'none');
-    this.querySelector('#btn-copy-code').addEventListener('click', () => {
-      navigator.clipboard.writeText(this.querySelector('#export-code-box').innerText);
-      alert("Copied!");
-    });
-
-    this.querySelector('#theme-selector').addEventListener('change', e => {
-        this._updateTheme(e.target.value);
-    });
-
-    window.addEventListener('keydown', (e) => {
-        if (!this.selectedBlockId) return;
-        const b = this.canvasBlocks.find(x => x.id === this.selectedBlockId);
-        if (!b) return;
-
-        // Skip if typing in an input
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-
-        const snap = 1;
-        if (e.key === 'ArrowLeft') b.x -= snap;
-        else if (e.key === 'ArrowRight') b.x += snap;
-        else if (e.key === 'ArrowUp') b.y -= snap;
-        else if (e.key === 'ArrowDown') b.y += snap;
-        else if (e.key === 'Delete') {
-            const el = this.querySelector('#' + b.id);
-            if(el) el.remove();
-            this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== b.id);
-            this.selectBlock(null);
-            this.renderLinks();
-            return;
-        } else return;
-
-        e.preventDefault();
-        this.selectBlock(b.id);
-    });
-
-    this.querySelector('#drop-target').addEventListener('dragover', e => e.preventDefault());
-    this.querySelector('#drop-target').addEventListener('drop', e => {
-      e.preventDefault();
-      const moveId = e.dataTransfer.getData('move_id');
-      const type = e.dataTransfer.getData('block_type');
-      const r = this.querySelector('#drop-target').getBoundingClientRect();
-
-      if (moveId) {
-        const b = this.canvasBlocks.find(x => x.id === moveId);
-        const offsetX = e.dataTransfer.getData('offsetX');
-        const offsetY = e.dataTransfer.getData('offsetY');
-        // Snapping: 12px
-        b.x = Math.round((e.clientX - r.left - offsetX) / 12) * 12;
-        b.y = Math.round((e.clientY - r.top - offsetY) / 12) * 12;
-        this.selectBlock(moveId);
-      } else if (type) {
-        const x = Math.round((e.clientX - r.left - 20) / 12) * 12;
-        const y = Math.round((e.clientY - r.top - 20) / 12) * 12;
+    } else if (type) {
+        const x = Math.round((e.clientX - rect.left - 40) / 12) * 12;
+        const y = Math.round((e.clientY - rect.top - 20) / 12) * 12;
         this.addBlockToCanvas(type, x, y);
-      }
-    });
+    }
   }
 
   addBlockToCanvas(type, x, y, entityId = null, parentId = null) {
-    const blockId = 'b' + Date.now();
-    const el = document.createElement('div');
-    el.className = 'canvas-element';
-    el.id = blockId;
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    el.style.zIndex = parentId ? '20' : '10';
-    if(type === 'Container' || type === 'Card') el.style.zIndex = '5';
-    
-    el.style.background = 'rgba(16,185,129,0.15)';
-    
-    let label = entityId || type;
-    if (type === 'Klima-Bogen') {
-        el.style.width = '140px'; el.style.height = '140px'; el.style.background = 'transparent';
-        el.innerHTML = `
-             <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 15px #10b98120;">
-                <svg viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; transform:rotate(-90deg);">
-                    <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="6" />
-                    <circle cx="50" cy="50" r="46" fill="none" stroke="#10b981" stroke-width="6" stroke-dasharray="290" stroke-dashoffset="70" />
-                </svg>
-                <div style="text-align:center; z-index:2;">
-                    <div style="font-size:32px; font-weight:900; color:#fff; line-height:1;">21°</div>
-                    <div style="font-size:10px; color:#10b981; text-transform:uppercase; margin-top:6px; letter-spacing:2px; font-weight:800;">HEAT</div>
-                </div>
-             </div>
-        `;
-    } else if (type === 'Modus-Schalter') {
-        el.innerHTML = `<div style="display:flex; gap:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
-             <div style="padding:8px 16px; border-radius:10px; background:#10b981; color:#fff; font-size:11px; text-transform:uppercase; font-weight:900; box-shadow: 0 0 20px rgba(16,185,129,0.4);">HEAT</div>
-             <div style="padding:8px 16px; border-radius:10px; background:transparent; color:rgba(255,255,255,0.4); font-size:11px; text-transform:uppercase; font-weight:900;">AUTO</div>
-        </div>`;
-    } else if (type === 'Energie-Ring') {
-        el.style.width = '100px'; el.style.height = '100px'; el.style.background = 'transparent';
-        el.innerHTML = `
-             <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:1px solid #06b6d4; opacity:0.1; box-shadow:inset 0 0 20px #06b6d440;"></div>
-                <div style="text-align:center; z-index:2;">
-                    <div style="font-size:22px; font-weight:900; color:#fff; line-height:1; text-shadow: 0 0 15px #06b6d460;">450</div>
-                    <div style="font-size:10px; color:#06b6d4; font-weight:900; text-transform:uppercase; margin-top:4px; letter-spacing:1px;">W</div>
-                </div>
-             </div>
-        `;
-    } else if (type === 'Weather-Card') {
-        el.innerHTML = `
-             <div style="padding:15px; background:rgba(255,255,255,0.03); border-radius:20px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:15px; backdrop-filter:blur(10px);">
-                <ha-icon icon="mdi:weather-sunny" style="--mdc-icon-size:40px; color:#fbbf24; filter:drop-shadow(0 0 10px #fbbf2460);"></ha-icon>
-                <div>
-                    <div style="font-size:24px; font-weight:900; color:#fff;">18°</div>
-                    <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase;">Sunny</div>
-                </div>
-             </div>
-        `;
-    } else if (type === 'Media-Player') {
-        el.innerHTML = `
-             <div style="width:250px; padding:15px; background:rgba(0,0,0,0.4); border-radius:24px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:12px; backdrop-filter:blur(15px);">
-                <div style="display:flex; gap:12px; align-items:center;">
-                    <div style="width:50px; height:50px; background:linear-gradient(45deg, #7c3aed, #db2777); border-radius:12px; display:flex; align-items:center; justify-content:center;">
-                        <ha-icon icon="mdi:music" style="color:#fff;"></ha-icon>
-                    </div>
-                    <div style="flex:1;">
-                        <div style="font-size:13px; font-weight:900; color:#fff;">Cyberpunk 2077 OST</div>
-                        <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase;">Hyper</div>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:center; gap:20px; align-items:center;">
-                    <ha-icon icon="mdi:skip-previous" style="color:rgba(255,255,255,0.6);"></ha-icon>
-                    <div style="width:40px; height:40px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; box-shadow:0 0 20px rgba(255,255,255,0.4);">
-                        <ha-icon icon="mdi:pause"></ha-icon>
-                    </div>
-                    <ha-icon icon="mdi:skip-next" style="color:rgba(255,255,255,0.6);"></ha-icon>
-                </div>
-             </div>
-        `;
-    } else if (type === 'Hex-Power') {
-        el.style.width = '80px'; el.style.height = '90px'; el.style.background = 'transparent';
-        el.innerHTML = `
-             <div style="width:100%; height:100%; background:var(--kairo-cyan); clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center; opacity:0.8; box-shadow:0 0 20px var(--kairo-cyan);">
-                <div style="width:90%; height:90%; background:#000; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                    <ha-icon icon="mdi:flash" style="--mdc-icon-size:20px; color:var(--kairo-cyan);"></ha-icon>
-                    <div style="font-size:14px; font-weight:900; color:#fff;">ON</div>
-                </div>
-             </div>
-        `;
-    } else if (type === 'Pulse-Chart') {
-        el.style.width = '200px'; el.style.height = '80px'; el.style.background = 'rgba(0,0,0,0.4)';
-        el.style.borderRadius = '12px'; el.style.border = '1px solid rgba(255,255,255,0.05)';
-        el.innerHTML = `
-             <div style="width:100%; height:100%; padding:10px; display:flex; flex-direction:column;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span style="font-size:9px; color:var(--kairo-cyan); font-weight:900; letter-spacing:1px; text-transform:uppercase;">Network Load</span>
-                    <span style="font-size:9px; color:#fff; font-weight:900;">2.4 MB/s</span>
-                </div>
-                <div style="flex:1; display:flex; align-items:flex-end; gap:2px;">
-                    <div style="flex:1; background:var(--kairo-cyan); height:40%; opacity:0.3;"></div>
-                    <div style="flex:1; background:var(--kairo-cyan); height:60%; opacity:0.5;"></div>
-                    <div style="flex:1; background:var(--kairo-cyan); height:30%; opacity:0.3;"></div>
-                    <div style="flex:1; background:var(--kairo-cyan); height:80%; opacity:0.8; box-shadow:0 0 10px var(--kairo-cyan);"></div>
-                    <div style="flex:1; background:var(--kairo-cyan); height:50%; opacity:0.5;"></div>
-                </div>
-             </div>
-        `;
-    } else if (type === 'Glitch-Text') {
-        el.innerHTML = `<span style="text-shadow: 2px 0 red, -2px 0 blue; font-weight:900; letter-spacing:2px; font-size:18px;">${label}</span>`;
-    } else {
-        el.innerHTML = `<span style="text-shadow: 0 0 10px rgba(255,255,255,0.2);">${label}</span>`;
-    }
-    
-    el.addEventListener('click', e => {
-      e.stopPropagation();
-      if(this.linkMode) {
-        if(!this.linkSourceId) { this.linkSourceId = blockId; el.style.outline = '2px solid #10b981'; }
-        else { this.canvasLinks.push({source:this.linkSourceId, target:blockId}); this.linkSourceId=null; this.renderLinks(); }
-      } else { this.selectBlock(blockId); }
-    });
-
-    el.setAttribute('draggable', 'true');
-    el.addEventListener('dragstart', e => {
-      if (e.target.classList.contains('resizer')) { e.preventDefault(); return; }
-      e.dataTransfer.setData('move_id', blockId);
-      const r = el.getBoundingClientRect();
-      e.dataTransfer.setData('offsetX', e.clientX - r.left);
-      e.dataTransfer.setData('offsetY', e.clientY - r.top);
-    });
-
-    // Add Resizers
-    const resizers = ['nw','ne','sw','se'];
-    resizers.forEach(pos => {
-        const r = document.createElement('div');
-        r.className = `resizer ${pos}`;
-        el.appendChild(r);
-        r.addEventListener('mousedown', e => {
-            e.stopPropagation();
-            this._startResizing(e, blockId, pos);
-        });
-    });
-
-    // Inline Editing
-    if (el.querySelector('span')) {
-        const span = el.querySelector('span');
-        span.addEventListener('dblclick', (e) => {
-            e.stopPropagation();
-            const input = document.createElement('input');
-            input.value = b.text;
-            input.style.cssText = `background: #000; color: #fff; border: 1px solid #fff; font-family: inherit; font-size: ${b.fontSize}px; width: 100%; text-align: center; outline: none; z-index: 1000;`;
-            span.replaceWith(input);
-            input.focus();
-            const finish = () => {
-                b.text = input.value;
-                input.replaceWith(span);
-                this.selectBlock(blockId);
-            };
-            input.addEventListener('blur', finish);
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') finish(); });
-        });
-    }
-
-    this.querySelector('#drop-target').appendChild(el);
-    this.canvasBlocks.push({
-        id: blockId, type: type, x: x, y: y, w: el.offsetWidth || 100, h: el.offsetHeight || 40,
-        color: '#ffffff', entity: entityId, 
-        text: type === 'Text' ? 'Dein Text' : (entityId ? entityId.split('.')[1] : type),
-        glow: 0, textGlow: 0, blur: 0, opacity: 1, fontSize: 13,
-        action: 'none', parentId: parentId
-    });
-    this.selectBlock(blockId);
-  }
-
-  _injectTemplate(type) {
-    const r = this.querySelector('#drop-target').getBoundingClientRect();
-    const cx = 100, cy = 100;
-    
-    if (type === 'Climate') {
-        const cId = 'b' + Date.now();
-        this.addBlockToCanvas('Container', cx, cy);
-        const b = this.canvasBlocks[this.canvasBlocks.length-1];
-        b.w = 280; b.h = 180; b.blur = 20; b.opacity = 0.3;
-        this.addBlockToCanvas('Klima-Bogen', cx + 70, cy + 20, null, cId);
-        this.addBlockToCanvas('Text', cx + 10, cy + 10, null, cId);
-        this.canvasBlocks[this.canvasBlocks.length-1].text = "WOHNZIMMER";
-    } else if (type === 'Energy') {
-        this.addBlockToCanvas('Card', cx, cy);
-        const b = this.canvasBlocks[this.canvasBlocks.length-1];
-        b.w = 320; b.h = 240; b.color = '#00f6ff'; b.glow = 30;
-        const cId = b.id;
-        this.addBlockToCanvas('Pulse-Chart', cx + 20, cy + 60, null, cId);
-        this.addBlockToCanvas('Hex-Power', cx + 230, cy + 100, null, cId);
-    } else if (type === 'Switch') {
-        const cId = 'b' + Date.now();
-        this.addBlockToCanvas('Container', cx, cy);
-        const b = this.canvasBlocks[this.canvasBlocks.length-1];
-        b.w = 120; b.h = 120; b.blur = 10;
-        this.addBlockToCanvas('Hex-Power', cx + 20, cy + 15, null, b.id);
-    } else if (type === 'SmartSuite') {
-        const cId = 'b' + Date.now();
-        this.addBlockToCanvas('Card', cx, cy);
-        const b = this.canvasBlocks[this.canvasBlocks.length-1];
-        b.w = 340; b.h = 300; b.color = '#7c3aed'; b.glow = 40;
-        this.addBlockToCanvas('Status-Pill', cx + 20, cy + 20, null, b.id);
-        this.addBlockToCanvas('Neon-Switch', cx + 20, cy + 60, null, b.id);
-        this.addBlockToCanvas('Slider-Dimmer', cx + 20, cy + 180, null, b.id);
-        this.addBlockToCanvas('Glass-Action', cx + 180, cy + 60, null, b.id);
-    }
-  }
-
-  _startResizing(e, id, pos) {
-    const b = this.canvasBlocks.find(x => x.id === id);
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startW = b.w;
-    const startH = b.h;
-    const startPosX = b.x;
-    const startPosY = b.y;
-
-    const onMouseMove = (moveE) => {
-        const dx = moveE.clientX - startX;
-        const dy = moveE.clientY - startY;
-
-        if (pos.includes('e')) b.w = Math.max(20, startW + dx);
-        if (pos.includes('w')) {
-            const newW = Math.max(20, startW - dx);
-            if (newW > 20) { b.w = newW; b.x = startPosX + dx; }
-        }
-        if (pos.includes('s')) b.h = Math.max(20, startH + dy);
-        if (pos.includes('n')) {
-            const newH = Math.max(20, startH - dy);
-            if (newH > 20) { b.h = newH; b.y = startPosY + dy; }
-        }
-        this.selectBlock(id); // Updatet HUD-UI
+    const id = 'b' + Math.random().toString(36).substr(2, 9);
+    const b = {
+        id, type, x, y, w: 100, h: 40, color: '#ffffff', text: type, 
+        glow:0, blur:0, opacity:1, fontSize:13, animation:'none', animDuration:2, animDelay:0
     };
-
-    const onMouseUp = () => {
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    if (type === 'Klima-Bogen') { b.w = 140; b.h = 140; b.color = '#10b981'; }
+    this.canvasBlocks.push(b);
+    this.renderCanvas();
+    this.selectBlock(id);
   }
 
-  duplicateBlock(id) {
-    const b = this.canvasBlocks.find(x => x.id === id);
-    if (!b) return;
-    const newBlock = JSON.parse(JSON.stringify(b));
-    const newId = 'b' + Math.random().toString(36).substr(2, 9);
-    newBlock.id = newId;
-    newBlock.x += 20;
-    newBlock.y += 20;
+  renderCanvas() {
+    const board = this.shadowRoot.querySelector('#drop-target');
+    if (!board) return;
     
-    // Create DOM element
-    const el = document.createElement('div');
-    el.className = 'canvas-element';
-    el.id = newId;
-    el.style.left = newBlock.x + 'px';
-    el.style.top = newBlock.y + 'px';
-    el.style.zIndex = newBlock.parentId ? '20' : '10';
-    
-    // Copy innerHTML from source
-    const sourceEl = this.shadowRoot.querySelector('#' + id);
-    if(sourceEl) el.innerHTML = sourceEl.innerHTML;
-    
-    el.addEventListener('click', e => {
-      e.stopPropagation();
-      this.selectBlock(newId);
-    });
+    // Clear and redraw
+    const header = board.querySelector('#card-header-text');
+    const svg = board.querySelector('#links-overlay');
+    board.innerHTML = '';
+    if(header) board.appendChild(header);
+    if(svg) board.appendChild(svg);
 
-    el.setAttribute('draggable', 'true');
-    el.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('move_id', newId);
-      const r = el.getBoundingClientRect();
-      e.dataTransfer.setData('offsetX', e.clientX - r.left);
-      e.dataTransfer.setData('offsetY', e.clientY - r.top);
-    });
-
-    this.shadowRoot.querySelector('#drop-target').appendChild(el);
-    this.canvasBlocks.push(newBlock);
-    this.selectBlock(newId);
-  }
-
-  moveLayer(id, dir) {
-    const el = this.shadowRoot.querySelector('#' + id);
-    if(!el) return;
-    const currentZ = parseInt(el.style.zIndex) || 10;
-    const newZ = dir === 'up' ? currentZ + 1 : Math.max(1, currentZ - 1);
-    el.style.zIndex = newZ;
-    const b = this.canvasBlocks.find(x => x.id === id);
-    if(b) b.zIndex = newZ;
-  }
-
-  selectBlock(id) {
-    this.selectedBlockId = id;
-    if (id) this.selectedLinkId = null;
-    this.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
-    const right = this.shadowRoot.querySelector('#right-sidebar');
-    if(!right) return;
-
-    if(id) {
-      const el = this.shadowRoot.querySelector('#' + id);
-      el.classList.add('selected');
-      const b = this.canvasBlocks.find(x => x.id === id);
-
-      const updateUI = () => {
-        if(!el) return;
-        el.style.left = b.x + 'px'; el.style.top = b.y + 'px';
-        el.style.width = b.w + 'px'; el.style.height = b.h + 'px';
-        el.style.color = b.color;
-        el.style.boxShadow = b.glow > 0 ? `0 0 ${b.glow}px ${b.color}` : 'none';
-        el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
-        el.style.backdropFilter = b.blur > 0 ? `blur(${b.blur}px)` : 'none';
-        el.style.opacity = b.opacity !== undefined ? b.opacity : 1;
-        
-        // Apply Animations
+    this.canvasBlocks.forEach(b => {
+        const el = document.createElement('div');
         el.className = 'canvas-element' + (this.selectedBlockId === b.id ? ' selected' : '');
+        el.id = b.id;
+        el.style.left = b.x + 'px';
+        el.style.top = b.y + 'px';
+        el.style.width = (b.w || 100) + 'px';
+        el.style.height = (b.h || 40) + 'px';
+        el.style.color = b.color || '#fff';
+        el.style.opacity = b.opacity !== undefined ? b.opacity : 1;
+        el.style.fontSize = (b.fontSize || 13) + 'px';
+        
+        if(b.glow) el.style.boxShadow = `0 0 ${b.glow}px ${b.color}`;
+        if(b.textGlow) el.style.textShadow = `0 0 ${b.textGlow}px ${b.color}`;
+        if(b.blur) {
+            el.style.backdropFilter = `blur(${b.blur}px)`;
+            el.style.background = 'rgba(255,255,255,0.05)';
+            el.style.borderRadius = '8px';
+        }
+        
         if (b.animation && b.animation !== 'none') {
             el.classList.add('anim-' + b.animation);
             el.style.setProperty('--dur', (b.animDuration || 2) + 's');
             el.style.setProperty('--delay', (b.animDelay || 0) + 's');
-            el.style.animationDelay = (b.animDelay || 0) + 's';
         }
 
-        if(el.querySelector('span')) {
-            el.querySelector('span').innerText = b.text;
-            el.querySelector('span').style.fontSize = (b.fontSize || 13) + 'px';
+        // Specialized rendering for Studio blocks
+        if (b.type === 'Klima-Bogen') {
+            el.innerHTML = `<div class="studio-pro-arc"><div class="val">${b.text || '21°'}</div></div>`;
+        } else if (b.type === 'Neon-Switch') {
+            el.innerHTML = `<div style="border:1px solid ${b.color}; border-radius:10px; padding:4px 8px; font-size:10px; font-weight:900;">SWITCH</div>`;
+        } else {
+            el.innerHTML = `<span>${b.text || b.type}</span>`;
         }
-        this.renderLinks();
-      };
 
-      if (!this._openedProps) this._openedProps = new Set(['LAYOUT', 'APPEARANCE', 'CONTENT']);
+        el.addEventListener('click', (e) => { e.stopPropagation(); this.selectBlock(b.id); });
+        el.setAttribute('draggable', 'true');
+        el.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('move_id', b.id);
+            const r = el.getBoundingClientRect();
+            e.dataTransfer.setData('offsetX', e.clientX - r.left);
+            e.dataTransfer.setData('offsetY', e.clientY - r.top);
+        });
 
-      let html = '';
-      if (this.activeRightTab === 'STYLES') {
-          html = `
-            <div class="block-category ${this._openedProps.has('LAYOUT') ? 'open' : ''}" data-prop="LAYOUT">Layout <ha-icon icon="mdi:chevron-down"></ha-icon></div>
-            <div class="block-grid ${this._openedProps.has('LAYOUT') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
-                <div class="prop-row"><span class="prop-label">Horizontal (X)</span><input type="range" id="p-x" min="0" max="400" value="${b.x}"></div>
-                <div class="prop-row"><span class="prop-label">Vertikal (Y)</span><input type="range" id="p-y" min="0" max="600" value="${b.y}"></div>
-                <div class="prop-row"><span class="prop-label">Breite (W)</span><input type="range" id="p-w" min="10" max="400" value="${b.w || 100}"></div>
-                <div class="prop-row"><span class="prop-label">Höhe (H)</span><input type="range" id="p-h" min="10" max="600" value="${b.h || 100}"></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-                    <button class="btn-primary" id="btn-up" style="background:var(--input-bg); color:#fff; font-size:9px;">VORNE</button>
-                    <button class="btn-primary" id="btn-down" style="background:var(--input-bg); color:#fff; font-size:9px;">HINTEN</button>
+        // Resizers
+        ['nw', 'ne', 'sw', 'se'].forEach(pos => {
+            const r = document.createElement('div');
+            r.className = `resizer ${pos}`;
+            el.appendChild(r);
+            r.addEventListener('mousedown', e => { e.stopPropagation(); this._startResizing(e, b.id, pos); });
+        });
+
+        board.appendChild(el);
+    });
+    this.renderLinks();
+  }
+
+  _startResizing(e, id, pos) {
+    const b = this.canvasBlocks.find(x => x.id === id);
+    const sX = e.clientX, sY = e.clientY, sW = b.w, sH = b.h, sXP = b.x, sYP = b.y;
+    const move = (me) => {
+        const dx = me.clientX - sX, dy = me.clientY - sY;
+        if(pos.includes('e')) b.w = Math.max(20, sW + dx);
+        if(pos.includes('s')) b.h = Math.max(20, sH + dy);
+        if(pos.includes('w')) { b.w = Math.max(20, sW - dx); b.x = sXP + dx; }
+        if(pos.includes('n')) { b.h = Math.max(20, sH - dy); b.y = sYP + dy; }
+        this.renderCanvas();
+    };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  }
+
+  selectBlock(id) {
+    this.selectedBlockId = id;
+    this.shadowRoot.querySelectorAll('.canvas-element').forEach(el => el.classList.toggle('selected', el.id === id));
+    const right = this.shadowRoot.querySelector('#right-sidebar');
+    if (!right) return;
+    right.innerHTML = '';
+    
+    const b = this.canvasBlocks.find(x => x.id === id);
+    if (!b) {
+        if(this.activeRightTab === 'STYLES') {
+            right.innerHTML = `
+                <div class="prop-group">
+                    <div class="prop-header">Global Studio Styles</div>
+                    <div class="prop-row"><span class="prop-label">Karten-Name</span><input class="prop-input" type="text" id="g-name" value="${this.cardName}"></div>
+                    <div class="prop-row"><span class="prop-label">Glow</span><input type="range" id="g-glow" min="0" max="100" value="${this.cardStyle.glow}"></div>
+                    <div class="prop-row"><span class="prop-label">Blur</span><input type="range" id="g-blur" min="0" max="50" value="${this.cardStyle.blur}"></div>
+                    <div class="prop-row"><span class="prop-label">Opacity</span><input type="range" id="g-opacity" min="0" max="1" step="0.1" value="${this.cardStyle.opacity}"></div>
                 </div>
-            </div>
+            `;
+            this.shadowRoot.querySelector('#g-name').addEventListener('input', e => { 
+                this.cardName = e.target.value; 
+                this.shadowRoot.querySelector('#breadcrumb-card-name').innerText = e.target.value;
+                this.shadowRoot.querySelector('#card-header-text').innerText = e.target.value;
+            });
+            ['glow', 'blur', 'opacity'].forEach(p => {
+                this.shadowRoot.querySelector('#g-' + p).addEventListener('input', e => { 
+                    this.cardStyle[p] = e.target.value; 
+                    this.updateGlobalStyle(); 
+                });
+            });
+        } else {
+            right.innerHTML = '<div style="padding:40px 20px; text-align:center; opacity:0.3; font-size:11px; font-weight:700; letter-spacing:1px;">WÄHLE EIN ELEMENT AUF DEM CANVAS</div>';
+        }
+        return;
+    }
 
-            <div class="block-category ${this._openedProps.has('APPEARANCE') ? 'open' : ''}" data-prop="APPEARANCE">Appearance <ha-icon icon="mdi:chevron-down"></ha-icon></div>
-            <div class="block-grid ${this._openedProps.has('APPEARANCE') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
-                <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-color" value="${b.color}" style="background:none; border:none; width:40px; height:24px;"></div>
-                <div class="prop-row"><span class="prop-label">Glanz (Outer)</span><input type="range" id="p-glow" min="0" max="100" value="${b.glow || 0}"></div>
-                <div class="prop-row"><span class="prop-label">Glanz (Text)</span><input type="range" id="p-textglow" min="0" max="100" value="${b.textGlow || 0}"></div>
-                <div class="prop-row"><span class="prop-label">Glas-Effekt</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
-                <div class="prop-row"><span class="prop-label">Deckkraft</span><input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${b.opacity !== undefined ? b.opacity : 1}"></div>
+    if (this.activeRightTab === 'STYLES') {
+        right.innerHTML = `
+            <div class="prop-group">
+                <div class="prop-header">Layout</div>
+                <div class="prop-row"><span class="prop-label">X</span><input class="prop-input" type="number" id="p-x" value="${b.x}"></div>
+                <div class="prop-row"><span class="prop-label">Y</span><input class="prop-input" type="number" id="p-y" value="${b.y}"></div>
+                <div class="prop-row"><span class="prop-label">W</span><input class="prop-input" type="number" id="p-w" value="${b.w}"></div>
+                <div class="prop-row"><span class="prop-label">H</span><input class="prop-input" type="number" id="p-h" value="${b.h}"></div>
             </div>
-
-            <div class="block-category ${this._openedProps.has('ANIM') ? 'open' : ''}" data-prop="ANIM">Studio Animations <ha-icon icon="mdi:chevron-down"></ha-icon></div>
-            <div class="block-grid ${this._openedProps.has('ANIM') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
-                <div class="prop-row"><span class="prop-label">Typ</span>
-                    <select class="prop-input" id="p-anim-type">
-                        <option value="none" ${b.animation === 'none' ? 'selected' : ''}>Keine</option>
-                        <option value="pulse" ${b.animation === 'pulse' ? 'selected' : ''}>Pulsieren</option>
-                        <option value="breathe" ${b.animation === 'breathe' ? 'selected' : ''}>Atmen</option>
-                        <option value="float" ${b.animation === 'float' ? 'selected' : ''}>Schweben</option>
-                        <option value="glitch" ${b.animation === 'glitch' ? 'selected' : ''}>Glitch</option>
+            <div class="prop-group">
+                <div class="prop-header">Branding</div>
+                <div class="prop-row"><span class="prop-label">Farbe</span><input class="prop-input" type="color" id="p-color" value="${b.color}"></div>
+                <div class="prop-row"><span class="prop-label">Glow (Outer)</span><input type="range" id="p-glow" min="0" max="100" value="${b.glow || 0}"></div>
+                <div class="prop-row"><span class="prop-label">Glow (Text)</span><input type="range" id="p-tglow" min="0" max="100" value="${b.textGlow || 0}"></div>
+                <div class="prop-row"><span class="prop-label">Glas-Blur</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
+            </div>
+            <div class="prop-group">
+                <div class="prop-header">Animation</div>
+                <select id="p-anim" class="prop-input" style="width:100%;">
+                    <option value="none" ${b.animation === 'none' ? 'selected' : ''}>Keine</option>
+                    <option value="pulse" ${b.animation === 'pulse' ? 'selected' : ''}>Pulsieren</option>
+                    <option value="breathe" ${b.animation === 'breathe' ? 'selected' : ''}>Atmen</option>
+                    <option value="float" ${b.animation === 'float' ? 'selected' : ''}>Schweben</option>
+                    <option value="glitch" ${b.animation === 'glitch' ? 'selected' : ''}>Glitch</option>
+                </select>
+                <div class="prop-row" style="margin-top:10px;"><span class="prop-label">Dauer (s)</span><input type="range" id="p-adur" min="0.1" max="10" step="0.1" value="${b.animDuration || 2}"></div>
+            </div>
+            <div style="padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <button class="btn-primary" id="btn-dup" style="background:#18181b; color:#fff;">DUPLIZIEREN</button>
+                <button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff;">LÖSCHEN</button>
+            </div>
+        `;
+        const bind = (id, field, isInt=true) => {
+            const el = this.shadowRoot.querySelector(id);
+            if(el) el.addEventListener('input', e => { 
+                b[field] = isInt ? (id.includes('opacity') ? parseFloat(e.target.value) : parseInt(e.target.value)) : e.target.value; 
+                this.renderCanvas(); 
+            });
+        };
+        bind('#p-x', 'x'); bind('#p-y', 'y'); bind('#p-w', 'w'); bind('#p-h', 'h');
+        bind('#p-color', 'color', false); bind('#p-glow', 'glow'); bind('#p-tglow', 'textGlow'); bind('#p-blur', 'blur');
+        this.shadowRoot.querySelector('#p-anim').addEventListener('change', e => { b.animation = e.target.value; this.renderCanvas(); });
+        this.shadowRoot.querySelector('#p-adur').addEventListener('input', e => { b.animDuration = parseFloat(e.target.value); this.renderCanvas(); });
+        this.shadowRoot.querySelector('#btn-del').addEventListener('click', () => { 
+            this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); 
+            this.renderCanvas(); this.selectBlock(null); 
+        });
+        this.shadowRoot.querySelector('#btn-dup').addEventListener('click', () => { 
+            const newB = JSON.parse(JSON.stringify(b));
+            newB.id = 'b' + Math.random().toString(36).substr(2, 9);
+            newB.x += 20; newB.y += 20;
+            this.canvasBlocks.push(newB);
+            this.renderCanvas(); this.selectBlock(newB.id);
+        });
+    } else {
+        right.innerHTML = `
+            <div class="prop-group">
+                <div class="prop-header">Content</div>
+                <div class="prop-row"><span class="prop-label">Text</span><input class="prop-input" type="text" id="p-text" value="${b.text}"></div>
+                <div class="prop-row"><span class="prop-label">Entität</span><input class="prop-input" type="text" id="p-ent" value="${b.entity || ''}" placeholder="sensor.xyz"></div>
+            </div>
+            <div class="prop-group">
+                <div class="prop-header">Interaktion</div>
+                <div class="prop-row"><span class="prop-label">Tap Action</span>
+                    <select id="p-tap" class="prop-input">
+                        <option value="none" ${b.tapAction === 'none' ? 'selected' : ''}>Keine</option>
+                        <option value="toggle" ${b.tapAction === 'toggle' ? 'selected' : ''}>Sichtbar/Toggle</option>
+                        <option value="more-info" ${b.tapAction === 'more-info' ? 'selected' : ''}>Info-Fenster</option>
                     </select>
                 </div>
-                <div class="prop-row"><span class="prop-label">Dauer (Sek)</span><input type="range" id="p-anim-dur" min="0.1" max="10" step="0.1" value="${b.animDuration || 2}"></div>
-                <div class="prop-row"><span class="prop-label">Verzögerung</span><input type="range" id="p-anim-delay" min="0" max="5" step="0.1" value="${b.animDelay || 0}"></div>
             </div>
-          `;
-      } else {
-          let entityOptions = '<option value="">Keine</option>';
-          if (this._hass && this._hass.states) {
-              entityOptions += Object.keys(this._hass.states).sort().map(eid => 
-                  `<option value="${eid}" ${b.entity === eid ? 'selected' : ''}>${eid}</option>`
-              ).join('');
-          }
-          const getActionOptions = (current) => `
-              <option value="none" ${current === 'none' ? 'selected' : ''}>Keine</option>
-              <option value="toggle" ${current === 'toggle' ? 'selected' : ''}>Sichtbar/Toggle</option>
-              <option value="more-info" ${(current === 'more-info' || !current) ? 'selected' : ''}>Info-Fenster</option>
-              <option value="navigate" ${current === 'navigate' ? 'selected' : ''}>Navigieren</option>
-              <option value="call-service" ${current === 'call-service' ? 'selected' : ''}>Dienst aufrufen</option>
-          `;
-          html = `
-            <div class="block-category ${this._openedProps.has('CONTENT') ? 'open' : ''}" data-prop="CONTENT">Content & Triggers <ha-icon icon="mdi:chevron-down"></ha-icon></div>
-            <div class="block-grid ${this._openedProps.has('CONTENT') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
-                <div class="prop-row"><span class="prop-label">Text</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}"></div>
-                <div class="prop-row"><span class="prop-label">Text-Größe</span><input type="range" id="p-size" min="8" max="60" value="${b.fontSize || 13}"></div>
-                <div class="prop-row"><span class="prop-label">Entität</span><select class="prop-input" id="p-entity">${entityOptions}</select></div>
-                
-                <div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
-                    <div class="prop-row"><span class="prop-label">Tap (Einfach)</span><select class="prop-input" id="p-action-tap">${getActionOptions(b.tapAction || b.action)}</select></div>
-                    <div class="prop-row"><span class="prop-label">Doppel-Tap</span><select class="prop-input" id="p-action-double">${getActionOptions(b.doubleTapAction || 'none')}</select></div>
-                    <div class="prop-row"><span class="prop-label">Gedrückt halten</span><select class="prop-input" id="p-action-hold">${getActionOptions(b.holdAction || 'none')}</select></div>
-                </div>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
-                <button class="btn-primary" id="btn-dup" style="background:var(--input-bg); color:#fff; font-size:10px;">DUPLIZIEREN</button>
-                <button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff; font-size:10px;">LÖSCHEN</button>
-            </div>
-            <button class="btn-primary" id="btn-save-temp" style="width:100%; margin-top:12px; background:rgba(255,255,255,0.05); color:#fff; font-size:9px;">ALS TEMPLATE SPEICHERN</button>
-          `;
-      }
-      right.innerHTML = html;
-
-      // Listeners
-      right.querySelectorAll('.block-category').forEach(header => {
-          header.addEventListener('click', () => {
-              const p = header.dataset.prop;
-              if (this._openedProps.has(p)) this._openedProps.delete(p);
-              else this._openedProps.add(p);
-              this.selectBlock(id);
-          });
-      });
-
-      const bind = (id, field, isInt = true, isFloat = false) => {
-          const el = this.shadowRoot.querySelector(id);
-          if (el) el.addEventListener('input', e => {
-              let val = e.target.value;
-              if (isInt) b[field] = parseInt(val);
-              else if (isFloat) b[field] = parseFloat(val);
-              else b[field] = val;
-              updateUI();
-          });
-      };
-
-      const bindAction = (id, field) => {
-          const el = this.shadowRoot.querySelector(id);
-          if (el) el.addEventListener('change', e => { b[field] = e.target.value; b.action = b.tapAction; });
-      };
-
-      bind('#p-x', 'x'); bind('#p-y', 'y'); bind('#p-w', 'w'); bind('#p-h', 'h');
-      bind('#p-size', 'fontSize'); bind('#p-color', 'color', false);
-      bind('#p-glow', 'glow'); bind('#p-textglow', 'textGlow');
-      bind('#p-blur', 'blur'); bind('#p-opacity', 'opacity', false, true);
-      bind('#p-text', 'text', false);
-
-      const pAnimType = this.shadowRoot.querySelector('#p-anim-type');
-      if (pAnimType) pAnimType.addEventListener('change', e => { b.animation = e.target.value; updateUI(); });
-      bind('#p-anim-dur', 'animDuration', false, true);
-      bind('#p-anim-delay', 'animDelay', false, true);
-      
-      bindAction('#p-action-tap', 'tapAction');
-      bindAction('#p-action-double', 'doubleTapAction');
-      bindAction('#p-action-hold', 'holdAction');
-
-      if (this.shadowRoot.querySelector('#btn-up')) this.shadowRoot.querySelector('#btn-up').addEventListener('click', () => this.moveLayer(id, 'up'));
-      if (this.shadowRoot.querySelector('#btn-down')) this.shadowRoot.querySelector('#btn-down').addEventListener('click', () => this.moveLayer(id, 'down'));
-      if (this.shadowRoot.querySelector('#btn-dup')) this.shadowRoot.querySelector('#btn-dup').addEventListener('click', () => this.duplicateBlock(id));
-      if (this.shadowRoot.querySelector('#btn-del')) this.shadowRoot.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
-      if (this.shadowRoot.querySelector('#btn-save-temp')) this.shadowRoot.querySelector('#btn-save-temp').addEventListener('click', () => this.saveAsTemplate(id));
-      
-      const pEntity = this.shadowRoot.querySelector('#p-entity');
-      if (pEntity) pEntity.addEventListener('change', e => { 
-          b.entity = e.target.value; 
-          if(!b.text || b.text === b.type) { 
-              b.text = b.entity.split('.')[1]; 
-              if (this.shadowRoot.querySelector('#p-text')) this.shadowRoot.querySelector('#p-text').value = b.text;
-              updateUI();
-          } 
-      });
-
-      updateUI();
-    } else if (this.selectedLinkId !== null) {
-      const l = this.canvasLinks[this.selectedLinkId];
-      right.innerHTML = `
-        <div class="prop-group">
-            <div class="prop-header">Link Einstellungen</div>
-            <div class="prop-row"><span class="prop-label">Farbe</span><input type="color" id="p-link-color" value="${l.color || '#10b981'}"></div>
-            <div class="prop-row"><span class="prop-label">Animation</span>
-                <select class="prop-input" id="p-link-anim" style="width:120px;">
-                    <option value="true" ${l.animated !== false ? 'selected' : ''}>Fließen</option>
-                    <option value="false" ${l.animated === false ? 'selected' : ''}>Statisch</option>
-                </select>
-            </div>
-            <button class="btn-primary" id="btn-del-link" style="background:#f43f5e; color:#fff; width:100%; margin-top:10px;">Link löschen</button>
-        </div>
-      `;
-      this.shadowRoot.querySelector('#p-link-color').addEventListener('input', e => { l.color = e.target.value; this.renderLinks(); });
-      this.shadowRoot.querySelector('#p-link-anim').addEventListener('change', e => { l.animated = (e.target.value === 'true'); this.renderLinks(); });
-      this.shadowRoot.querySelector('#btn-del-link').addEventListener('click', () => {
-          this.canvasLinks.splice(this.selectedLinkId, 1);
-          this.selectedLinkId = null;
-          this.selectBlock(null);
-          this.renderLinks();
-      });
-    } else {
-      if(this.activeRightTab === 'STYLES') {
-        right.innerHTML = `
-          <div class="prop-group">
-              <div class="prop-header">Design & Atmosphäre</div>
-              <div class="prop-row"><span class="prop-label">Hauptfarbe</span><input type="color" id="p-card-color" value="${this.cardStyle.color}"></div>
-              <div class="prop-row"><span class="prop-label">Leucht-Intensität</span><input type="range" id="p-card-glow" min="0" max="100" value="${this.cardStyle.glow}"></div>
-              <div class="prop-row"><span class="prop-label">Glas-Effekt (Blur)</span><input type="range" id="p-card-blur" min="0" max="50" value="${this.cardStyle.blur}"></div>
-              <div class="prop-row"><span class="prop-label">Sichtbarkeit</span><input type="range" id="p-card-opacity" min="0" max="1" step="0.05" value="${this.cardStyle.opacity}"></div>
-              <button class="btn-primary" id="btn-premium-look" style="width:100%; margin-top:20px; background: #fff; color:#000;">✨ Premium Look anwenden</button>
-          </div>
-          <div class="prop-group">
-              <div class="prop-header">Karten-Identität</div>
-              <div class="prop-row"><span class="prop-label">Name der Karte</span><input type="text" class="prop-input" id="p-card-name" value="${this.cardName}" style="width:140px; text-align:left;"></div>
-          </div>
         `;
-        this.shadowRoot.querySelector('#p-card-color').addEventListener('input', e => { this.cardStyle.color = e.target.value; this._updateCardStyle(); });
-        this.shadowRoot.querySelector('#p-card-glow').addEventListener('input', e => { this.cardStyle.glow = e.target.value; this._updateCardStyle(); });
-        this.shadowRoot.querySelector('#p-card-blur').addEventListener('input', e => { this.cardStyle.blur = e.target.value; this._updateCardStyle(); });
-        this.shadowRoot.querySelector('#p-card-opacity').addEventListener('input', e => { this.cardStyle.opacity = e.target.value; this._updateCardStyle(); });
-        this.shadowRoot.querySelector('#p-card-name').addEventListener('input', e => { 
-            this.cardName = e.target.value; 
-            const h = this.shadowRoot.querySelector('#card-header-text');
-            if(h) h.innerText = this.cardName;
-        });
-        this.shadowRoot.querySelector('#btn-premium-look').addEventListener('click', () => {
-            this.cardStyle = { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 };
-            this._updateCardStyle();
-            this.selectBlock(null);
-        });
-      } else {
-        right.innerHTML = `
-          <div class="prop-group">
-              <div class="prop-header">Geführter Editor</div>
-              <div style="font-size:12px; color:rgba(255,255,255,0.4); line-height:1.6; margin-top:10px;">
-                Wähle ein Element auf der Karte aus, um seine Eigenschaften wie Farbe, Größe oder Verbindung zu bearbeiten.<br><br>
-                Tipp: Doppelklicke auf Texte, um sie direkt zu ändern.
-              </div>
-          </div>
-        `;
-      }
+        this.shadowRoot.querySelector('#p-text').addEventListener('input', e => { b.text = e.target.value; this.renderCanvas(); });
+        this.shadowRoot.querySelector('#p-ent').addEventListener('input', e => { b.entity = e.target.value; });
+        this.shadowRoot.querySelector('#p-tap').addEventListener('change', e => { b.tapAction = e.target.value; b.action = b.tapAction; });
     }
+  }
+
+  updateGlobalStyle() {
+    const board = this.shadowRoot.querySelector('#drop-target');
+    board.style.boxShadow = `0 0 ${this.cardStyle.glow}px ${this.cardStyle.color}`;
   }
 
   renderLinks() {
     const svg = this.shadowRoot.querySelector('#links-overlay');
-    if(!svg) return;
-    svg.innerHTML = '';
-    this.canvasLinks.forEach((l, idx) => {
-      const s = this.shadowRoot.querySelector('#' + l.source);
-      const t = this.shadowRoot.querySelector('#' + l.target);
-      if(s && t) {
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        const x1 = s.offsetLeft + s.offsetWidth/2, y1 = s.offsetTop + s.offsetHeight/2;
-        const x2 = t.offsetLeft + t.offsetWidth/2, y2 = t.offsetTop + t.offsetHeight/2;
-        
-        // Curvy path
-        const cp1x = x1 + (x2 - x1) / 2, cp1y = y1;
-        const cp2x = x1 + (x2 - x1) / 2, cp2y = y2;
-        const d = `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
-        path.setAttribute("d", d);
-        
-        // Selection hit area (invisible thick path)
-        const hitPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        hitPath.setAttribute("d", d);
-        hitPath.style.fill = 'none';
-        hitPath.style.stroke = 'transparent';
-        hitPath.style.strokeWidth = '20px';
-        hitPath.style.pointerEvents = 'auto';
-        hitPath.style.cursor = 'pointer';
-        
-        hitPath.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.selectedLinkId = idx;
-            this.selectedBlockId = null;
-            this.selectBlock(null);
-            this.renderLinks();
-        });
-        svg.appendChild(hitPath);
-        
-        path.setAttribute("class", "linking-path" + (this.selectedLinkId === idx ? ' active' : ''));
-        path.style.stroke = l.color || '#10b981';
-        path.style.pointerEvents = 'none'; // Click hits the hitPath instead
-        
-        svg.appendChild(path);
-      }
-    });
+    if(svg) svg.innerHTML = '';
   }
 
-  saveAsTemplate(id) {
-    const b = this.canvasBlocks.find(x => x.id === id);
-    if(!b) return;
-    const temps = JSON.parse(localStorage.getItem('kairo_custom_templates') || '[]');
-    temps.push({ ...b, name: b.text || b.type });
-    localStorage.setItem('kairo_custom_templates', JSON.stringify(temps));
-    const btn = this.shadowRoot.querySelector('#btn-save-temp');
-    btn.innerText = 'GESPEICHERT!';
-    setTimeout(() => { btn.innerText = 'ALS TEMPLATE SPEICHERN'; this.renderLeftSidebar(); }, 1500);
+  showExport() {
+    const modal = this.shadowRoot.querySelector('#export-modal');
+    const box = this.shadowRoot.querySelector('#export-code-box');
+    const yaml = `type: custom:openkairo-custom-card\nname: ${this.cardName}\nlayout:\n` + 
+                 this.canvasBlocks.map(b => `  - type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}`).join('\n');
+    box.innerText = yaml;
+    modal.style.display = 'flex';
   }
 
   renderLeftSidebar() {
     const container = this.shadowRoot.querySelector('#left-sidebar-container');
     if (!container) return;
-    if(!container) return;
-    
+
     if (this.activeLeftTab === 'TEMPLATES') {
-        const customTemps = JSON.parse(localStorage.getItem('kairo_custom_templates') || '[]');
-        const customHtml = customTemps.map((t, idx) => `
-            <div class="block-item template-item custom-temp" data-idx="${idx}" draggable="true" 
-                 ondragstart="event.dataTransfer.setData('source_type', 'CUSTOM_TEMPLATE'); event.dataTransfer.setData('template_idx', '${idx}');"
-                 style="height:auto; padding:16px; align-items:flex-start; text-align:left; background:rgba(255,255,255,0.02); border-color:var(--kairo-cyan);">
-                <ha-icon icon="mdi:folder-star" style="--mdc-icon-size:18px; color:var(--kairo-cyan); margin-bottom:8px;"></ha-icon>
-                <span style="font-size:12px; font-weight:700; color:#fff;">${t.name}</span>
-                <span style="font-size:9px; opacity:0.4; text-transform:none; margin-top:4px;">Eigenes Studio Template</span>
-            </div>
-        `).join('');
-
-        let html = `
-            <div class="block-category ${this._openedCats.has('CAT_STUDIO') ? 'open' : ''}" data-prop="CAT_STUDIO">Studio Templates <ha-icon icon="mdi:chevron-down"></ha-icon></div>
-            <div class="block-grid ${this._openedCats.has('CAT_STUDIO') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 10px;">
-               ${customHtml || '<div style="grid-column:1; font-size:9px; color:rgba(255,255,255,0.2); text-align:center; padding:10px;">Keine eigenen Templates vorhanden.</div>'}
-            </div>
-
-            <div class="block-category ${this._openedCats.has('CAT_SCENES') ? 'open' : ''}" data-prop="CAT_SCENES">Premium Vorlagen <ha-icon icon="mdi:chevron-down"></ha-icon></div>
-            <div class="block-grid ${this._openedCats.has('CAT_SCENES') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 10px;">
-        `;
-        const templates = [
-            { id: 'Climate', name: 'Klima & Komfort', desc: 'Raumtemperatur & Luftfeuchtigkeit' },
-            { id: 'Energy', name: 'Energie-Zentrale', desc: 'Verbrauch & Solar-Produktion' },
-            { id: 'Switch', name: 'Intelligenz-Schalter', desc: 'Kompakte Steuerung' },
-            { id: 'SmartSuite', name: 'Smart Scene Suite', desc: 'Premium Schalter-Bundle' }
+        const temps = [
+            { id: 'Climate', name: 'Climate Suite', icon: 'mdi:thermostat' },
+            { id: 'Energy', name: 'Energy Hub', icon: 'mdi:flash' }
         ];
-        templates.forEach(t => {
-            html += `
-                <div class="block-item template-item" data-id="${t.id}" style="height:auto; padding:16px; align-items:flex-start; text-align:left; background:rgba(255,255,255,0.02);">
-                    <ha-icon icon="mdi:auto-fix" style="--mdc-icon-size:18px; color:var(--kairo-cyan); margin-bottom:8px;"></ha-icon>
-                    <span style="font-size:12px; font-weight:700; color:#fff;">${t.name}</span>
-                    <span style="font-size:9px; opacity:0.4; text-transform:none; margin-top:4px;">${t.desc}</span>
-                </div>
-            `;
-        });
-        const proBlocks = [
-            { id: 'LightPro', name: 'Light Studio Pro', desc: 'Smarter Schalter mit Glanz-Effekt', type: 'Neon-Switch', color: '#00f6ff', glow: 40 },
-            { id: 'ClimatePro', name: 'Climate Studio Pro', desc: 'Raumklima Bogen High-End', type: 'Klima-Bogen', color: '#f59e0b', blur: 20 },
-            { id: 'MediaPro', name: 'Media Studio Pro', desc: 'Modernes Glas-Player Layout', type: 'Media-Player', blur: 25, opacity: 0.2 }
-        ];
-        html += `
-            <div class="block-category ${this._openedCats.has('CAT_PRO') ? 'open' : ''}" data-prop="CAT_PRO">Studio Pro Blocks <ha-icon icon="mdi:chevron-down"></ha-icon></div>
-            <div class="block-grid ${this._openedCats.has('CAT_PRO') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 10px;">
+        container.innerHTML = `
+            <div class="block-category open">Studio Templates</div>
+            <div class="block-grid">
+               ${temps.map(t => `
+                   <div class="block-item t-item" data-id="${t.id}">
+                       <ha-icon icon="${t.icon}"></ha-icon>
+                       <span>${t.name}</span>
+                   </div>
+               `).join('')}
+            </div>
         `;
-        proBlocks.forEach(t => {
-            html += `
-                <div class="block-item template-item pro-item" data-cfg='${JSON.stringify(t)}' style="height:auto; padding:16px; align-items:flex-start; text-align:left; background:rgba(255,255,255,0.02); border:1px solid rgba(0,246,255,0.1);">
-                    <ha-icon icon="mdi:diamond-stone" style="--mdc-icon-size:18px; color:#00f6ff; margin-bottom:8px;"></ha-icon>
-                    <span style="font-size:12px; font-weight:700; color:#fff;">${t.name}</span>
-                    <span style="font-size:9px; opacity:0.4; text-transform:none; margin-top:4px;">${t.desc}</span>
-                </div>
-            `;
-        });
-        html += `</div>`;
-
-        html += `</div>`;
-        container.innerHTML = html;
-        
-        container.querySelectorAll('.block-category').forEach(header => {
-            header.addEventListener('click', () => {
-                const p = header.dataset.prop;
-                if (this._openedCats.has(p)) this._openedCats.delete(p);
-                else this._openedCats.add(p);
-                this.renderLeftSidebar();
-            });
-        });
-
-        container.querySelectorAll('.template-item:not(.custom-temp)').forEach(item => {
-            item.addEventListener('click', () => {
-                if (item.classList.contains('pro-item')) {
-                    const cfg = JSON.parse(item.dataset.cfg);
-                    this.addBlockToCanvas(cfg.type, 100, 100, null, null);
-                    const b = this.canvasBlocks[this.canvasBlocks.length-1];
-                    Object.assign(b, cfg);
-                    delete b.id; delete b.name; delete b.desc; // Keep original ID logic
-                    this.renderCanvas();
-                } else {
-                    this._injectTemplate(item.dataset.id);
-                }
-            });
+        container.querySelectorAll('.t-item').forEach(item => {
+            item.addEventListener('click', () => this._injectTemplate(item.dataset.id));
         });
         return;
     }
-
-    const allBlocks = [
-      { name: 'Box', icon: 'mdi:square-outline', cat: 'BASIC' },
-      { name: 'Circle', icon: 'mdi:circle-outline', cat: 'BASIC' },
-      { name: 'Badge', icon: 'mdi:badge-account-outline', cat: 'BASIC' },
-      { name: 'Icon', icon: 'mdi:star-outline', cat: 'BASIC' },
-      { name: 'Text', icon: 'mdi:format-text', cat: 'BASIC' },
-      { name: 'Glitch-Text', icon: 'mdi:format-text-variant-outline', cat: 'BASIC' },
-      { name: 'Container', icon: 'mdi:crop-square', cat: 'LAYOUT' },
-      { name: 'Card', icon: 'mdi:card', cat: 'LAYOUT' },
-      { name: 'Grid', icon: 'mdi:grid', cat: 'LAYOUT' },
-      { name: 'Stack', icon: 'mdi:layers-outline', cat: 'LAYOUT' },
-      { name: 'Neon-Switch', icon: 'mdi:toggle-switch-outline', cat: 'UI' },
-      { name: 'Status-Pill', icon: 'mdi:pill', cat: 'UI' },
-      { name: 'Glass-Action', icon: 'mdi:gesture-tap-button', cat: 'UI' },
-      { name: 'Slider-Dimmer', icon: 'mdi:tune-variant', cat: 'UI' },
-      { name: 'Hex-Power', icon: 'mdi:hexagon-outline', cat: 'UI' },
-      { name: 'Pulse-Chart', icon: 'mdi:chart-timeline-variant', cat: 'UI' },
-      { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', cat: 'UI' },
-      { name: 'Energie-Ring', icon: 'mdi:circle-slice-8', cat: 'UI' },
-      { name: 'Media-Player', icon: 'mdi:play-circle-outline', cat: 'UI' },
-      { name: 'Weather-Card', icon: 'mdi:weather-sunny', cat: 'UI' }
-    ];
-
-    if (!this._openedCats) this._openedCats = new Set(['BASIC', 'UI']);
 
     if (this.activeLeftTab === 'LAYERS') {
-        let html = `<div class="block-category open">Ebenen & Struktur <ha-icon icon="mdi:layers"></ha-icon></div>`;
-        const renderLayer = (parentId = null, level = 0) => {
-            const children = this.canvasBlocks.filter(b => b.parentId === parentId);
-            children.forEach(b => {
-                const isSelected = this.selectedBlockId === b.id;
-                const blockInfo = allBlocks.find(ab => ab.name === b.type) || { icon: 'mdi:cube-outline' };
-                const label = b.text && b.text !== b.type ? b.text : b.type;
-                html += `
-                    <div class="layer-item ${isSelected ? 'active' : ''}" style="padding-left:${level * 15 + 10}px; padding-top:8px; padding-bottom:8px; display:flex; align-items:center; gap:8px; cursor:pointer;" id="layer-${b.id}">
-                        <ha-icon icon="${blockInfo.icon}" style="--mdc-icon-size:12px; opacity:0.6; color:#fff;"></ha-icon>
-                        <span style="font-size:11px; font-weight:600; color:#fff;">${label}</span>
-                    </div>
-                `;
-                renderLayer(b.id, level + 1);
-            });
-        };
-        renderLayer(null, 0);
-        if (this.canvasBlocks.length === 0) html += `<div style="padding:20px; opacity:0.3; font-size:11px;">Keine Elemente vorhanden</div>`;
-        container.innerHTML = html;
+        container.innerHTML = `
+            <div class="block-category open">Struktur</div>
+            ${this.canvasBlocks.map(b => `
+                <div class="block-item layer-item ${this.selectedBlockId === b.id ? 'active' : ''}" 
+                     style="flex-direction:row; justify-content:flex-start; padding:8px 12px; gap:12px; width:100%; box-sizing:border-box; margin-bottom:4px; ${this.selectedBlockId === b.id ? 'border-color:var(--kairo-cyan);' : ''}" 
+                     data-id="${b.id}">
+                    <ha-icon icon="mdi:layers-outline" style="--mdc-icon-size:14px;"></ha-icon>
+                    <span style="text-transform:none; font-size:11px;">${b.text || b.type}</span>
+                </div>
+            `).join('')}
+        `;
         container.querySelectorAll('.layer-item').forEach(item => {
-            item.addEventListener('click', () => this.selectBlock(item.id.replace('layer-', '')));
+            item.addEventListener('click', () => this.selectBlock(item.dataset.id));
         });
         return;
     }
 
-    let html = `<input type="text" class="search-box" id="sidebar-search" placeholder="Suche..." value="${this.sidebarSearchQuery}">`;
-    const searchVal = (this.sidebarSearchQuery || '').toLowerCase();
-
-    const categories = [
-        { id: 'BASIC', label: 'Basics' },
-        { id: 'LAYOUT', label: 'Layout' },
-        { id: 'UI', label: 'Premium UI' },
-        { id: 'ENTITIES', label: 'Entitäten' }
+    const blocks = [
+        { name: 'Box', icon: 'mdi:square-outline' },
+        { name: 'Text', icon: 'mdi:format-text' },
+        { name: 'Container', icon: 'mdi:crop-square' },
+        { name: 'Card', icon: 'mdi:card-outline' },
+        { name: 'Neon-Switch', icon: 'mdi:toggle-switch' },
+        { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8' },
+        { name: 'Energie-Ring', icon: 'mdi:circle-outline' },
+        { name: 'Media-Player', icon: 'mdi:play-circle' }
     ];
-
-    categories.forEach(cat => {
-        const title = cat.label;
-        const isOpen = this._openedCats.has(cat.id) || searchVal;
-        
-        let catBlocks = [];
-        if (cat.id === 'ENTITIES') {
-            if (this._hass && this._hass.states) {
-                catBlocks = Object.keys(this._hass.states)
-                    .filter(eid => eid.toLowerCase().includes(searchVal))
-                    .sort().slice(0, searchVal ? 50 : 20)
-                    .map(eid => ({ name: eid.split('.')[1], icon: 'mdi:database', entity: eid }));
-            }
-        } else {
-            catBlocks = allBlocks.filter(b => b.cat === cat.id);
-            if (searchVal) catBlocks = catBlocks.filter(b => b.name.toLowerCase().includes(searchVal));
-        }
-
-        if (catBlocks.length > 0) {
-            html += `<div class="block-category ${isOpen ? 'open' : ''}" data-cat="${cat.id}">
-                        ${title} <ha-icon icon="mdi:chevron-down"></ha-icon>
-                     </div>`;
-            html += `<div class="block-grid ${isOpen ? '' : 'collapsed'}" id="grid-${cat.id}">`;
-            catBlocks.forEach(b => {
-                html += `
-                    <div class="block-item" data-type="${b.entity ? 'Entity State' : b.name}" ${b.entity ? `data-entity="${b.entity}"` : ''} style="${b.entity ? 'height:auto; padding:8px 4px;' : ''}">
-                        <ha-icon icon="${b.icon}"></ha-icon>
-                        <span style="${b.entity ? 'text-transform:none; font-size:8px; line-height:1.2; text-align:center;' : ''}">${b.name}</span>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-        }
+    container.innerHTML = `
+        <input type="text" class="search-box" placeholder="Suche..." id="s-search" value="${this.sidebarSearchQuery || ''}">
+        <div class="block-category open">Standard Blocks</div>
+        <div class="block-grid">
+            ${blocks.filter(b => b.name.toLowerCase().includes((this.sidebarSearchQuery || '').toLowerCase())).map(b => `
+                <div class="block-item b-item" data-type="${b.name}">
+                    <ha-icon icon="${b.icon}"></ha-icon>
+                    <span>${b.name}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    container.querySelectorAll('.b-item').forEach(item => {
+        item.setAttribute('draggable', 'true');
+        item.addEventListener('dragstart', e => e.dataTransfer.setData('source_type', item.dataset.type));
     });
-
-    container.innerHTML = html;
-    
-    // Handlers
-    container.querySelectorAll('.block-category').forEach(header => {
-        header.addEventListener('click', () => {
-            const catId = header.dataset.cat;
-            if (this._openedCats.has(catId)) this._openedCats.delete(catId);
-            else this._openedCats.add(catId);
-            this.renderLeftSidebar();
-        });
-    });
-
-    container.querySelectorAll('.block-item').forEach(item => {
-      item.setAttribute('draggable', 'true');
-      item.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('source_type', item.dataset.type);
-        if(item.dataset.entity) e.dataTransfer.setData('source_entity', item.dataset.entity);
-      });
-    });
-
-    container.querySelector('#sidebar-search').addEventListener('input', e => { 
-        this.sidebarSearchQuery = e.target.value; 
-        this.renderLeftSidebar(); 
-    });
+    const src = container.querySelector('#s-search');
+    src.addEventListener('input', e => { this.sidebarSearchQuery = e.target.value; this.renderLeftSidebar(); });
+    src.focus();
   }
 }
 customElements.define("openkairo-panel", OpenKairoBuilder);
