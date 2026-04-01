@@ -1,0 +1,58 @@
+# OpenKAIRO Synth-Night - High-Harmony Edition V2
+# 🌌🕹️✨ Version 2.0.0
+
+OpenKAIRO Synth:
+  # Main Colors (Harmonized Rose & Electric Blue)
+  primary-color: "#ff007f" # Vibrant Rose-Pink
+  accent-color: "#00d1ff" # Clean Cyber-Blue
+  
+  # Typography (Tech-Optimized Rajdhani)
+  primary-font-family: "'Rajdhani', sans-serif"
+  paper-font-common-base_-_font-family: "var(--primary-font-family)"
+  paper-font-common-code_-_font-family: "var(--primary-font-family)"
+  paper-font-body1_-_font-family: "var(--primary-font-family)"
+  paper-font-subhead_-_font-family: "var(--primary-font-family)"
+  paper-font-headline_-_font-family: "var(--primary-font-family)"
+  paper-font-title_-_font-family: "var(--primary-font-family)"
+  paper-font-button_-_font-family: "var(--primary-font-family)"
+  
+  # Background Registry (Deep Night Flow)
+  primary-background-color: "#05070a" # Pure Obsidian
+  secondary-background-color: "#0a0c14"
+  card-background-color: "rgba(22, 25, 38, 0.8)" # Deeper Blue-Gray for better contrast
+  ha-card-background: "rgba(22, 25, 38, 0.8)"
+  paper-card-background-color: "rgba(22, 25, 38, 0.8)"
+  paper-listbox-background-color: "#0a0c14"
+  
+  # Header & Navigation (Integrated Flow)
+  app-header-background-color: "#05070a"
+  app-header-text-color: "#ffffff"
+  paper-tabs-selection-bar-color: "#ff007f"
+  
+  # Card Style (Subtle Neon & Depth)
+  ha-card-border-radius: "12px"
+  ha-card-border-width: "1px"
+  ha-card-border-color: "rgba(255, 0, 127, 0.25)" # Subtilerer Rahmen
+  # Tiefe durch doppelten Box-Shadow: Ein harter Schatten und ein weiches Leuchten
+  ha-card-box-shadow: "0 8px 32px 0 rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 0, 127, 0.1)"
+  
+  # Sidebar (Smooth Transition)
+  sidebar-background-color: "#05070a"
+  sidebar-selected-background-color: "rgba(255, 0, 127, 0.1)"
+  sidebar-selected-text-color: "#ff007f"
+  sidebar-selected-icon-color: "#ff007f"
+  sidebar-icon-color: "rgba(255, 255, 255, 0.5)"
+  
+  # Text & States
+  primary-text-color: "#ffffff"
+  secondary-text-color: "rgba(255, 255, 255, 0.6)"
+  state-icon-active-color: "#00d1ff"
+  paper-item-icon-active-color: "#ff007f"
+  
+  # Dashboard Background
+  lovelace-background: "radial-gradient(circle at 0% 0%, rgba(255, 0, 127, 0.1) 0%, transparent 40%), #05070a"
+  
+  modes:
+    dark:
+      primary-background-color: "#05070a"
+      ha-card-background: "rgba(22, 25, 38, 0.8)"

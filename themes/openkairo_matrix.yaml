@@ -1,0 +1,58 @@
+# OpenKAIRO Matrix - Overclocked Edition V10
+# 🌌🟢🟡🕹️🔥 Version 10.0.0
+
+OpenKAIRO Matrix:
+  # Main Colors (Phosphor Green & Cyber Amber)
+  primary-color: "#00ff41" # Pure Matrix Green
+  accent-color: "#ff8c00" # Deep Amber highlights
+  
+  # Typography (Tech-Optimized Rajdhani)
+  primary-font-family: "'Rajdhani', sans-serif"
+  paper-font-common-base_-_font-family: "var(--primary-font-family)"
+  paper-font-common-code_-_font-family: "var(--primary-font-family)"
+  paper-font-body1_-_font-family: "var(--primary-font-family)"
+  paper-font-subhead_-_font-family: "var(--primary-font-family)"
+  paper-font-headline_-_font-family: "var(--primary-font-family)"
+  paper-font-title_-_font-family: "var(--primary-font-family)"
+  paper-font-button_-_font-family: "var(--primary-font-family)"
+  # letter-spacing in themes is tricky, but HA supports font-weight
+  
+  # Background Registry (High-Fidelity Scanlines & Glow)
+  # WICHTIG: Das Scanline-Muster wird über Lovelace-Background gerendert!
+  primary-background-color: "#050505"
+  secondary-background-color: "#000000"
+  card-background-color: "rgba(10, 25, 20, 0.85)"
+  ha-card-background: "rgba(10, 25, 20, 0.85)"
+  paper-card-background-color: "rgba(10, 25, 20, 0.85)"
+  
+  # Header & Navigation (Terminal Style)
+  app-header-background-color: "#000000"
+  app-header-text-color: "#00ff41"
+  paper-tabs-selection-bar-color: "#00ff41"
+  
+  # Card Style (Phosphor Neon Border & Box Glow)
+  ha-card-border-radius: "4px" # Kantiger für den Terminal-Stil
+  ha-card-border-width: "2px"
+  ha-card-border-color: "rgba(0, 255, 65, 0.5)"
+  ha-card-box-shadow: "0 0 25px rgba(0, 255, 65, 0.15), inset 0 0 15px rgba(0, 255, 65, 0.05)"
+  
+  # Text
+  primary-text-color: "#ffffff"
+  secondary-text-color: "rgba(0, 255, 65, 0.7)" # Grüner Text für den Termianl-Look
+  
+  # Icons & Controls
+  state-icon-active-color: "#ff8c00" # Warnungen/Aktive Elemente in Bernstein
+  paper-item-icon-active-color: "#00ff41"
+  
+  # Global Lovelace Background (Die "Overclocked Matrix")
+  lovelace-background: >
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 2px),
+    radial-gradient(circle at 50% 50%, rgba(0, 255, 65, 0.08) 0%, #000000 100%)
+  background-size: "100% 2px, 100% 100%"
+  
+  modes:
+    dark:
+      primary-background-color: "#050505"
+      ha-card-background: "rgba(10, 25, 20, 0.85)"
+      primary-text-color: "#ffffff"
+      secondary-text-color: "#00ff41"
