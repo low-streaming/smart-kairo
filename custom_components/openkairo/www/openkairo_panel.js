@@ -12,13 +12,14 @@ class OpenKairoBuilder extends HTMLElement {
 
   setupDOM() {
     if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+    this.cardName = 'LIVING ROOM';
     this.shadowRoot.innerHTML = `
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
       <style>
         :host {
-          --bg-color: #000000;
-          --sidebar-bg: rgba(10, 10, 12, 0.85);
-          --border-color: rgba(255, 255, 255, 0.08);
+          --bg-color: #08080a;
+          --sidebar-bg: rgba(20, 20, 25, 0.7);
+          --border-color: rgba(255, 255, 255, 0.1);
           --accent-color: #00f6ff;
           --kairo-cyan: #00f6ff;
           --kairo-magenta: #ff00ff;
@@ -26,7 +27,7 @@ class OpenKairoBuilder extends HTMLElement {
           --text-secondary: rgba(255, 255, 255, 0.5);
           --input-bg: rgba(255, 255, 255, 0.05);
           font-family: 'Outfit', 'Inter', sans-serif;
-          position: absolute; inset: 0; background: #000; color: #fff; overflow: hidden;
+          position: absolute; inset: 0; background: var(--bg-color); color: #fff; overflow: hidden;
         }
         
         #builder-container { 
@@ -54,12 +55,18 @@ class OpenKairoBuilder extends HTMLElement {
         
         .sidebar { 
           height: 100%; background: var(--sidebar-bg); 
-          backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+          backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
           border-right: 1px solid var(--border-color); 
           display: flex; flex-direction: column; overflow: hidden; position: relative; 
-          box-shadow: 0 0 40px rgba(0,0,0,0.5);
+          box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+        }
+        .sidebar::after {
+            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 0px 0px, rgba(0, 246, 255, 0.1) 0%, transparent 40%);
+            pointer-events: none; z-index: 1;
         }
         .sidebar-right { border-left: 1px solid var(--border-color); border-right: none; }
+        .sidebar-right::after { background: radial-gradient(circle at 100% 0px, rgba(255, 0, 255, 0.1) 0%, transparent 40%); }
         
         .sidebar-tabs { 
             display: flex; background: rgba(0,0,0,0.5); border-radius: 14px; margin: 20px; padding: 5px; gap: 5px; height: auto; min-height: auto;
@@ -73,26 +80,28 @@ class OpenKairoBuilder extends HTMLElement {
         .s-tab:hover:not(.active) { background: rgba(255,255,255,0.08); color: #fff; }
         .s-tab::after { display: none; }
 
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 24px; min-height: 100%; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; min-height: 100%; display: flex; flex-direction: column; align-items: stretch; }
         
         .canvas-area { 
           height: 100%; background: #000; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;
           background-image: 
-            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-          background-size: 40px 40px;
+            linear-gradient(rgba(0, 246, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 246, 255, 0.03) 1px, transparent 1px);
+          background-size: 50px 50px;
           background-position: center center;
+          perspective: 1000px;
         }
         
         #drop-target {
-          background: rgba(0, 0, 0, 0.6);
+          background: rgba(10, 10, 15, 0.8);
           backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-          width: 320px; min-height: 480px; border-radius: 24px;
+          width: 320px; min-height: 480px; border-radius: 28px;
           position: relative; 
           box-shadow: 
             0 50px 100px rgba(0,0,0,0.9), 
-            inset 0 0 40px rgba(0, 246, 255, 0.05),
-            0 0 0 1px rgba(255,255,255,0.1);
+            inset 0 0 40px rgba(0, 246, 255, 0.1),
+            0 0 0 1px rgba(255,255,255,0.15);
+          transform: rotateX(5deg);
           transform-origin: center center;
           overflow: hidden;
           transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -128,10 +137,10 @@ class OpenKairoBuilder extends HTMLElement {
         .block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; height: auto; overflow: hidden; transition: 0.3s ease-out; }
         .block-grid.collapsed { height: 0; margin-bottom: 0px; opacity: 0; pointer-events: none; }
         
-        .block-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: grab; transition: 0.3s; }
-        .block-item:hover { background: rgba(255,255,255,0.06); border-color: var(--kairo-cyan); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .block-preview { height: 40px; display: flex; align-items: center; justify-content: center; }
-        .block-item span { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; }
+        .block-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; cursor: grab; transition: 0.3s; }
+        .block-item:hover { background: rgba(255,255,255,0.06); border-color: var(--kairo-cyan); transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+        .block-preview { height: 44px; width: 100%; display: flex; align-items: center; justify-content: center; }
+        .block-item span { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1.5px; }
         .block-item:hover span { color: #fff; }
 
         .canvas-element { 
@@ -197,14 +206,10 @@ class OpenKairoBuilder extends HTMLElement {
       <div id="builder-container">
         <header class="header">
           <div class="header-branding">
-            <ha-icon icon="mdi:lightning-bolt"></ha-icon> KAIRO ARCHITECT
-          </div>
-          <div class="header-center">
-            <div class="header-breadcrumb" id="btn-rename-card">
-              <ha-icon icon="mdi:view-dashboard"></ha-icon>
-              <span id="breadcrumb-card-name">LIVING ROOM</span>
-              <ha-icon icon="mdi:chevron-down"></ha-icon>
+            <div style="width:24px; height:24px; background:var(--kairo-cyan); border-radius:6px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 15px var(--kairo-cyan); margin-right:12px;">
+              <ha-icon icon="mdi:lightning-bolt" style="color:#000; --mdc-icon-size:18px;"></ha-icon>
             </div>
+            <span style="font-weight:900; letter-spacing:3px; font-size:16px;">KAIRO <span style="color:var(--kairo-cyan); filter:drop-shadow(0 0 5px var(--kairo-cyan));">ARCHITECT</span></span>
           </div>
           <div style="display:flex; gap:10px; align-items:center;">
              <div style="display:flex; background:rgba(255,255,255,0.04); padding:4px; border-radius:10px; border:1px solid var(--border-color); margin-right:10px;">
@@ -228,7 +233,7 @@ class OpenKairoBuilder extends HTMLElement {
 
           <div class="canvas-area">
              <div id="drop-target">
-                <div id="card-header-text" style="text-align:center; color:var(--kairo-cyan); font-weight:900; filter:drop-shadow(0 0 20px var(--kairo-cyan)); opacity:0.9; font-size:24px; letter-spacing:6px; padding-top:30px; text-transform:uppercase; pointer-events:none;">${this.cardName}</div>
+              <div id="card-header-text" style="text-align:center; color:var(--kairo-cyan); font-weight:900; filter:drop-shadow(0 0 20px var(--kairo-cyan)); opacity:0.9; font-size:24px; letter-spacing:6px; padding-top:30px; text-transform:uppercase; pointer-events:none;">LIVING ROOM</div>
                 <svg id="links-overlay" style="position:absolute; inset:0; pointer-events:none;"></svg>
              </div>
           </div>
@@ -682,8 +687,8 @@ class OpenKairoBuilder extends HTMLElement {
         { name: 'Container', icon: 'mdi:crop-square', preview: '<div style="width:40px; height:30px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); border-radius:4px;"></div>' },
         { name: 'Card', icon: 'mdi:card-outline', preview: '<div style="width:44px; height:32px; background:#000; border:1px solid var(--kairo-cyan); border-radius:6px; box-shadow:0 0 15px rgba(0,246,255,0.3);"></div>' },
         { name: 'Neon-Switch', icon: 'mdi:toggle-switch', preview: '<div style="width:34px; height:18px; background:var(--kairo-cyan); border-radius:9px; position:relative;"><div style="position:absolute; right:2px; top:2px; width:14px; height:14px; background:#fff; border-radius:50%;"></div></div>' },
-        { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', preview: '<div style="width:36px; height:36px; border:2px solid var(--kairo-cyan); border-radius:50%; border-right-color:transparent; transform:rotate(45deg); display:flex; align-items:center; justify-content:center;"><div style="transform:rotate(-45deg); font-size:8px; font-weight:900;">21°</div></div>' },
-        { name: 'Energie-Ring', icon: 'mdi:circle-outline', preview: '<div style="width:36px; height:36px; border:1px dashed var(--kairo-magenta); border-radius:50%; display:flex; align-items:center; justify-content:center;"><div style="font-size:7px; color:var(--kairo-magenta); font-weight:900;">800W</div></div>' },
+        { name: 'Klima-Bogen', icon: 'mdi:circle-slice-8', preview: '<div class="studio-pro-arc" style="width:40px; height:40px; border-width:2px; box-shadow:0 0 10px rgba(0,246,255,0.2);"><div class="val" style="font-size:10px;">21°</div></div>' },
+        { name: 'Energie-Ring', icon: 'mdi:circle-outline', preview: '<div class="studio-pro-arc" style="width:40px; height:40px; border-style:dashed; border-color:var(--kairo-magenta); box-shadow:0 0 10px rgba(255,0,255,0.2);"><div class="val" style="font-size:9px; color:var(--kairo-magenta);">800W</div></div>' },
         { name: 'Media-Player', icon: 'mdi:play-circle', preview: '<div style="width:44px; height:30px; background:rgba(0,0,0,0.5); border-radius:8px; display:flex; gap:4px; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);"><div style="width:0; height:0; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:6px solid #fff;"></div></div>' }
     ];
     container.innerHTML = `
