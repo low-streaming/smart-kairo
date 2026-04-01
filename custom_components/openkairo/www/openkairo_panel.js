@@ -116,6 +116,28 @@ class OpenKairoBuilder extends HTMLElement {
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(20px); display:none; justify-content:center; align-items:center; z-index:1000; }
         .modal-content { background:#111; padding:32px; border-radius:24px; border:1px solid var(--border-color); width:560px; color:white; display:flex; flex-direction:column; gap:20px; position:relative; }
         .modal-code { background:#000; padding:20px; border-radius:12px; font-family: monospace; font-size:12px; color:#10b981; overflow:auto; max-height:400px; border:1px solid var(--border-color); }
+
+        .dev-btn { padding: 6px; cursor: pointer; border-radius: 6px; color: var(--text-secondary); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .dev-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .dev-btn.active { background: var(--kairo-cyan); color: #000; box-shadow: 0 0 10px var(--kairo-cyan); }
+        .dev-btn ha-icon { --mdc-icon-size: 16px; }
+
+        /* Studio Animations */
+        @keyframes kairo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes kairo-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes kairo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes kairo-glitch { 
+            0% { transform: translate(0); } 
+            20% { transform: translate(-2px, 2px); } 
+            40% { transform: translate(-2px, -2px); } 
+            60% { transform: translate(2px, 2px); } 
+            80% { transform: translate(2px, -2px); } 
+            100% { transform: translate(0); } 
+        }
+        .anim-pulse { animation: kairo-pulse var(--dur, 2s) infinite ease-in-out; }
+        .anim-breathe { animation: kairo-breathe var(--dur, 3s) infinite ease-in-out; }
+        .anim-float { animation: kairo-float var(--dur, 3s) infinite ease-in-out; }
+        .anim-glitch { animation: kairo-glitch var(--dur, 0.3s) infinite; }
       </style>
 
       <div id="builder-container">
@@ -132,8 +154,13 @@ class OpenKairoBuilder extends HTMLElement {
             </div>
           </div>
           
-          <div style="display:flex; gap:16px; align-items:center;">
-             <div style="display:flex; gap:10px; align-items:center; background:rgba(255,255,255,0.04); padding:4px 10px; border-radius:8px; border:1px solid var(--border-color);">
+              <div style="display:flex; gap:10px; align-items:center; background:rgba(255,255,255,0.04); padding:4px; border-radius:10px; border:1px solid var(--border-color); margin-right:10px;">
+                <div class="dev-btn active" id="dev-desktop" title="Desktop View"><ha-icon icon="mdi:monitor"></ha-icon></div>
+                <div class="dev-btn" id="dev-tablet" title="Tablet View"><ha-icon icon="mdi:tablet-android"></ha-icon></div>
+                <div class="dev-btn" id="dev-mobile" title="Mobile View"><ha-icon icon="mdi:cellphone"></ha-icon></div>
+              </div>
+
+              <div style="display:flex; gap:10px; align-items:center; background:rgba(255,255,255,0.04); padding:4px 10px; border-radius:8px; border:1px solid var(--border-color);">
                 <span style="font-size:9px; font-weight:900; color:var(--text-secondary);">PREVIEW</span>
                 <select id="theme-selector" style="background:transparent; border:none; color:#fff; font-size:10px; font-weight:800; text-transform:uppercase; outline:none; cursor:pointer;">
                     <option value="cyan">Platinum Cyan</option>
@@ -142,11 +169,11 @@ class OpenKairoBuilder extends HTMLElement {
                     <option value="icarus">Icarus Gold</option>
                     <option value="overdrive">Overdrive Hologram</option>
                 </select>
-             </div>
-             <button class="btn-primary" id="btn-save">
+              </div>
+              <button class="btn-primary" id="btn-save">
                 <ha-icon icon="mdi:code-braces"></ha-icon> CODE GENERIEREN
-             </button>
-          </div>
+              </button>
+           </div>
         </header>
 
         <div class="main-layout">
@@ -269,6 +296,18 @@ class OpenKairoBuilder extends HTMLElement {
         this._updateTheme(e.target.value);
     });
 
+    const setDevice = (type) => {
+        const canvas = this.shadowRoot.querySelector('#drop-target');
+        this.shadowRoot.querySelectorAll('.dev-btn').forEach(b => b.classList.remove('active'));
+        if (type === 'desktop') { canvas.style.width = '320px'; this.shadowRoot.querySelector('#dev-desktop').classList.add('active'); }
+        if (type === 'tablet') { canvas.style.width = '600px'; this.shadowRoot.querySelector('#dev-tablet').classList.add('active'); }
+        if (type === 'mobile') { canvas.style.width = '320px'; this.shadowRoot.querySelector('#dev-mobile').classList.add('active'); }
+        this.renderLinks();
+    };
+    this.shadowRoot.querySelector('#dev-desktop').addEventListener('click', () => setDevice('desktop'));
+    this.shadowRoot.querySelector('#dev-tablet').addEventListener('click', () => setDevice('tablet'));
+    this.shadowRoot.querySelector('#dev-mobile').addEventListener('click', () => setDevice('mobile'));
+
     this.shadowRoot.querySelector('#drop-target').addEventListener('click', (e) => {
         if(e.target.id === 'drop-target') this.selectBlock(null);
     });
@@ -317,7 +356,22 @@ class OpenKairoBuilder extends HTMLElement {
             this.selectBlock(b.id);
         }
       }
-      // 3. ADD NEW BLOCK
+      // 3. CREATE NEW FROM CUSTOM TEMPLATE
+      else if (sourceType === 'CUSTOM_TEMPLATE') {
+          const templateIdx = e.dataTransfer.getData('template_idx');
+          const temps = JSON.parse(localStorage.getItem('kairo_custom_templates') || '[]');
+          const t = temps[parseInt(templateIdx)];
+          if (t) {
+              const newId = 'b' + Math.random().toString(36).substr(2, 9);
+              let dropX = Math.round((e.clientX - canvasRect.left - 40) / 12) * 12;
+              let dropY = Math.round((e.clientY - canvasRect.top - 20) / 12) * 12;
+              const newBlock = { ...t, id: newId, x: dropX, y: dropY };
+              this.canvasBlocks.push(newBlock);
+              this.renderCanvas();
+              this.selectBlock(newId);
+          }
+      }
+      // 4. ADD NEW BLOCK
       else if (sourceType) {
         let dropX = Math.round((e.clientX - canvasRect.left - 40) / 12) * 12;
         let dropY = Math.round((e.clientY - canvasRect.top - 20) / 12) * 12;
@@ -364,6 +418,14 @@ class OpenKairoBuilder extends HTMLElement {
               if (b.blur) item.blur = parseInt(b.blur);
               if (b.opacity !== undefined) item.opacity = parseFloat(b.opacity);
               if (b.action && b.action !== 'none') item.action = b.action;
+              if (b.tapAction) item.tapAction = b.tapAction;
+              if (b.doubleTapAction) item.doubleTapAction = b.doubleTapAction;
+              if (b.holdAction) item.holdAction = b.holdAction;
+              if (b.animation && b.animation !== 'none') {
+                  item.animation = b.animation;
+                  item.animDuration = parseFloat(b.animDuration || 2);
+                  item.animDelay = parseFloat(b.animDelay || 0);
+              }
               if (b.parentId) item.parentId = b.parentId;
               if (b.fontSize) item.fontSize = parseInt(b.fontSize);
               return item;
@@ -704,9 +766,8 @@ class OpenKairoBuilder extends HTMLElement {
   duplicateBlock(id) {
     const b = this.canvasBlocks.find(x => x.id === id);
     if (!b) return;
-    const newId = 'b' + Date.now();
     const newBlock = JSON.parse(JSON.stringify(b));
-    newId = 'b' + Math.random().toString(36).substr(2, 9);
+    const newId = 'b' + Math.random().toString(36).substr(2, 9);
     newBlock.id = newId;
     newBlock.x += 20;
     newBlock.y += 20;
@@ -772,6 +833,16 @@ class OpenKairoBuilder extends HTMLElement {
         el.style.textShadow = b.textGlow > 0 ? `0 0 ${b.textGlow}px ${b.color}` : 'none';
         el.style.backdropFilter = b.blur > 0 ? `blur(${b.blur}px)` : 'none';
         el.style.opacity = b.opacity !== undefined ? b.opacity : 1;
+        
+        // Apply Animations
+        el.className = 'canvas-element' + (this.selectedBlockId === b.id ? ' selected' : '');
+        if (b.animation && b.animation !== 'none') {
+            el.classList.add('anim-' + b.animation);
+            el.style.setProperty('--dur', (b.animDuration || 2) + 's');
+            el.style.setProperty('--delay', (b.animDelay || 0) + 's');
+            el.style.animationDelay = (b.animDelay || 0) + 's';
+        }
+
         if(el.querySelector('span')) {
             el.querySelector('span').innerText = b.text;
             el.querySelector('span').style.fontSize = (b.fontSize || 13) + 'px';
@@ -804,6 +875,21 @@ class OpenKairoBuilder extends HTMLElement {
                 <div class="prop-row"><span class="prop-label">Glas-Effekt</span><input type="range" id="p-blur" min="0" max="50" value="${b.blur || 0}"></div>
                 <div class="prop-row"><span class="prop-label">Deckkraft</span><input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${b.opacity !== undefined ? b.opacity : 1}"></div>
             </div>
+
+            <div class="block-category ${this._openedProps.has('ANIM') ? 'open' : ''}" data-prop="ANIM">Studio Animations <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-grid ${this._openedProps.has('ANIM') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
+                <div class="prop-row"><span class="prop-label">Typ</span>
+                    <select class="prop-input" id="p-anim-type">
+                        <option value="none" ${b.animation === 'none' ? 'selected' : ''}>Keine</option>
+                        <option value="pulse" ${b.animation === 'pulse' ? 'selected' : ''}>Pulsieren</option>
+                        <option value="breathe" ${b.animation === 'breathe' ? 'selected' : ''}>Atmen</option>
+                        <option value="float" ${b.animation === 'float' ? 'selected' : ''}>Schweben</option>
+                        <option value="glitch" ${b.animation === 'glitch' ? 'selected' : ''}>Glitch</option>
+                    </select>
+                </div>
+                <div class="prop-row"><span class="prop-label">Dauer (Sek)</span><input type="range" id="p-anim-dur" min="0.1" max="10" step="0.1" value="${b.animDuration || 2}"></div>
+                <div class="prop-row"><span class="prop-label">Verzögerung</span><input type="range" id="p-anim-delay" min="0" max="5" step="0.1" value="${b.animDelay || 0}"></div>
+            </div>
           `;
       } else {
           let entityOptions = '<option value="">Keine</option>';
@@ -812,24 +898,31 @@ class OpenKairoBuilder extends HTMLElement {
                   `<option value="${eid}" ${b.entity === eid ? 'selected' : ''}>${eid}</option>`
               ).join('');
           }
+          const getActionOptions = (current) => `
+              <option value="none" ${current === 'none' ? 'selected' : ''}>Keine</option>
+              <option value="toggle" ${current === 'toggle' ? 'selected' : ''}>Sichtbar/Toggle</option>
+              <option value="more-info" ${(current === 'more-info' || !current) ? 'selected' : ''}>Info-Fenster</option>
+              <option value="navigate" ${current === 'navigate' ? 'selected' : ''}>Navigieren</option>
+              <option value="call-service" ${current === 'call-service' ? 'selected' : ''}>Dienst aufrufen</option>
+          `;
           html = `
-            <div class="block-category ${this._openedProps.has('CONTENT') ? 'open' : ''}" data-prop="CONTENT">Content & Actions <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-category ${this._openedProps.has('CONTENT') ? 'open' : ''}" data-prop="CONTENT">Content & Triggers <ha-icon icon="mdi:chevron-down"></ha-icon></div>
             <div class="block-grid ${this._openedProps.has('CONTENT') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 12px; padding: 10px 0;">
                 <div class="prop-row"><span class="prop-label">Text</span><input type="text" class="prop-input" id="p-text" value="${b.text || ''}"></div>
                 <div class="prop-row"><span class="prop-label">Text-Größe</span><input type="range" id="p-size" min="8" max="60" value="${b.fontSize || 13}"></div>
                 <div class="prop-row"><span class="prop-label">Entität</span><select class="prop-input" id="p-entity">${entityOptions}</select></div>
-                <div class="prop-row"><span class="prop-label">Aktion</span>
-                    <select class="prop-input" id="p-action">
-                        <option value="none" ${b.action === 'none' ? 'selected' : ''}>Keine</option>
-                        <option value="more-info" ${(b.action === 'more-info' || !b.action) ? 'selected' : ''}>Info-Fenster</option>
-                        <option value="toggle" ${b.action === 'toggle' ? 'selected' : ''}>Toggle (An/Aus)</option>
-                    </select>
+                
+                <div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+                    <div class="prop-row"><span class="prop-label">Tap (Einfach)</span><select class="prop-input" id="p-action-tap">${getActionOptions(b.tapAction || b.action)}</select></div>
+                    <div class="prop-row"><span class="prop-label">Doppel-Tap</span><select class="prop-input" id="p-action-double">${getActionOptions(b.doubleTapAction || 'none')}</select></div>
+                    <div class="prop-row"><span class="prop-label">Gedrückt halten</span><select class="prop-input" id="p-action-hold">${getActionOptions(b.holdAction || 'none')}</select></div>
                 </div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
                 <button class="btn-primary" id="btn-dup" style="background:var(--input-bg); color:#fff; font-size:10px;">DUPLIZIEREN</button>
                 <button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff; font-size:10px;">LÖSCHEN</button>
             </div>
+            <button class="btn-primary" id="btn-save-temp" style="width:100%; margin-top:12px; background:rgba(255,255,255,0.05); color:#fff; font-size:9px;">ALS TEMPLATE SPEICHERN</button>
           `;
       }
       right.innerHTML = html;
@@ -855,16 +948,31 @@ class OpenKairoBuilder extends HTMLElement {
           });
       };
 
+      const bindAction = (id, field) => {
+          const el = this.shadowRoot.querySelector(id);
+          if (el) el.addEventListener('change', e => { b[field] = e.target.value; b.action = b.tapAction; });
+      };
+
       bind('#p-x', 'x'); bind('#p-y', 'y'); bind('#p-w', 'w'); bind('#p-h', 'h');
       bind('#p-size', 'fontSize'); bind('#p-color', 'color', false);
       bind('#p-glow', 'glow'); bind('#p-textglow', 'textGlow');
       bind('#p-blur', 'blur'); bind('#p-opacity', 'opacity', false, true);
       bind('#p-text', 'text', false);
 
+      const pAnimType = this.shadowRoot.querySelector('#p-anim-type');
+      if (pAnimType) pAnimType.addEventListener('change', e => { b.animation = e.target.value; updateUI(); });
+      bind('#p-anim-dur', 'animDuration', false, true);
+      bind('#p-anim-delay', 'animDelay', false, true);
+      
+      bindAction('#p-action-tap', 'tapAction');
+      bindAction('#p-action-double', 'doubleTapAction');
+      bindAction('#p-action-hold', 'holdAction');
+
       if (this.shadowRoot.querySelector('#btn-up')) this.shadowRoot.querySelector('#btn-up').addEventListener('click', () => this.moveLayer(id, 'up'));
       if (this.shadowRoot.querySelector('#btn-down')) this.shadowRoot.querySelector('#btn-down').addEventListener('click', () => this.moveLayer(id, 'down'));
       if (this.shadowRoot.querySelector('#btn-dup')) this.shadowRoot.querySelector('#btn-dup').addEventListener('click', () => this.duplicateBlock(id));
       if (this.shadowRoot.querySelector('#btn-del')) this.shadowRoot.querySelector('#btn-del').addEventListener('click', () => { el.remove(); this.canvasBlocks = this.canvasBlocks.filter(x => x.id !== id); this.selectBlock(null); });
+      if (this.shadowRoot.querySelector('#btn-save-temp')) this.shadowRoot.querySelector('#btn-save-temp').addEventListener('click', () => this.saveAsTemplate(id));
       
       const pEntity = this.shadowRoot.querySelector('#p-entity');
       if (pEntity) pEntity.addEventListener('change', e => { 
@@ -875,8 +983,6 @@ class OpenKairoBuilder extends HTMLElement {
               updateUI();
           } 
       });
-      const pAction = this.shadowRoot.querySelector('#p-action');
-      if (pAction) pAction.addEventListener('change', e => { b.action = e.target.value; });
 
       updateUI();
     } else if (this.selectedLinkId !== null) {
@@ -991,13 +1097,43 @@ class OpenKairoBuilder extends HTMLElement {
     });
   }
 
+  saveAsTemplate(id) {
+    const b = this.canvasBlocks.find(x => x.id === id);
+    if(!b) return;
+    const temps = JSON.parse(localStorage.getItem('kairo_custom_templates') || '[]');
+    temps.push({ ...b, name: b.text || b.type });
+    localStorage.setItem('kairo_custom_templates', JSON.stringify(temps));
+    const btn = this.shadowRoot.querySelector('#btn-save-temp');
+    btn.innerText = 'GESPEICHERT!';
+    setTimeout(() => { btn.innerText = 'ALS TEMPLATE SPEICHERN'; this.renderLeftSidebar(); }, 1500);
+  }
+
   renderLeftSidebar() {
     const container = this.shadowRoot.querySelector('#left-sidebar-container');
     if (!container) return;
     if(!container) return;
     
     if (this.activeLeftTab === 'TEMPLATES') {
-        let html = `<div class="block-category">Premium Vorlagen</div><div class="block-grid" style="grid-template-columns: 1fr; gap: 10px;">`;
+        const customTemps = JSON.parse(localStorage.getItem('kairo_custom_templates') || '[]');
+        const customHtml = customTemps.map((t, idx) => `
+            <div class="block-item template-item custom-temp" data-idx="${idx}" draggable="true" 
+                 ondragstart="event.dataTransfer.setData('source_type', 'CUSTOM_TEMPLATE'); event.dataTransfer.setData('template_idx', '${idx}');"
+                 style="height:auto; padding:16px; align-items:flex-start; text-align:left; background:rgba(255,255,255,0.02); border-color:var(--kairo-cyan);">
+                <ha-icon icon="mdi:folder-star" style="--mdc-icon-size:18px; color:var(--kairo-cyan); margin-bottom:8px;"></ha-icon>
+                <span style="font-size:12px; font-weight:700; color:#fff;">${t.name}</span>
+                <span style="font-size:9px; opacity:0.4; text-transform:none; margin-top:4px;">Eigenes Studio Template</span>
+            </div>
+        `).join('');
+
+        let html = `
+            <div class="block-category ${this._openedCats.has('CAT_STUDIO') ? 'open' : ''}" data-prop="CAT_STUDIO">Studio Templates <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-grid ${this._openedCats.has('CAT_STUDIO') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 10px;">
+               ${customHtml || '<div style="grid-column:1; font-size:9px; color:rgba(255,255,255,0.2); text-align:center; padding:10px;">Keine eigenen Templates vorhanden.</div>'}
+            </div>
+
+            <div class="block-category ${this._openedCats.has('CAT_SCENES') ? 'open' : ''}" data-prop="CAT_SCENES">Premium Vorlagen <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-grid ${this._openedCats.has('CAT_SCENES') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 10px;">
+        `;
         const templates = [
             { id: 'Climate', name: 'Klima & Komfort', desc: 'Raumtemperatur & Luftfeuchtigkeit' },
             { id: 'Energy', name: 'Energie-Zentrale', desc: 'Verbrauch & Solar-Produktion' },
@@ -1013,10 +1149,51 @@ class OpenKairoBuilder extends HTMLElement {
                 </div>
             `;
         });
+        const proBlocks = [
+            { id: 'LightPro', name: 'Light Studio Pro', desc: 'Smarter Schalter mit Glanz-Effekt', type: 'Neon-Switch', color: '#00f6ff', glow: 40 },
+            { id: 'ClimatePro', name: 'Climate Studio Pro', desc: 'Raumklima Bogen High-End', type: 'Klima-Bogen', color: '#f59e0b', blur: 20 },
+            { id: 'MediaPro', name: 'Media Studio Pro', desc: 'Modernes Glas-Player Layout', type: 'Media-Player', blur: 25, opacity: 0.2 }
+        ];
+        html += `
+            <div class="block-category ${this._openedCats.has('CAT_PRO') ? 'open' : ''}" data-prop="CAT_PRO">Studio Pro Blocks <ha-icon icon="mdi:chevron-down"></ha-icon></div>
+            <div class="block-grid ${this._openedCats.has('CAT_PRO') ? '' : 'collapsed'}" style="grid-template-columns: 1fr; gap: 10px;">
+        `;
+        proBlocks.forEach(t => {
+            html += `
+                <div class="block-item template-item pro-item" data-cfg='${JSON.stringify(t)}' style="height:auto; padding:16px; align-items:flex-start; text-align:left; background:rgba(255,255,255,0.02); border:1px solid rgba(0,246,255,0.1);">
+                    <ha-icon icon="mdi:diamond-stone" style="--mdc-icon-size:18px; color:#00f6ff; margin-bottom:8px;"></ha-icon>
+                    <span style="font-size:12px; font-weight:700; color:#fff;">${t.name}</span>
+                    <span style="font-size:9px; opacity:0.4; text-transform:none; margin-top:4px;">${t.desc}</span>
+                </div>
+            `;
+        });
+        html += `</div>`;
+
         html += `</div>`;
         container.innerHTML = html;
-        container.querySelectorAll('.template-item').forEach(item => {
-            item.addEventListener('click', () => this._injectTemplate(item.dataset.id));
+        
+        container.querySelectorAll('.block-category').forEach(header => {
+            header.addEventListener('click', () => {
+                const p = header.dataset.prop;
+                if (this._openedCats.has(p)) this._openedCats.delete(p);
+                else this._openedCats.add(p);
+                this.renderLeftSidebar();
+            });
+        });
+
+        container.querySelectorAll('.template-item:not(.custom-temp)').forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('pro-item')) {
+                    const cfg = JSON.parse(item.dataset.cfg);
+                    this.addBlockToCanvas(cfg.type, 100, 100, null, null);
+                    const b = this.canvasBlocks[this.canvasBlocks.length-1];
+                    Object.assign(b, cfg);
+                    delete b.id; delete b.name; delete b.desc; // Keep original ID logic
+                    this.renderCanvas();
+                } else {
+                    this._injectTemplate(item.dataset.id);
+                }
+            });
         });
         return;
     }

@@ -126,7 +126,23 @@ class OpenKairoCustomCard extends HTMLElement {
         }
         @keyframes flow { to { stroke-dashoffset: -48; } }
         @keyframes glowPulse { from { filter: drop-shadow(0 0 2px currentColor); opacity: 0.4; } to { filter: drop-shadow(0 0 10px currentColor); opacity: 0.9; } }
-        @keyframes breathe { 0%, 100% { opacity: 0.3; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+        
+        /* Studio Animations */
+        @keyframes kairo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes kairo-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes kairo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes kairo-glitch { 
+            0% { transform: translate(0); } 
+            20% { transform: translate(-2px, 2px); } 
+            40% { transform: translate(-2px, -2px); } 
+            60% { transform: translate(2px, 2px); } 
+            80% { transform: translate(2px, -2px); } 
+            100% { transform: translate(0); } 
+        }
+        .anim-pulse { animation: kairo-pulse var(--dur, 2s) infinite ease-in-out; }
+        .anim-breathe { animation: kairo-breathe var(--dur, 3s) infinite ease-in-out; }
+        .anim-float { animation: kairo-float var(--dur, 3s) infinite ease-in-out; }
+        .anim-glitch { animation: kairo-glitch var(--dur, 0.3s) infinite; }
         
         input[type=range].kairo-slider {
           -webkit-appearance: none; width: 100%; background: transparent;
@@ -174,16 +190,39 @@ class OpenKairoCustomCard extends HTMLElement {
             el.style.textShadow = block.textGlow > 0 ? `0 0 ${block.textGlow}px ${block.color}` : 'none';
             el.style.backdropFilter = block.blur > 0 ? `blur(${block.blur}px)` : 'none';
             if (block.blur > 0) el.style.background = `rgba(255,255,255,0.05)`;
+
+            // Animations
+            if (block.animation && block.animation !== 'none') {
+                el.classList.add('anim-' + block.animation);
+                el.style.setProperty('--dur', (block.animDuration || 2) + 's');
+                el.style.setProperty('--delay', (block.animDelay || 0) + 's');
+            }
         };
         updateStyles();
 
-        if (block.action && block.action !== 'none' && entityId) {
-            el.style.cursor = 'pointer';
-            el.onclick = () => {
-                if(block.action === 'toggle') this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
-                else fireEvent(this, 'hass-more-info', { entityId: entityId });
-            };
-        }
+        // Advanced Interaction (Multi-Trigger)
+        const handleAction = (act) => {
+            if (!act || act === 'none' || !entityId) return;
+            if (act === 'toggle') this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
+            else if (act === 'more-info') fireEvent(this, 'hass-more-info', { entityId: entityId });
+            // Add more actions as needed
+        };
+
+        let clickTimer = null;
+        let holdTimer = null;
+        
+        el.addEventListener('mousedown', () => { holdTimer = setTimeout(() => { handleAction(block.holdAction); holdTimer = null; }, 600); });
+        el.addEventListener('mouseup', () => { if(holdTimer) clearTimeout(holdTimer); });
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(!clickTimer) {
+                clickTimer = setTimeout(() => { handleAction(block.tapAction || block.action); clickTimer = null; }, 250);
+            } else {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+                handleAction(block.doubleTapAction);
+            }
+        });
 
         el._ok_cfg = { ...block, resolvedEntity: entityId };
         renderArea.appendChild(el);
