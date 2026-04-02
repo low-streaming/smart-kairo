@@ -257,9 +257,10 @@ const Renderer = {
             <div class="main-layout">
                 <div class="sidebar sidebar-left">
                     <div class="sidebar-tabs">
-                        <div class="s-tab active" data-tab="BLOCKS" id="tab-left-blocks">Blocks</div>
-                        <div class="s-tab" data-tab="TEMPLATES" id="tab-left-templates">Templates</div>
-                        <div class="s-tab" data-tab="LAYERS" id="tab-left-layers">Layers</div>
+                        <div class="s-tab active" data-tab="BLOCKS" id="tab-left-blocks">Komponenten</div>
+                        <div class="s-tab" data-tab="TEMPLATES" id="tab-left-templates">Vorlagen</div>
+                        <div class="s-tab" data-tab="LAYERS" id="tab-left-layers">Ebenen</div>
+                        <div class="s-tab" data-tab="AI" id="tab-left-ai">KI Studio</div>
                     </div>
                     <div class="sidebar-content" id="left-sidebar-container"></div>
                 </div>
@@ -273,8 +274,8 @@ const Renderer = {
 
                 <div class="sidebar sidebar-right">
                     <div class="sidebar-tabs">
-                        <div class="s-tab active" data-tab="PROPS" id="tab-props">Properties</div>
-                        <div class="s-tab" data-tab="STYLES" id="tab-styles">Styles</div>
+                        <div class="s-tab active" data-tab="PROPS" id="tab-props">Eigenschaften</div>
+                        <div class="s-tab" data-tab="STYLES" id="tab-styles">Design</div>
                     </div>
                     <div class="sidebar-content" id="right-sidebar"></div>
                 </div>
@@ -312,8 +313,9 @@ const Templates = {
     exportToYAML: (state) => {
         let yaml = `type: 'custom:openkairo-custom-card'\nname: '${state.name}'\nglow: ${state.style.glow}\nblur: ${state.style.blur}\ncolor: '${state.style.color}'\nopacity: ${state.style.opacity}\nlayout:\n`;
         state.blocks.forEach(b => {
-            yaml += `  - id: ${b.id}\n    type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}\n    w: ${b.w || 100}\n    h: ${b.h || 40}\n    text: '${b.text || ''}'\n`;
+            yaml += `  - id: ${b.id}\n    type: ${b.type}\n    x: ${b.x}\n    y: ${b.y}\n    w: ${b.w || 120}\n    h: ${b.h || 40}\n    text: '${b.text || ''}'\n`;
             if (b.entity) yaml += `    entity: ${b.entity}\n`;
+            if (b.icon) yaml += `    icon: ${b.icon}\n`;
             yaml += `    color: '${b.color || '#fff'}'\n`;
             if (b.glow) yaml += `    glow: ${b.glow}\n`;
             if (b.animation && b.animation !== 'none') { yaml += `    animation: ${b.animation}\n    animDuration: ${b.animDuration || 2}\n`; }
@@ -321,6 +323,7 @@ const Templates = {
         });
         return yaml;
     },
+    exportToJSON: (state) => JSON.stringify(state, null, 2),
     importFromJSON: (jsonStr) => {
         try {
             const data = JSON.parse(jsonStr);
@@ -366,10 +369,19 @@ const AIAgent = {
         let startX = 100, startY = 100;
         if (p.includes('light') || p.includes('licht')) {
             const count = p.match(/\d+/) ? parseInt(p.match(/\d+/)[0]) : 1;
-            for(let i=0; i<count; i++) { newBlocks.push({ type: 'Light', x: startX + (i*130), y: startY, text: 'Light ' + (i+1) }); }
+            for(let i=0; i<count; i++) { 
+                newBlocks.push({ id: 'gen_l_'+Math.random().toString(36).substr(2,4), type: 'Light', x: startX + (i*130), y: startY, w:120, h:40, text: 'Light ' + (i+1), color: '#00f6ff', glow:20, blur:15, tap_action: 'toggle' }); 
+            }
             startY += 120;
         }
-        if (p.includes('climate') || p.includes('klima')) { newBlocks.push({ type: 'Klima-Bogen', x: startX, y: startY, text: '21°' }); startY += 160; }
+        if (p.includes('climate') || p.includes('klima')) { 
+            newBlocks.push({ id: 'gen_c_'+Math.random().toString(36).substr(2,4), type: 'Klima-Bogen', x: startX, y: startY, w:140, h:140, text: '21°', color: '#10b981', glow:20, blur:15 }); 
+            startY += 160; 
+        }
+        if (p.includes('chart') || p.includes('graph')) { 
+            newBlocks.push({ id: 'gen_p_'+Math.random().toString(36).substr(2,4), type: 'Pulse-Chart', x: startX, y: startY, w:200, h:80, text: 'System', color: '#00f6ff', glow:20, blur:15 }); 
+            startY += 100; 
+        }
         return newBlocks;
     }
 };
@@ -531,6 +543,13 @@ class OpenKairoBuilder extends HTMLElement {
                 alert('Template gespeichert!');
             }
         });
+        root.querySelector('#btn-rename-card').addEventListener('click', () => {
+            const newName = prompt('Dashboard Name:', this.state.name);
+            if (newName) {
+                this.state.name = newName;
+                this._renderAll();
+            }
+        });
         root.querySelector('#btn-copy-code').addEventListener('click', () => {
             const code = root.querySelector('#export-code-box').innerText;
             navigator.clipboard.writeText(code);
@@ -641,7 +660,7 @@ class OpenKairoBuilder extends HTMLElement {
         if (this.activeLeftTab === 'BLOCKS') {
             const blocks = BlockRegistry.getStandardBlocks();
             left.innerHTML = `
-                <div class="block-category-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; padding-left: 5px;">Standard Library</div>
+                <div class="block-category-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; padding-left: 5px;">Standard Bibliothek</div>
                 <div class="block-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     ${blocks.map(b => `
                         <div class="block-item b-item" data-type="${b.type}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: grab; transition: 0.3s;">
@@ -663,15 +682,15 @@ class OpenKairoBuilder extends HTMLElement {
             const presets = Templates.getFactoryPresets();
             const saved = Templates.loadTemplates();
             left.innerHTML = `
-                <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Factory Presets</div>
+                <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Werks-Vorlagen</div>
                 ${Object.keys(presets).map(name => `
                     <div class="preset-item" data-name="${name}" style="background:rgba(255,255,255,0.04); border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer; transition:0.3s;">
                         <div style="font-weight:800; font-size:12px; margin-bottom:4px; color:var(--kairo-cyan);">${name}</div>
-                        <div style="font-size:9px; opacity:0.6;">High-quality room layout</div>
+                        <div style="font-size:9px; opacity:0.6;">Hochwertiges Raum-Layout</div>
                     </div>
                 `).join('')}
                 ${Object.keys(saved).length > 0 ? `
-                    <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin: 20px 0 12px;">Your Templates</div>
+                    <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin: 20px 0 12px;">Deine Vorlagen</div>
                     ${Object.keys(saved).map(name => `
                         <div class="saved-item" data-name="${name}" style="background:rgba(255,255,255,0.04); border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer;">
                             <div style="font-weight:800; font-size:12px;">${name}</div>
@@ -681,7 +700,7 @@ class OpenKairoBuilder extends HTMLElement {
             `;
             left.querySelectorAll('.preset-item').forEach(p => {
                 p.addEventListener('click', () => {
-                    if (confirm(`Load template "${p.dataset.name}"? Current progress will be lost.`)) {
+                    if (confirm(`Vorlage "${p.dataset.name}" laden? Aktueller Fortschritt geht verloren.`)) {
                         this._saveHistory();
                         this.state = JSON.parse(JSON.stringify(presets[p.dataset.name]));
                         this._renderAll();
@@ -690,7 +709,7 @@ class OpenKairoBuilder extends HTMLElement {
             });
         } else if (this.activeLeftTab === 'LAYERS') {
             left.innerHTML = `
-                <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Active Blocks</div>
+                <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Aktive Blöcke</div>
                 <div class="layer-list" style="display:flex; flex-direction:column; gap:8px;">
                     ${this.state.blocks.map(b => `
                         <div class="layer-item ${this.selectedBlockId === b.id ? 'active' : ''}" data-id="${b.id}" style="background:${this.selectedBlockId === b.id ? 'var(--kairo-cyan)' : 'rgba(255,255,255,0.03)'}; color:${this.selectedBlockId === b.id ? '#000' : '#fff'}; border:1px solid var(--border-color); border-radius:8px; padding:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
@@ -718,14 +737,78 @@ class OpenKairoBuilder extends HTMLElement {
                     this.selectBlock(l.dataset.id);
                 });
             });
+        } else if (this.activeLeftTab === 'AI') {
+            left.innerHTML = `
+                <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">KI Layout Assistent</div>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:12px; padding:15px; display:flex; flex-direction:column; gap:12px;">
+                    <textarea id="ai-prompt-input" placeholder="z.B. 'Füge 3 Lichter und ein Diagramm hinzu'" style="width:100%; height:80px; background:#000; color:var(--kairo-cyan); border-radius:8px; padding:10px; border:1px solid var(--border-color); font-family:inherit; font-size:12px; outline:none; resize:none;"></textarea>
+                    <button class="btn-primary" id="btn-run-ai" style="width:100%; padding:10px; background:var(--kairo-cyan); color:#000; font-weight:900;">GENERATOR STARTEN</button>
+                    <div style="font-size:9px; opacity:0.4; line-height:1.4;">Tipp: Die KI kann Lichter, Klima-Bögen und Diagramme zu deinem Layout hinzufügen.</div>
+                </div>
+            `;
+            left.querySelector('#btn-run-ai').addEventListener('click', () => {
+                const prompt = left.querySelector('#ai-prompt-input').value;
+                if (prompt) {
+                    const newBlocks = AIAgent.generateFromPrompt(prompt);
+                    if (newBlocks.length > 0) {
+                        this._saveHistory();
+                        this.state.blocks.push(...newBlocks);
+                        this._renderAll();
+                        left.querySelector('#ai-prompt-input').value = '';
+                    } else {
+                        alert("Ich konnte diesen Prompt nicht verstehen. Versuche es mit 'Füge 2 Lichter hinzu'.");
+                    }
+                }
+            });
         }
     }
     selectBlock(id) { this.selectedBlockId = id; this._renderCanvas(); this._renderRightSidebar(); }
     _renderRightSidebar() {
         const right = this.shadowRoot.querySelector('#right-sidebar'), b = this.state.blocks.find(x => x.id === this.selectedBlockId);
-        if (!b) { right.innerHTML = `<div class="prop-group"><div class="prop-header">Global Settings</div><div class="prop-row"><span>Glow Intensity</span><input type="range" id="g-glow" value="${this.state.style.glow}" style="width:100%"></div></div>`; this.shadowRoot.querySelector('#g-glow').addEventListener('input', e => { this.state.style.glow = e.target.value; this._updateGlobalStyles(); }); return; }
-        right.innerHTML = `<div class="prop-group"><div class="prop-header">Block: ${b.type}</div><div class="prop-row"><span>Label</span><input class="prop-input" type="text" id="p-text" value="${b.text}"></div></div><div style="padding:24px;"><button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff; width:100%;">ENTFERNEN</button></div>`;
-        this.shadowRoot.querySelector('#p-text').addEventListener('input', e => { b.text = e.target.value; this._renderCanvas(); });
+        if (!b) { 
+            right.innerHTML = `
+                <div class="prop-group">
+                    <div class="prop-header">Globale Einstellungen</div>
+                    <div class="prop-row"><span>Leucht-Intensität</span><input type="range" id="g-glow" value="${this.state.style.glow}" style="width:100%"></div>
+                    <div class="prop-row"><span>Globale Farbe</span><input type="color" id="g-color" value="${this.state.style.color}" style="width:100%; background:none; border:none; height:30px;"></div>
+                </div>`; 
+            this.shadowRoot.querySelector('#g-glow').addEventListener('input', e => { this.state.style.glow = e.target.value; this._renderAll(); }); 
+            this.shadowRoot.querySelector('#g-color').addEventListener('input', e => { this.state.style.color = e.target.value; this._renderAll(); });
+            return; 
+        }
+        right.innerHTML = `
+            <div class="prop-group">
+                <div class="prop-header">Block: ${b.type}</div>
+                <div class="prop-row"><span>Bezeichnung</span><input class="prop-input" type="text" id="p-text" value="${b.text || ''}"></div>
+                <div class="prop-row"><span>Entität (ID)</span><input class="prop-input" type="text" id="p-entity" value="${b.entity || ''}"></div>
+                <div class="prop-row"><span>Icon</span><input class="prop-input" type="text" id="p-icon" value="${b.icon || ''}" placeholder="mdi:lightbulb"></div>
+            </div>
+            <div class="prop-group">
+                <div class="prop-header">Design & Effekte</div>
+                <div class="prop-row"><span>Akzentfarbe</span><input type="color" id="p-color" value="${b.color || '#ffffff'}" style="width:100%; background:none; border:none; height:30px;"></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="prop-row"><span>Breite</span><input class="prop-input" type="number" id="p-w" value="${b.w}"></div>
+                    <div class="prop-row"><span>Höhe</span><input class="prop-input" type="number" id="p-h" value="${b.h}"></div>
+                </div>
+                <div class="prop-row"><span>Animation</span>
+                    <select class="prop-input" id="p-anim" style="background:#000; color:#fff;">
+                        <option value="none" ${b.animation === 'none' ? 'selected' : ''}>Keine</option>
+                        <option value="pulse" ${b.animation === 'pulse' ? 'selected' : ''}>Pulsieren</option>
+                        <option value="breathe" ${b.animation === 'breathe' ? 'selected' : ''}>Atmen</option>
+                        <option value="float" ${b.animation === 'float' ? 'selected' : ''}>Schweben</option>
+                    </select>
+                </div>
+            </div>
+            <div style="padding:24px;"><button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff; width:100%;">ENTFERNEN</button></div>`;
+        
+        const update = (key, val) => { b[key] = val; this._renderCanvas(); };
+        this.shadowRoot.querySelector('#p-text').addEventListener('input', e => update('text', e.target.value));
+        this.shadowRoot.querySelector('#p-entity').addEventListener('input', e => b.entity = e.target.value);
+        this.shadowRoot.querySelector('#p-icon').addEventListener('input', e => update('icon', e.target.value));
+        this.shadowRoot.querySelector('#p-color').addEventListener('input', e => update('color', e.target.value));
+        this.shadowRoot.querySelector('#p-w').addEventListener('input', e => update('w', parseInt(e.target.value)));
+        this.shadowRoot.querySelector('#p-h').addEventListener('input', e => update('h', parseInt(e.target.value)));
+        this.shadowRoot.querySelector('#p-anim').addEventListener('change', e => { b.animation = e.target.value; this._renderCanvas(); });
         this.shadowRoot.querySelector('#btn-del').addEventListener('click', () => this._deleteSelected());
     }
     _deleteSelected() { this._saveHistory(); this.state.blocks = this.state.blocks.filter(x => x.id !== this.selectedBlockId); this.selectBlock(null); }
