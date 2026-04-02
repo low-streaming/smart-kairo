@@ -277,11 +277,11 @@ class OpenKairoBuilder extends HTMLElement {
                     --text-secondary: rgba(255, 255, 255, 0.5);
                     --input-bg: rgba(255, 255, 255, 0.05);
                     font-family: 'Outfit', 'Inter', sans-serif;
-                    position: absolute; inset: 0; background: var(--bg-color); color: #fff; overflow: hidden;
+                    display: block; height: 100%; height: 100vh; width: 100%; background: var(--bg-color); color: #fff; overflow: hidden;
                 }
                 #builder-container { 
                     display: grid; grid-template-rows: 66px 1fr; 
-                    position: absolute; inset: 0; overflow: hidden; 
+                    height: 100%; width: 100%; overflow: hidden; position: relative;
                 }
                 .header { 
                     border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; 
