@@ -1,15 +1,115 @@
-function fireEvent(node, type, detail, options) {
-  options = options || {};
-  detail = detail === null || detail === undefined ? {} : detail;
-  const event = new Event(type, {
-    bubbles: options.bubbles === undefined ? true : options.bubbles,
-    cancelable: Boolean(options.cancelable),
-    composed: options.composed === undefined ? true : options.composed,
-  });
-  event.detail = detail;
-  node.dispatchEvent(event);
-  return event;
-}
+/**
+ * OpenKairo Custom Card - Dashboard Part
+ * This card renders the layouts created in Kairo Architect.
+ * Version: 2.0 (Premium Design Sync)
+ */
+
+const BlockRegistry = {
+    renderLight: (b) => {
+        const isOn = b.state === 'on';
+        const color = b.color || '#00f6ff';
+        return `
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.08)'}; border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow: ${isOn ? '0 0 30px ' + color + '40, inset 0 0 10px ' + color + '20' : 'none'}; transition:0.4s ease;">
+                <ha-icon icon="${isOn ? 'mdi:lightbulb-on' : 'mdi:lightbulb-outline'}" 
+                         style="color:${isOn ? color : '#fff'}; filter:${isOn ? 'drop-shadow(0 0 10px ' + color + ')' : 'none'}; transform:${isOn ? 'scale(1.1)' : 'scale(1)'}; transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></ha-icon>
+            </div>`;
+    },
+    renderFan: (b) => {
+        const isOn = b.state === 'on';
+        const color = b.color || '#00f6ff';
+        return `
+            <div style="width:100%; height:100%; background:rgba(255,255,255,0.02); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.08); border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:inset 0 0 15px rgba(255,255,255,0.02);">
+                <ha-icon icon="mdi:fan" class="${isOn ? 'anim-fan' : ''}" style="--fan-dur:1.5s; color:${isOn ? color : 'rgba(255,255,255,0.3)'}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'};"></ha-icon>
+            </div>`;
+    },
+    renderSensor: (b) => {
+        const color = b.color || '#00f6ff';
+        return `
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.05); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; position:relative;">
+                <div style="position:absolute; width:100%; height:20%; top:0; background:linear-gradient(to bottom, ${color}10, transparent);"></div>
+                <div style="font-size:8px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:2px; margin-bottom:4px; font-weight:900;">${b.text || 'Sensor'}</div>
+                <div style="font-size:22px; font-weight:900; color:#fff; text-shadow:0 0 10px rgba(0,0,0,0.5);">${b.state || '24'}<span style="font-size:10px; opacity:0.6; margin-left:2px; font-weight:400;">${b.unit || '°C'}</span></div>
+            </div>`;
+    },
+    renderClimateArc: (b) => {
+        const color = b.color || '#10b981';
+        return `
+            <div class="studio-pro-arc" style="background:rgba(0,0,0,0.7); backdrop-filter:blur(20px); border:1px solid ${color}30; box-shadow: 0 15px 50px rgba(0,0,0,0.5), inset 0 0 30px ${color}10; width:100%; height:100%; border-radius:50%; position:relative; overflow:hidden;">
+                <div style="position:absolute; inset:5px; border:1px dashed ${color}40; border-radius:50%; opacity:0.5;"></div>
+                <div class="val" style="color:#fff; text-shadow:0 0 20px ${color}; font-size:28px; font-weight:900;">${b.text || '21°'}</div>
+            </div>`;
+    },
+    renderHexPower: (b) => {
+        const color = b.color || '#00f6ff';
+        return `
+            <div style="width:100%; height:100%; background:linear-gradient(135deg, ${color}, ${color}80); clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 0 15px ${color}40);">
+                <div style="width:92%; height:92%; background:rgba(0,0,0,0.9); clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <ha-icon icon="mdi:flash" style="--mdc-icon-size:22px; color:${color}; filter:drop-shadow(0 0 5px ${color});"></ha-icon>
+                    <div style="font-size:9px; font-weight:900; color:#fff; letter-spacing:1px; margin-top:-2px;">AKTIV</div>
+                </div>
+            </div>`;
+    },
+    renderPulseChart: (b) => {
+        const color = b.color || '#00f6ff';
+        return `
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border-radius:18px; border:1px solid rgba(255,255,255,0.06); padding:10px; display:flex; flex-direction:column; box-shadow:inset 0 0 20px rgba(0,0,0,0.4);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:9px; color:${color}; font-weight:900; text-transform:uppercase; letter-spacing:1px;">${b.text || 'System'}</span>
+                </div>
+                <div style="flex:1; display:flex; align-items:flex-end; gap:3px; padding-bottom:4px;">
+                    ${Array(12).fill(0).map((_,i) => `<div style="flex:1; background:linear-gradient(to top, ${color}20, ${color}); height:${[30,40,20,60,45,70,30,85,40,95,65,80][i]}%; border-radius:10px; opacity:${i === 9 ? 1 : 0.4}; box-shadow:${i === 9 ? '0 0 15px ' + color : 'none'}; transition:0.3s;"></div>`).join('')}
+                </div>
+            </div>`;
+    },
+    renderNeonSwitch: (b) => {
+        const color = b.color || '#a1ff10';
+        const isOn = b.state === 'on';
+        return `
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:20px; display:flex; flex-direction:column; justify-content:space-between; padding:12px; box-shadow: ${isOn ? '0 0 25px ' + color + '30, inset 0 0 10px ' + color + '15' : '0 10px 30px rgba(0,0,0,0.3)'}; transition:0.4s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <ha-icon icon="mdi:flash-circle" style="--mdc-icon-size:20px; color:${isOn ? color : 'rgba(255,255,255,0.2)'}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'}; transition:0.4s;"></ha-icon>
+              <div style="width:34px; height:20px; background:${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:12px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
+                <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:2px; left:${isOn ? '18px' : '2px'}; box-shadow:0 0 5px rgba(0,0,0,0.5); transition:0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);"></div>
+              </div>
+            </div>
+            <div style="font-size:10px; font-weight:900; color:${isOn ? '#fff' : 'rgba(255,255,255,0.4)'}; text-transform:uppercase; letter-spacing:1px;">${b.text || 'Toggle'}</div>
+          </div>`;
+    },
+    renderStatusPill: (b) => {
+        const color = b.color || '#10b981';
+        return `
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.08); border-radius:25px; display:flex; align-items:center; justify-content:center; gap:8px; padding:0 15px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+            <div style="width:8px; height:8px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 12px ${color};">
+                <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.4; animation:anim-pulse 2s infinite;"></div>
+            </div>
+            <div style="font-size:10px; font-weight:900; color:#fff; letter-spacing:2px;">ONLINE</div>
+          </div>`;
+    },
+    renderSliderDimmer: (b) => {
+        const color = b.color || '#00f6ff';
+        const val = b.state || 0;
+        const pct = Math.round(val / 255 * 100);
+        return `
+          <div style="width:100%; height:100%; background:rgba(255,255,255,0.02); backdrop-filter:blur(15px); border-radius:18px; border:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 12px; box-shadow:inset 0 0 20px rgba(255,255,255,0.02);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:9px; font-weight:900; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:1.5px;">${b.text || 'Dimmer'}</div>
+                <div style="font-size:9px; font-weight:900; color:${color};">${pct}%</div>
+            </div>
+            <div style="height:10px; background:rgba(0,0,0,0.5); border-radius:5px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
+                <div style="width:${pct}%; height:100%; background:linear-gradient(to right, ${color}40, ${color}); border-radius:5px; box-shadow:0 0 15px ${color}80; position:relative;">
+                    <div style="position:absolute; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation:anim-glow-slide 2s infinite; opacity:0.3;"></div>
+                </div>
+            </div>
+          </div>`;
+    },
+    renderWeather: (b) => {
+        return `
+            <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; padding:0 12px;">
+                <ha-icon icon="mdi:weather-sunny" style="color:#fbbf24; filter:drop-shadow(0 0 8px #fbbf24);"></ha-icon>
+                <div style="font-size:18px; font-weight:900; color:#fff;">18°</div>
+            </div>`;
+    }
+};
 
 class OpenKairoCustomCard extends HTMLElement {
   setConfig(config) {
@@ -17,62 +117,40 @@ class OpenKairoCustomCard extends HTMLElement {
       throw new Error("Bitte ein OpenKAIRO Layout im Editor definieren!");
     }
     this._config = config;
-    if (!this.content) {
-      this.setupDOM();
-    }
   }
 
   static getConfigElement() {
     return document.createElement("openkairo-custom-card-editor");
   }
 
-  static getStubConfig() {
-    return {
-      name: "CYBER HUB",
-      glow: 40,
-      blur: 25,
-      color: "#00f6ff",
-      opacity: 0.3,
-      layout: [
-        { type: "Text", id: "t1", x: 140, y: 40, text: "SYSTEM STATUS", color: "#00f6ff", glow: 20 }
-      ]
-    };
-  }
-
   set hass(hass) {
     this._hass = hass;
-    if (!this.content) {
+    if (!this.shadowRoot) {
       this.setupDOM();
     }
-    if (this._config && this._config.layout) {
-       this.updateLiveStates();
-    }
+    this.updateLiveStates();
   }
 
   setupDOM() {
+    this.attachShadow({ mode: 'open' });
     const c = this._config;
-    // Resolve Card Name Slot
-    let cardName = c.name || 'LIVING ROOM';
-    if (cardName.startsWith('[[') && cardName.endsWith(']]')) {
-        const slotName = cardName.slice(2, -2);
-        cardName = (c.slots && c.slots[slotName]) || slotName.toUpperCase();
-    }
-    this.innerHTML = `
+    
+    this.shadowRoot.innerHTML = `
       <style>
         ha-card {
-           background: #000;
-           border-radius: 12px;
+           background: rgba(8, 8, 10, 0.85);
+           border-radius: 32px;
            backdrop-filter: blur(${c.blur || 25}px);
            -webkit-backdrop-filter: blur(${c.blur || 25}px);
            position: relative; 
            box-shadow: 
-             0 20px 80px rgba(0,0,0,0.9),
-             inset 0 0 40px rgba(0, 0, 0, 0.5),
-             ${c.glow > 0 ? `0 0 ${c.glow}px ${c.color || '#00f6ff'}40, 0 0 1px ${c.color || '#00f6ff'}` : '0 1px 1px rgba(255,255,255,0.1)'};
+             0 50px 100px rgba(0,0,0,0.9),
+             inset 0 0 50px ${c.color || '#00f6ff'}15,
+             0 0 0 1px rgba(255,255,255,0.1);
            overflow: hidden !important; 
-           border: 1px solid ${c.glow > 0 ? (c.color || '#00f6ff') : 'rgba(255,255,255,0.05)'};
-           color: #fff; font-family: 'Rajdhani', sans-serif;
-           min-height: ${c.height || 400}px;
+           color: #fff; font-family: 'Outfit', 'Inter', sans-serif;
+           min-height: ${c.height || 480}px;
+           transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         ha-card::before {
@@ -87,462 +165,106 @@ class OpenKairoCustomCard extends HTMLElement {
            z-index: 0;
         }
 
-        .header { 
-          font-size: 18px; 
-          font-weight: 900; 
+        .card-header-text { 
           text-align: center; 
-          margin-bottom: 30px; 
-          color: var(--accent-color, #10b981); 
-          letter-spacing: 4px; 
+          color: ${c.color || '#00f6ff'}; 
+          font-weight: 900; 
+          filter: drop-shadow(0 0 20px ${c.color || '#00f6ff'}80); 
+          opacity: 0.9; 
+          font-size: 24px; 
+          letter-spacing: 6px; 
+          padding-top: 30px; 
           text-transform: uppercase; 
-          text-shadow: 0 0 10px currentColor; 
-          opacity: 0.9;
+          pointer-events: none;
+          position: relative;
+          z-index: 10;
         }
 
-        .canvas-area {
-           position: relative;
-           width: 100%;
-           height: ${c.height || 400}px;
-           overflow: visible;
-        }
+        #blocks-container { position: absolute; inset: 0; }
+        .block-element { position: absolute; cursor: pointer; transition: transform 0.2s; z-index: 20; }
+        .block-element:hover { transform: scale(1.02); }
+        .block-element:active { transform: scale(0.98); }
 
-        .canvas-element {
-          position: absolute;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          box-sizing: border-box;
-          transition: 0.3s;
-        }
-
-        #links-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; opacity: 0.6; }
-        .linking-path { 
-            fill: none; 
-            stroke-width: 2; 
-            stroke-dasharray: 4, 12; 
-            animation: flow 3s linear infinite, glowPulse 2s ease-in-out infinite alternate; 
-            stroke-linecap: round;
-        }
-        @keyframes flow { to { stroke-dashoffset: -48; } }
-        @keyframes glowPulse { from { filter: drop-shadow(0 0 2px currentColor); opacity: 0.4; } to { filter: drop-shadow(0 0 10px currentColor); opacity: 0.9; } }
-        
-        /* Studio Animations */
-        @keyframes kairo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        @keyframes kairo-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes kairo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes kairo-glitch { 
-            0% { transform: translate(0); } 
-            20% { transform: translate(-2px, 2px); } 
-            40% { transform: translate(-2px, -2px); } 
-            60% { transform: translate(2px, 2px); } 
-            80% { transform: translate(2px, -2px); } 
-            100% { transform: translate(0); } 
-        }
-        .anim-pulse { animation: kairo-pulse var(--dur, 2s) infinite ease-in-out; }
-        .anim-breathe { animation: kairo-breathe var(--dur, 3s) infinite ease-in-out; }
-        .anim-float { animation: kairo-float var(--dur, 3s) infinite ease-in-out; }
-        .anim-glitch { animation: kairo-glitch var(--dur, 0.3s) infinite; }
-        
-        input[type=range].kairo-slider {
-          -webkit-appearance: none; width: 100%; background: transparent;
-        }
-        input[type=range].kairo-slider::-webkit-slider-runnable-track {
-          width: 100%; height: 6px; cursor: pointer; background: rgba(255,255,255,0.05); border-radius: 3px; border: 1px solid rgba(255,255,255,0.1);
-        }
-        input[type=range].kairo-slider::-webkit-slider-thumb {
-          height: 16px; width: 16px; border-radius: 50%; background: #fff; cursor: pointer; -webkit-appearance: none; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
+        @keyframes fan-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes anim-pulse { 0% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.3); opacity: 0.1; } 100% { transform: scale(1); opacity: 0.4; } }
+        @keyframes anim-glow-slide { 0% { left: -100%; } 100% { left: 100%; } }
+        .anim-fan { animation: fan-spin 2s infinite linear; }
       </style>
       <ha-card>
-        <div class="header">${cardName}</div>
-        <div class="canvas-area" id="render-area">
-           <svg id="links-overlay"></svg>
-        </div>
+        <div class="card-header-text">${c.name || 'LIVING ROOM'}</div>
+        <div id="blocks-container"></div>
       </ha-card>
     `;
-
-    this.content = true;
-    const renderArea = this.querySelector('#render-area');
-
-    c.layout.forEach((block, index) => {
-        const el = document.createElement('div');
-        el.className = 'canvas-element';
-        el.id = block.id || ('block-' + index);
-        el.style.left = (block.x || 0) + 'px';
-        el.style.top = (block.y || 0) + 'px';
-        
-        // Resolve Entity Slot
-        let entityId = block.entity;
-        if (entityId && entityId.startsWith('[[') && entityId.endsWith(']]')) {
-            const slotName = entityId.slice(2, -2);
-            entityId = (c.slots && c.slots[slotName]) || null;
-        }
-
-        // Initial Styles from Config
-        el.style.color = block.color || '#10b981';
-        el.style.opacity = block.opacity !== undefined ? block.opacity : 1;
-        el.style.fontSize = (block.fontSize || 13) + 'px';
-        el.style.fontWeight = 'bold';
-        
-        const updateStyles = () => {
-            el.style.boxShadow = block.glow > 0 ? `0 0 ${block.glow}px ${block.color}` : 'none';
-            el.style.textShadow = block.textGlow > 0 ? `0 0 ${block.textGlow}px ${block.color}` : 'none';
-            el.style.backdropFilter = block.blur > 0 ? `blur(${block.blur}px)` : 'none';
-            if (block.blur > 0) el.style.background = `rgba(255,255,255,0.05)`;
-
-            // Animations
-            if (block.animation && block.animation !== 'none') {
-                el.classList.add('anim-' + block.animation);
-                el.style.setProperty('--dur', (block.animDuration || 2) + 's');
-                el.style.setProperty('--delay', (block.animDelay || 0) + 's');
-            }
-        };
-        updateStyles();
-
-        // Advanced Interaction (Multi-Trigger)
-        const handleAction = (act) => {
-            if (!act || act === 'none' || !entityId) return;
-            if (act === 'toggle') this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
-            else if (act === 'more-info') fireEvent(this, 'hass-more-info', { entityId: entityId });
-            // Add more actions as needed
-        };
-
-        let clickTimer = null;
-        let holdTimer = null;
-        
-        el.addEventListener('mousedown', () => { holdTimer = setTimeout(() => { handleAction(block.holdAction); holdTimer = null; }, 600); });
-        el.addEventListener('mouseup', () => { if(holdTimer) clearTimeout(holdTimer); });
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if(!clickTimer) {
-                clickTimer = setTimeout(() => { handleAction(block.tapAction || block.action); clickTimer = null; }, 250);
-            } else {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                handleAction(block.doubleTapAction);
-            }
-        });
-
-        el._ok_cfg = { ...block, resolvedEntity: entityId };
-        renderArea.appendChild(el);
-    });
-
-    this.renderLinks();
-    this.updateLiveStates();
-  }
-
-  renderLinks() {
-    const svg = this.querySelector('#links-overlay');
-    if (!svg || !this._config.links) return;
-    svg.innerHTML = '';
-    
-    this._config.links.forEach(link => {
-        const sourceEl = this.querySelector('#' + link.source);
-        const targetEl = this.querySelector('#' + link.target);
-        
-        if (sourceEl && targetEl) {
-            const sRect = {
-                x: parseInt(sourceEl.style.left) + sourceEl.offsetWidth / 2,
-                y: parseInt(sourceEl.style.top) + sourceEl.offsetHeight / 2
-            };
-            const tRect = {
-                x: parseInt(targetEl.style.left) + targetEl.offsetWidth / 2,
-                y: parseInt(targetEl.style.top) + targetEl.offsetHeight / 2
-            };
-            
-            // Bezier curve (Curvy link)
-            const cp1x = sRect.x + (tRect.x - sRect.x) / 2;
-            const cp1y = sRect.y;
-            const cp2x = sRect.x + (tRect.x - sRect.x) / 2;
-            const cp2y = tRect.y;
-            
-            const pathData = `M ${sRect.x} ${sRect.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${tRect.x} ${tRect.y}`;
-            
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", pathData);
-            if (link.animated !== false) {
-                path.setAttribute("class", "linking-path");
-            }
-            path.setAttribute("stroke", link.color || "#10b981");
-            path.setAttribute("fill", "none");
-            svg.appendChild(path);
-        }
-    });
   }
 
   updateLiveStates() {
-    if(!this._hass) return;
-    const elements = this.querySelectorAll('.canvas-element');
+    if (!this._hass || !this._config.layout || !this.shadowRoot) return;
+    const container = this.shadowRoot.querySelector('#blocks-container');
     
-    elements.forEach(el => {
-       const b = el._ok_cfg;
-       const entityId = b.resolvedEntity;
-       let val = "N/A", metric = "", stateObj = null;
-       
-       if (entityId && this._hass.states[entityId]) {
-           stateObj = this._hass.states[entityId];
-           val = stateObj.state;
-           metric = stateObj.attributes.unit_of_measurement || '';
-       }
+    this._config.layout.forEach(b => {
+      let el = container.querySelector(`[data-id="${b.id}"]`);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'block-element';
+        el.dataset.id = b.id;
+        el.style.left = b.x + 'px';
+        el.style.top = b.y + 'px';
+        el.style.width = b.w + 'px';
+        el.style.height = b.h + 'px';
+        el.addEventListener('click', () => this.handleAction(b));
+        container.appendChild(el);
+      }
 
-       if (b.type === 'Klima-Bogen') {
-           const temp = stateObj ? (stateObj.attributes.current_temperature || val) : "21";
-           const target = stateObj ? (stateObj.attributes.temperature || val) : "22";
-           const hvacAction = stateObj ? (stateObj.attributes.hvac_action || stateObj.state) : "idle";
-           const accentColor = hvacAction === 'heating' ? '#f59e0b' : (hvacAction === 'cooling' ? '#3b82f6' : '#10b981');
-           
-           el.innerHTML = `
-             <div style="position:relative; width:140px; height:140px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 15px ${accentColor}20;">
-                <svg viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; transform:rotate(-90deg);">
-                    <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="6" />
-                    <circle cx="50" cy="50" r="46" fill="none" stroke="${accentColor}" stroke-width="6" 
-                            stroke-dasharray="290" stroke-dashoffset="${290 - (290 * (Math.min(target, 35) / 35))}" 
-                            style="transition:1s ease; filter:drop-shadow(0 0 12px ${accentColor});" />
-                </svg>
-                <div style="text-align:center; z-index:2;">
-                    <div style="font-size:32px; font-weight:900; color:#fff; line-height:1; letter-spacing:-1px; text-shadow: 0 0 20px rgba(255,255,255,0.3);">${temp}°</div>
-                    <div style="font-size:10px; color:${accentColor}; text-transform:uppercase; margin-top:6px; letter-spacing:2px; font-weight:800; opacity:0.8;">${hvacAction}</div>
-                </div>
-             </div>
-           `;
-       } else if (b.type === 'Hex-Power') {
-           const isOn = stateObj ? stateObj.state === 'on' : true;
-           const color = isOn ? (b.color || '#00f6ff') : 'rgba(255,255,255,0.2)';
-           el.innerHTML = `
-                <div style="width:80px; height:90px; background:${color}; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center; opacity:0.8; box-shadow:0 0 20px ${color}; transition:0.3s;">
-                   <div style="width:90%; height:90%; background:#000; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                       <ha-icon icon="mdi:flash" style="--mdc-icon-size:20px; color:${color};"></ha-icon>
-                       <div style="font-size:14px; font-weight:900; color:#fff;">${isOn ? 'ON' : 'OFF'}</div>
-                   </div>
-                </div>
-           `;
-       } else if (b.type === 'Pulse-Chart') {
-           const color = b.color || '#00f6ff';
-           el.innerHTML = `
-                <div style="width:200px; height:80px; background:rgba(0,0,0,0.4); border-radius:12px; border:1px solid rgba(255,255,255,0.05); padding:10px; display:flex; flex-direction:column;">
-                   <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                       <span style="font-size:9px; color:${color}; font-weight:900; letter-spacing:1px; text-transform:uppercase;">${b.text || 'System Load'}</span>
-                       <span style="font-size:9px; color:#fff; font-weight:900;">${val}${metric}</span>
-                   </div>
-                   <div style="flex:1; display:flex; align-items:flex-end; gap:2px;">
-                       <div style="flex:1; background:${color}; height:40%; opacity:0.3;"></div>
-                       <div style="flex:1; background:${color}; height:60%; opacity:0.5;"></div>
-                       <div style="flex:1; background:${color}; height:30%; opacity:0.3;"></div>
-                       <div style="flex:1; background:${color}; height:80%; opacity:0.8; box-shadow:0 0 10px ${color};"></div>
-                       <div style="flex:1; background:${color}; height:50%; opacity:0.5;"></div>
-                   </div>
-                </div>
-           `;
-       } else if (b.type === 'Glitch-Text') {
-           el.innerHTML = `<span style="text-shadow: 2px 0 #ef4444, -2px 0 #3b82f6; font-weight:900; letter-spacing:2px; font-size:${b.fontSize || 18}px; color:#fff;">${b.text || val}</span>`;
-       } else if (b.type === 'Modus-Schalter') {
-           const currentMode = stateObj ? stateObj.state : "auto";
-           const modes = stateObj ? (stateObj.attributes.hvac_modes || ['heat', 'cool', 'auto']) : ['heat', 'cool', 'auto'];
-           let modeHtml = modes.map(m => `
-                <div style="padding:8px 16px; border-radius:10px; background:${currentMode === m ? '#10b981' : 'transparent'}; box-shadow: ${currentMode === m ? '0 0 20px rgba(16,185,129,0.4)' : 'none'}; color:${currentMode === m ? '#fff' : 'rgba(255,255,255,0.4)'}; font-size:11px; text-transform:uppercase; font-weight:900; transition:0.4s; cursor:pointer; border:1px solid ${currentMode === m ? '#10b981' : 'transparent'};">${m}</div>
-           `).join('');
-           el.innerHTML = `<div style="display:flex; gap:8px; background:rgba(0,0,0,0.4); padding:8px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">${modeHtml}</div>`;
-       } else if (b.type === 'Energie-Ring') {
-           const flowVal = parseFloat(val) || 0;
-           metric = stateObj ? (stateObj.attributes.unit_of_measurement || "W") : "W";
-           const flowColor = flowVal > 0 ? '#06b6d4' : '#ec4899'; // Cyan vs Pink for energy
-           el.innerHTML = `
-             <div style="position:relative; width:100px; height:100px; display:flex; align-items:center; justify-content:center;">
-                <div style="position:absolute; width:100%; height:100%; border-radius:50%; border:1px solid ${flowColor}; opacity:0.1; box-shadow:inset 0 0 20px ${flowColor}40;"></div>
-                <svg viewBox="0 0 100 100" style="position:absolute; width:120%; height:120%; animation: rotate 12s linear infinite;">
-                    <circle cx="50" cy="50" r="48" fill="none" stroke="${flowColor}" stroke-width="1.5" stroke-dasharray="2, 15" opacity="0.6" stroke-linecap="round" />
-                </svg>
-                <div style="text-align:center; z-index:2;">
-                    <div style="font-size:22px; font-weight:900; color:#fff; line-height:1; text-shadow: 0 0 15px ${flowColor}60;">${val}</div>
-                    <div style="font-size:10px; color:${flowColor}; font-weight:900; text-transform:uppercase; margin-top:4px; letter-spacing:1px;">${metric}</div>
-                </div>
-             </div>
-             <style>@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>
-           `;
-       } else if (b.type === 'Weather-Card') {
-           const condition = stateObj ? stateObj.state : "cloudy";
-           const temp = stateObj ? stateObj.attributes.temperature : "18";
-           const icon = condition === 'sunny' ? 'mdi:weather-sunny' : (condition === 'rainy' ? 'mdi:weather-pouring' : 'mdi:weather-cloudy');
-           el.innerHTML = `
-             <div style="padding:15px; background:rgba(255,255,255,0.03); border-radius:20px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:15px; backdrop-filter:blur(10px); box-shadow:0 10px 30px rgba(0,0,0,0.3);">
-                <ha-icon icon="${icon}" style="--mdc-icon-size:40px; color:#fbbf24; filter:drop-shadow(0 0 10px #fbbf2460);"></ha-icon>
-                <div>
-                    <div style="font-size:24px; font-weight:900; color:#fff;">${temp}°</div>
-                    <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">${condition}</div>
-                </div>
-             </div>
-           `;
-       } else if (b.type === 'Media-Player') {
-           const title = stateObj ? stateObj.attributes.media_title || "Keine Wiedergabe" : "Cyberpunk 2077 OST";
-           const artist = stateObj ? stateObj.attributes.media_artist || "Kein Künstler" : "Hyper";
-           const isPlaying = stateObj ? stateObj.state === 'playing' : true;
-           el.innerHTML = `
-             <div style="width:250px; padding:15px; background:rgba(0,0,0,0.4); border-radius:24px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:12px; backdrop-filter:blur(15px); box-shadow:0 15px 40px rgba(0,0,0,0.6);">
-                <div style="display:flex; gap:12px; align-items:center;">
-                    <div style="width:50px; height:50px; background:linear-gradient(45deg, #7c3aed, #db2777); border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 5px 15px rgba(0,0,0,0.4);">
-                        <ha-icon icon="mdi:music" style="color:#fff;"></ha-icon>
-                    </div>
-                    <div style="overflow:hidden; flex:1;">
-                        <div style="font-size:13px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</div>
-                        <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">${artist}</div>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:center; gap:20px; align-items:center;">
-                    <ha-icon icon="mdi:skip-previous" style="color:rgba(255,255,255,0.6); cursor:pointer;"></ha-icon>
-                    <div style="width:40px; height:40px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; box-shadow:0 0 20px rgba(255,255,255,0.4); cursor:pointer;">
-                        <ha-icon icon="${isPlaying ? 'mdi:pause' : 'mdi:play'}"></ha-icon>
-                    </div>
-                    <ha-icon icon="mdi:skip-next" style="color:rgba(255,255,255,0.6); cursor:pointer;"></ha-icon>
-                </div>
-             </div>
-           `;
-       } else if (b.type === 'Neon-Switch') {
-           const isOn = stateObj ? stateObj.state === 'on' : false;
-           const color = b.color || '#10b981';
-           el.innerHTML = `
-             <div style="width:120px; padding:12px; background:rgba(0,0,0,0.5); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:16px; display:flex; flex-direction:column; gap:8px; box-shadow: ${isOn ? `0 0 20px ${color}30` : 'none'}; transition:0.4s;">
-               <div style="display:flex; justify-content:space-between; align-items:center;">
-                 <ha-icon icon="${isOn ? 'mdi:lightbulb-on' : 'mdi:lightbulb-off'}" style="color:${isOn ? color : 'rgba(255,255,255,0.2)'};"></ha-icon>
-                 <div style="width:34px; height:20px; background:${isOn ? color : '#333'}; border-radius:10px; position:relative; overflow:hidden;">
-                   <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:3px; left:${isOn ? '17px' : '3px'}; transition:0.3s; box-shadow:0 0 10px rgba(255,255,255,0.5);"></div>
-                 </div>
-               </div>
-               <div style="font-size:10px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:1px;">${b.text || (entityId ? entityId.split('.')[1] : 'Schalter')}</div>
-             </div>
-           `;
-       } else if (b.type === 'Status-Pill') {
-           const color = b.color || '#10b981';
-           el.innerHTML = `
-             <div style="padding:6px 14px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:20px; display:flex; align-items:center; gap:8px; backdrop-filter:blur(10px);">
-               <div style="width:8px; height:8px; background:${color}; border-radius:50%; box-shadow:0 0 10px ${color}; animation: breathe 2s ease-in-out infinite;"></div>
-               <div style="font-size:10px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:1px;">${b.text || val}</div>
-             </div>
-           `;
-       } else if (b.type === 'Glass-Action') {
-           el.innerHTML = `
-             <div style="width:60px; height:60px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:16px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transition:0.3s;"
-                  onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.transform='scale(1.05)'"
-                  onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.transform='scale(1)'">
-               <ha-icon icon="mdi:flash" style="color:#fff;"></ha-icon>
-             </div>
-           `;
-       } else if (b.type === 'Slider-Dimmer') {
-           const brightness = stateObj ? Math.round((stateObj.attributes.brightness || 0) / 255 * 100) : 0;
-           const color = b.color || '#10b981';
-           el.innerHTML = `
-             <div style="width:200px; padding:15px; background:rgba(0,0,0,0.4); border-radius:20px; border:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:10px;" onclick="event.stopPropagation()">
-               <div style="display:flex; justify-content:space-between; align-items:center;">
-                 <span style="font-size:10px; font-weight:900; color:rgba(255,255,255,0.4); text-transform:uppercase;">${b.text || 'Helligkeit'}</span>
-                 <span style="font-size:10px; font-weight:900; color:${color};">${brightness}%</span>
-               </div>
-               <input type="range" class="kairo-slider" min="0" max="255" value="${stateObj ? (stateObj.attributes.brightness || 0) : 0}" 
-                      style="accent-color:${color};"
-                      onchange="this.dispatchEvent(new CustomEvent('ok-dim', {detail: {v: this.value}, bubbles: true}))">
-             </div>
-           `;
-           const input = el.querySelector('input');
-           input.addEventListener('ok-dim', (e) => {
-               this._hass.callService('homeassistant', 'turn_on', { entity_id: entityId, brightness: e.detail.v });
-           });
-       } else {
-           let displayContent = b.text || b.type;
-           if (entityId && stateObj) displayContent = `${val}${metric}`;
-           el.innerHTML = `<span style="text-shadow: 0 0 10px rgba(255,255,255,0.2);">${displayContent}</span>`;
-       }
+      const stateObj = b.entity ? this._hass.states[b.entity] : null;
+      const bWithState = { ...b, state: stateObj ? stateObj.state : 'off', attributes: stateObj ? stateObj.attributes : {} };
+      
+      // Select render function
+      let html = '';
+      switch(b.type) {
+        case 'Light': html = BlockRegistry.renderLight(bWithState); break;
+        case 'Fan': html = BlockRegistry.renderFan(bWithState); break;
+        case 'Sensor': html = BlockRegistry.renderSensor(bWithState); break;
+        case 'Klima-Bogen': html = BlockRegistry.renderClimateArc(bWithState); break;
+        case 'Neon-Switch': html = BlockRegistry.renderNeonSwitch(bWithState); break;
+        case 'Status-Pill': html = BlockRegistry.renderStatusPill(bWithState); break;
+        case 'Slider-Dimmer': html = BlockRegistry.renderSliderDimmer(bWithState); break;
+        case 'Pulse-Chart': html = BlockRegistry.renderPulseChart(bWithState); break;
+        default: html = `<div style="color:#fff; font-size:10px;">${b.text || b.type}</div>`;
+      }
+      
+      if (el.innerHTML !== html) el.innerHTML = html;
     });
   }
 
-  getCardSize() {
-    return 4;
+  handleAction(b) {
+    if (!b.entity) return;
+    const action = b.tap_action || 'toggle';
+    const [domain, service] = action === 'toggle' ? [b.entity.split('.')[0], 'toggle'] : ['browser_mod', 'more_info'];
+    
+    if (action === 'toggle') {
+        this._hass.callService(domain, service, { entity_id: b.entity });
+    } else if (action === 'more-info') {
+        const event = new CustomEvent("hass-more-info", {
+            detail: { entityId: b.entity },
+            bubbles: true,
+            composed: true,
+        });
+        this.dispatchEvent(event);
+    }
   }
+
+  getCardSize() { return 6; }
 }
 
 if (!customElements.get("openkairo-custom-card")) {
   customElements.define("openkairo-custom-card", OpenKairoCustomCard);
 }
 
+// Editor Placeholder (Simplified)
 class OpenKairoCustomCardEditor extends HTMLElement {
-  setConfig(config) {
-    this._config = config;
-    this.render();
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-  }
-
-  render() {
-    if (!this._config) return;
-    this.innerHTML = `
-      <style>
-        .editor-container { font-family: 'Rajdhani', sans-serif; color: #fff; display: flex; flex-direction: column; gap: 15px; padding: 10px; background: #000; border-radius: 12px; }
-        .editor-row { display: flex; flex-direction: column; gap: 5px; }
-        .editor-label { font-size: 11px; font-weight: 800; color: #00f6ff; text-transform: uppercase; letter-spacing: 1px; }
-        .editor-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px; border-radius: 6px; font-family: 'Rajdhani'; font-size: 13px; outline: none; }
-        .editor-input:focus { border-color: #00f6ff; }
-        .architect-btn { background: #00f6ff; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; transition: 0.3s; }
-        .architect-btn:hover { box-shadow: 0 0 20px rgba(0, 246, 255, 0.4); transform: translateY(-2px); }
-      </style>
-      <div class="editor-container">
-        <div class="editor-row">
-            <span class="editor-label">Karten-Name</span>
-            <input class="editor-input" id="name" type="text" value="${this._config.name || ''}">
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="editor-row">
-                <span class="editor-label">Glow-Intensität (${this._config.glow || 0})</span>
-                <input class="editor-input" id="glow" type="range" min="0" max="100" value="${this._config.glow || 0}">
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Blur-Effekt (${this._config.blur || 0})</span>
-                <input class="editor-input" id="blur" type="range" min="0" max="50" value="${this._config.blur || 0}">
-            </div>
-        </div>
-        <div class="editor-row">
-            <span class="editor-label">Akzent-Farbe</span>
-            <input class="editor-input" id="color" type="color" value="${this._config.color || '#00f6ff'}" style="height:40px; padding:2px;">
-        </div>
-        
-        <div style="border-top:1px solid rgba(255,255,255,0.1); margin:10px 0;"></div>
-        
-        <div class="editor-row">
-            <span class="editor-label" style="opacity:0.6;">Visual Architect (Pro Modus)</span>
-            <button class="architect-btn" id="open-builder">
-                <ha-icon icon="mdi:view-dashboard-edit"></ha-icon> ARCHITECT ÖFFNEN
-            </button>
-            <span style="font-size:9px; color:rgba(255,255,255,0.3); margin-top:5px; text-align:center;">Nutze den Architect für Drag & Drop Layouts.</span>
-        </div>
-      </div>
-    `;
-
-    this.querySelectorAll('.editor-input').forEach(input => {
-        input.addEventListener('change', (ev) => this._valueChanged(ev));
-        if(input.type === 'range') input.addEventListener('input', (ev) => this._valueChanged(ev));
-    });
-
-    this.querySelector('#open-builder').addEventListener('click', () => {
-        window.history.pushState(null, null, '/openkairo');
-        window.dispatchEvent(new CustomEvent('location-changed'));
-    });
-  }
-
-  _valueChanged(ev) {
-    if (!this._config || !this._hass) return;
-    const target = ev.target;
-    const value = target.type === 'range' ? parseInt(target.value) : target.value;
-    
-    const newConfig = { ...this._config, [target.id]: value };
-    
-    const event = new CustomEvent("config-changed", {
-      detail: { config: newConfig },
-      bubbles: true,
-      composed: true,
-    });
-    this.dispatchEvent(event);
-  }
+  setConfig(config) { this._config = config; this.render(); }
+  render() { this.innerHTML = `<div style="padding:20px; color:#fff; background:#111; border-radius:12px;">Nutze den Architect Builder in der Seitenleiste für Design-Änderungen.</div>`; }
 }
-
 if (!customElements.get("openkairo-custom-card-editor")) {
   customElements.define("openkairo-custom-card-editor", OpenKairoCustomCardEditor);
 }

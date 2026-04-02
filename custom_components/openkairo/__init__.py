@@ -46,16 +46,30 @@ async def _setup_internal(hass: HomeAssistant):
             frontend_url_path=PANEL_URL,
             config={
                 "_panel_custom": {
-                    "name": f"{DOMAIN}-panel",
+                    "name": "openkairo-panel",
                     "embed_iframe": False,
                     "trust_external": False,
-                    "js_url": "/openkairo_os/openkairo_panel_v10.js?v=10.0.1"
+                    "js_url": f"/openkairo_os/openkairo_panel_v10.js?v={int(time.time())}"
                 }
             },
             require_admin=True
         )
-    except ValueError:
-        pass # Already registered
+
+        # Register Dashboard Card as Lovelace Resource
+        if "lovelace" in hass.data:
+            lovelace = hass.data["lovelace"]
+            if hasattr(lovelace, "resources"):
+                # Handle storage-based lovelace
+                resources = lovelace.resources
+                if resources:
+                    url = "/openkairo_os/openkairo_custom_card.js"
+                    exists = any(res.get("url") == url for res in resources.async_items())
+                    if not exists:
+                        _LOGGER.info(f"Registering OpenKAIRO Dashboard Card resource: {url}")
+                        await resources.async_create_item({"res_type": "module", "url": url})
+    except Exception as e:
+        _LOGGER.warning(f"Failed to register OpenKAIRO resources: {e}")
+        pass # Panel or resource might already exist or system not ready
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the OpenKAIRO OS component via YAML configuration."""

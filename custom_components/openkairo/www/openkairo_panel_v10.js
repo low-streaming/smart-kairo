@@ -550,9 +550,9 @@ class OpenKairoBuilder extends HTMLElement {
                 .resizer.se { bottom: -5px; right: -5px; cursor: se-resize; }
                 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); display: none; justify-content: center; align-items: center; z-index: 1000; }
                 .modal-content { background: #111; padding: 40px; border-radius: 32px; border: 1px solid var(--border-color); width: 600px; color: #fff; }
-                .modal-header { font-size: 20px; font-weight: 900; letter-spacing: 2px; margin-bottom: 24px; }
-                .modal-code { background: #000; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; font-family: monospace; }
-                .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+                .modal-header { font-size: 20px; font-weight: 900; letter-spacing: 2px; margin-bottom: 24px; user-select: none; }
+                .modal-code { background: #000; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; font-family: monospace; user-select: text; }
+                .modal-actions { display: flex; justify-content: flex-end; gap: 12px; user-select: none; }
                 .block-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: grab; transition: 0.3s; }
                 .block-item:hover { background: rgba(255,255,255,0.06); border-color: var(--kairo-cyan); transform: scale(1.05); }
                 @keyframes fan-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -595,8 +595,16 @@ class OpenKairoBuilder extends HTMLElement {
         root.querySelector('#btn-copy-code').addEventListener('click', () => {
             const code = root.querySelector('#export-code-box').innerText;
             navigator.clipboard.writeText(code);
-            root.querySelector('#btn-copy-code').innerText = 'KOPIERT!';
-            setTimeout(() => root.querySelector('#btn-copy-code').innerText = 'KOPIEREN', 2000);
+            const btn = root.querySelector('#btn-copy-code');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<ha-icon icon="mdi:check-circle-outline"></ha-icon> KOPIERT!';
+            btn.style.background = 'var(--kairo-magenta)';
+            btn.style.boxShadow = '0 0 30px var(--kairo-magenta)';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+                btn.style.boxShadow = '';
+            }, 2000);
         });
         ['desktop', 'tablet', 'mobile'].forEach(d => { root.querySelector('#dev-' + d).addEventListener('click', () => this._setDevice(d)); });
         const target = root.querySelector('#drop-target');
@@ -810,52 +818,76 @@ class OpenKairoBuilder extends HTMLElement {
         if (!b) { 
             right.innerHTML = `
                 <div class="prop-group">
-                    <div class="prop-header">Globale Einstellungen</div>
-                    <div class="prop-row"><span>Leucht-Intensität</span><input type="range" id="g-glow" value="${this.state.style.glow}" style="width:100%"></div>
-                    <div class="prop-row"><span>Globale Farbe</span><input type="color" id="g-color" value="${this.state.style.color}" style="width:100%; background:none; border:none; height:30px;"></div>
+                    <div class="prop-header">Globale Dashboard Einstellungen</div>
+                    <div class="prop-row"><span>Hintergrund-Leuchten</span><input type="range" id="g-glow" value="${this.state.style.glow}" style="width:100%"></div>
+                    <div class="prop-row"><span>Hintergrund-Blur</span><input type="range" id="g-blur" value="${this.state.style.blur || 25}" style="width:100%"></div>
+                    <div class="prop-row"><span>Akzentfarbe</span><input type="color" id="g-color" value="${this.state.style.color}" style="width:100%; background:none; border:none; height:30px;"></div>
                 </div>`; 
             this.shadowRoot.querySelector('#g-glow').addEventListener('input', e => { this.state.style.glow = e.target.value; this._renderAll(); }); 
+            this.shadowRoot.querySelector('#g-blur').addEventListener('input', e => { this.state.style.blur = e.target.value; this._renderAll(); });
             this.shadowRoot.querySelector('#g-color').addEventListener('input', e => { this.state.style.color = e.target.value; this._renderAll(); });
             return; 
         }
+        
         const entities = this._hass ? Object.keys(this._hass.states).sort() : [];
-        right.innerHTML = `
-            <div class="prop-group">
-                <div class="prop-header">Block: ${b.type}</div>
-                <div class="prop-row"><span>Bezeichnung</span><input class="prop-input" type="text" id="p-text" value="${b.text || ''}"></div>
-                <div class="prop-row"><span>Entität (ID)</span><input class="prop-input" type="text" id="p-entity" list="hass-entities" value="${b.entity || ''}"></div>
-                <div class="prop-row"><span>Icon</span><input class="prop-input" type="text" id="p-icon" value="${b.icon || ''}" placeholder="mdi:lightbulb"></div>
-            </div>
-            <datalist id="hass-entities">
-                ${entities.map(id => `<option value="${id}">`).join('')}
-            </datalist>
-            <div class="prop-group">
-                <div class="prop-header">Design & Effekte</div>
-                <div class="prop-row"><span>Akzentfarbe</span><input type="color" id="p-color" value="${b.color || '#ffffff'}" style="width:100%; background:none; border:none; height:30px;"></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="prop-row"><span>Breite</span><input class="prop-input" type="number" id="p-w" value="${b.w}"></div>
-                    <div class="prop-row"><span>Höhe</span><input class="prop-input" type="number" id="p-h" value="${b.h}"></div>
+        let content = '';
+
+        if (this.activeRightTab === 'PROPS') {
+            content = `
+                <div class="prop-group">
+                    <div class="prop-header">Block-Eigenschaften (${b.type})</div>
+                    <div class="prop-row"><span>Bezeichnung</span><input class="prop-input" type="text" id="p-text" value="${b.text || ''}"></div>
+                    <div class="prop-row"><span>Entität (ID)</span><input class="prop-input" type="text" id="p-entity" list="hass-entities" value="${b.entity || ''}"></div>
+                    <div class="prop-row"><span>Icon</span><input class="prop-input" type="text" id="p-icon" value="${b.icon || ''}" placeholder="mdi:lightbulb"></div>
+                    <div class="prop-row"><span>Tap Aktion</span>
+                        <select class="prop-input" id="p-tap" style="background:#000; color:#fff;">
+                            <option value="toggle" ${b.tap_action === 'toggle' ? 'selected' : ''}>Umschalten</option>
+                            <option value="more-info" ${b.tap_action === 'more-info' ? 'selected' : ''}>Mehr Info</option>
+                            <option value="none" ${b.tap_action === 'none' ? 'selected' : ''}>Keine</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="prop-row"><span>Animation</span>
-                    <select class="prop-input" id="p-anim" style="background:#000; color:#fff;">
-                        <option value="none" ${b.animation === 'none' ? 'selected' : ''}>Keine</option>
-                        <option value="pulse" ${b.animation === 'pulse' ? 'selected' : ''}>Pulsieren</option>
-                        <option value="breathe" ${b.animation === 'breathe' ? 'selected' : ''}>Atmen</option>
-                        <option value="float" ${b.animation === 'float' ? 'selected' : ''}>Schweben</option>
-                    </select>
-                </div>
-            </div>
-            <div style="padding:24px;"><button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff; width:100%;">ENTFERNEN</button></div>`;
+                <datalist id="hass-entities">
+                    ${entities.map(id => `<option value="${id}">`).join('')}
+                </datalist>`;
+        } else {
+            content = `
+                <div class="prop-group">
+                    <div class="prop-header">Block-Design & Effekte</div>
+                    <div class="prop-row"><span>Blockfarbe</span><input type="color" id="p-color" value="${b.color || '#ffffff'}" style="width:100%; background:none; border:none; height:30px;"></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div class="prop-row"><span>Breite</span><input class="prop-input" type="number" id="p-w" value="${b.w}"></div>
+                        <div class="prop-row"><span>Höhe</span><input class="prop-input" type="number" id="p-h" value="${b.h}"></div>
+                    </div>
+                    <div class="prop-row"><span>Animation</span>
+                        <select class="prop-input" id="p-anim" style="background:#000; color:#fff;">
+                            <option value="none" ${b.animation === 'none' ? 'selected' : ''}>Keine</option>
+                            <option value="pulse" ${b.animation === 'pulse' ? 'selected' : ''}>Pulsieren</option>
+                            <option value="float" ${b.animation === 'float' ? 'selected' : ''}>Schweben</option>
+                        </select>
+                    </div>
+                    <div class="prop-row"><span>Ebenen-Tiefe</span><input type="range" id="p-opacity" min="0" max="1" step="0.1" value="${b.opacity || 1}" style="width:100%"></div>
+                </div>`;
+        }
+        
+        right.innerHTML = content + `<div style="padding:24px;"><button class="btn-primary" id="btn-del" style="background:#ef4444; color:#fff; width:100%;">ENTFERNEN</button></div>`;
         
         const update = (key, val) => { b[key] = val; this._renderCanvas(); };
-        this.shadowRoot.querySelector('#p-text').addEventListener('input', e => update('text', e.target.value));
-        this.shadowRoot.querySelector('#p-entity').addEventListener('input', e => b.entity = e.target.value);
-        this.shadowRoot.querySelector('#p-icon').addEventListener('input', e => update('icon', e.target.value));
-        this.shadowRoot.querySelector('#p-color').addEventListener('input', e => update('color', e.target.value));
-        this.shadowRoot.querySelector('#p-w').addEventListener('input', e => update('w', parseInt(e.target.value)));
-        this.shadowRoot.querySelector('#p-h').addEventListener('input', e => update('h', parseInt(e.target.value)));
-        this.shadowRoot.querySelector('#p-anim').addEventListener('change', e => { b.animation = e.target.value; this._renderCanvas(); });
-        this.shadowRoot.querySelector('#btn-del').addEventListener('click', () => this._deleteSelected());
+        const el = (id) => this.shadowRoot.querySelector(id);
+        
+        if (this.activeRightTab === 'PROPS') {
+            el('#p-text').addEventListener('input', e => update('text', e.target.value));
+            el('#p-entity').addEventListener('input', e => update('entity', e.target.value));
+            el('#p-icon').addEventListener('input', e => update('icon', e.target.value));
+            el('#p-tap').addEventListener('change', e => { b.tap_action = e.target.value; });
+        } else {
+            el('#p-color').addEventListener('input', e => update('color', e.target.value));
+            el('#p-w').addEventListener('input', e => update('w', parseInt(e.target.value)));
+            el('#p-h').addEventListener('input', e => update('h', parseInt(e.target.value)));
+            el('#p-anim').addEventListener('change', e => { b.animation = e.target.value; this._renderCanvas(); });
+            el('#p-opacity').addEventListener('input', e => update('opacity', parseFloat(e.target.value)));
+        }
+        el('#btn-del').addEventListener('click', () => { this._saveHistory(); this.state.blocks = this.state.blocks.filter(x => x.id !== b.id); this.selectedBlockId = null; this._renderAll(); });
     }
     _deleteSelected() { this._saveHistory(); this.state.blocks = this.state.blocks.filter(x => x.id !== this.selectedBlockId); this.selectBlock(null); }
     _saveHistory() { this.history.push(this.state); }
