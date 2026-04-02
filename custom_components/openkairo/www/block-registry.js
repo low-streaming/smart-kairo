@@ -55,15 +55,19 @@ export const BlockRegistry = {
 
     renderPulseChart: (b) => {
         const color = b.color || '#00f6ff';
+        const bars = [30, 60, 40, 80, 50, 90, 40, 70, 30, 95, 60, 80];
         return `
-            <div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border-radius:18px; border:1px solid rgba(255,255,255,0.06); padding:10px; display:flex; flex-direction:column; box-shadow:inset 0 0 20px rgba(0,0,0,0.4);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <span style="font-size:9px; color:${color}; font-weight:900; text-transform:uppercase; letter-spacing:1px;">${b.text || 'System'}</span>
-                    <span style="font-size:9px; color:#fff; font-weight:900; background:${color}30; padding:2px 6px; border-radius:10px; border:1px solid ${color}40;">85%</span>
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(15px); border-radius:20px; border:1px solid rgba(255,255,255,0.08); padding:12px; display:flex; flex-direction:column; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); overflow:hidden; position:relative;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; position:relative; z-index:2;">
+                    <span style="font-size:10px; color:${color}; font-weight:900; text-transform:uppercase; letter-spacing:2px;">${b.text || 'System'}</span>
+                    <span style="font-size:9px; color:#fff; font-weight:900; background:${color}30; padding:2px 8px; border-radius:12px; border:1px solid ${color}40;">${b.state || '85%'}</span>
                 </div>
-                <div style="flex:1; display:flex; align-items:flex-end; gap:3px; padding-bottom:4px;">
-                    ${Array(12).fill(0).map((_,i) => `<div style="flex:1; background:linear-gradient(to top, ${color}20, ${color}); height:${[30,40,20,60,45,70,30,85,40,95,65,80][i]}%; border-radius:10px; opacity:${i === 9 ? 1 : 0.4}; box-shadow:${i === 9 ? '0 0 15px ' + color : 'none'}; transition:0.3s;"></div>`).join('')}
+                <div style="flex:1; display:flex; align-items:flex-end; gap:4px; padding-bottom:2px; position:relative; z-index:2;">
+                    ${bars.map((h, i) => `
+                        <div style="flex:1; background:linear-gradient(to top, ${color}30, ${color}); height:${h}%; border-radius:10px; opacity:0.6; box-shadow:0 0 10px ${color}40; animation: anim-equalizer ${1.5 + Math.random()}s infinite ease-in-out; animation-delay: ${i * 0.1}s; transition:0.4s;"></div>
+                    `).join('')}
                 </div>
+                <div style="position:absolute; inset:0; background:linear-gradient(to top, ${color}05, transparent); pointer-events:none;"></div>
             </div>`;
     },
 
@@ -71,25 +75,25 @@ export const BlockRegistry = {
         const color = b.color || '#a1ff10';
         const isOn = b.state === 'on';
         return `
-          <div style="width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:20px; display:flex; flex-direction:column; justify-content:space-between; padding:12px; box-shadow: ${isOn ? '0 0 25px ' + color + '30, inset 0 0 10px ' + color + '15' : '0 10px 30px rgba(0,0,0,0.3)'}; transition:0.4s ease;">
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(15px); border:1.5px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:24px; display:flex; flex-direction:column; justify-content:space-between; padding:15px; box-shadow: ${isOn ? '0 0 35px ' + color + '30, inset 0 0 15px ' + color + '20' : '0 10px 40px rgba(0,0,0,0.5)'}; transition:0.5s cubic-bezier(0.4, 0, 0.2, 1);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <ha-icon icon="mdi:flash-circle" style="--mdc-icon-size:20px; color:${isOn ? color : 'rgba(255,255,255,0.2)'}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'}; transition:0.4s;"></ha-icon>
-              <div style="width:34px; height:20px; background:${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:12px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
-                <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:2px; left:${isOn ? '18px' : '2px'}; box-shadow:0 0 5px rgba(0,0,0,0.5); transition:0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);"></div>
+              <ha-icon icon="mdi:flash-circle" style="--mdc-icon-size:24px; color:${isOn ? color : 'rgba(255,255,255,0.3)'}; filter:${isOn ? 'drop-shadow(0 0 12px ' + color + ')' : 'none'}; transition:0.5s;"></ha-icon>
+              <div style="width:40px; height:22px; background:${isOn ? color : 'rgba(255,255,255,0.15)'}; border-radius:12px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                <div style="position:absolute; width:16px; height:16px; background:#fff; border-radius:50%; top:3px; left:${isOn ? '21px' : '3px'}; box-shadow:0 0 10px rgba(0,0,0,0.6); transition:0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);"></div>
               </div>
             </div>
-            <div style="font-size:10px; font-weight:900; color:${isOn ? '#fff' : 'rgba(255,255,255,0.4)'}; text-transform:uppercase; letter-spacing:1px;">${b.text || 'Toggle'}</div>
+            <div style="font-size:11px; font-weight:900; color:${isOn ? '#fff' : 'rgba(255,255,255,0.5)'}; text-transform:uppercase; letter-spacing:2px; font-family:'Outfit';">${b.text || 'Toggle'}</div>
           </div>`;
     },
 
     renderStatusPill: (b) => {
         const color = b.color || '#10b981';
         return `
-          <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.08); border-radius:25px; display:flex; align-items:center; justify-content:center; gap:8px; padding:0 15px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
-            <div style="width:8px; height:8px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 12px ${color};">
-                <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.4; animation:anim-pulse 2s infinite;"></div>
+          <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.1); border-radius:30px; display:flex; align-items:center; gap:12px; padding:0 18px; box-shadow:0 10px 40px rgba(0,0,0,0.4);">
+            <div style="width:10px; height:10px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 15px ${color};">
+                <div style="position:absolute; inset:-5px; background:${color}; border-radius:50%; opacity:0.5; animation:anim-pulse 2.5s infinite;"></div>
             </div>
-            <div style="font-size:10px; font-weight:900; color:#fff; letter-spacing:2px;">ONLINE</div>
+            <div style="font-size:11px; font-weight:900; color:#fff; letter-spacing:2px; font-family:'Outfit'; text-transform:uppercase;">${b.text || 'STATUS'}</div>
           </div>`;
     },
 
