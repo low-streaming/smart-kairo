@@ -552,7 +552,7 @@ class OpenKairoBuilder extends HTMLElement {
                 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); display: none; justify-content: center; align-items: center; z-index: 1000; }
                 .modal-content { background: #111; padding: 40px; border-radius: 32px; border: 1px solid var(--border-color); width: 600px; color: #fff; }
                 .modal-header { font-size: 20px; font-weight: 900; letter-spacing: 2px; margin-bottom: 24px; user-select: none; }
-                .modal-code { background: #000; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; font-family: monospace; user-select: text; }
+                                 .modal-code { background: #000; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.5; white-space: pre; overflow-x: auto; user-select: all; color: #00f6ff; }
                 .modal-actions { display: flex; justify-content: flex-end; gap: 12px; user-select: none; }
                 .block-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: grab; transition: 0.3s; }
                 .block-item:hover { background: rgba(255,255,255,0.06); border-color: var(--kairo-cyan); transform: scale(1.05); }
@@ -594,8 +594,8 @@ class OpenKairoBuilder extends HTMLElement {
             }
         });
         root.querySelector('#btn-copy-code').addEventListener('click', () => {
-            const code = root.querySelector('#export-code-box').innerText;
-            navigator.clipboard.writeText(code);
+            const code = this._lastExportedYAML || root.querySelector('#export-code-box').innerText;
+            navigator.clipboard.writeText(code.trim());
             const btn = root.querySelector('#btn-copy-code');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<ha-icon icon="mdi:check-circle-outline"></ha-icon> KOPIERT!';
@@ -895,7 +895,12 @@ class OpenKairoBuilder extends HTMLElement {
     _saveHistory() { this.history.push(this.state); }
     undo() { const s = this.history.undo(this.state); if (s) { this.state = s; this._renderAll(); } }
     redo() { const s = this.history.redo(this.state); if (s) { this.state = s; this._renderAll(); } }
-    showExport() { const root = this.shadowRoot; root.querySelector('#export-code-box').innerText = Templates.exportToYAML(this.state); root.querySelector('#export-modal').style.display = 'flex'; }
+    showExport() { 
+        const root = this.shadowRoot; 
+        this._lastExportedYAML = Templates.exportToYAML(this.state);
+        root.querySelector('#export-code-box').innerText = this._lastExportedYAML; 
+        root.querySelector('#export-modal').style.display = 'flex'; 
+    }
     _handleImport() {
         const json = this.shadowRoot.querySelector('#import-code-box').value, data = Templates.importFromJSON(json);
         if (data) { this._saveHistory(); this.state = data; this._renderAll(); this.shadowRoot.querySelector('#import-modal').style.display = 'none'; }

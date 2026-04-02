@@ -10,34 +10,33 @@ export const Templates = {
      */
     exportToYAML: (state) => {
         let yaml = `type: 'custom:openkairo-custom-card'\n`;
-        yaml += `name: '${state.name}'\n`;
-        yaml += `glow: ${state.style.glow}\n`;
-        yaml += `blur: ${state.style.blur}\n`;
-        yaml += `color: '${state.style.color}'\n`;
-        yaml += `opacity: ${state.style.opacity}\n`;
+        yaml += `name: '${state.name || 'OpenKairo'}'\n`;
+        yaml += `glow: ${state.style.glow || 40}\n`;
+        yaml += `blur: ${state.style.blur || 25}\n`;
+        yaml += `color: '${state.style.color || '#00f6ff'}'\n`;
+        yaml += `opacity: ${state.style.opacity || 0.3}\n`;
         yaml += `layout:\n`;
         
-        state.blocks.forEach(b => {
-            yaml += `  - id: ${b.id}\n`;
-            yaml += `    type: ${b.type}\n`;
-            yaml += `    x: ${b.x}\n`;
-            yaml += `    y: ${b.y}\n`;
-            yaml += `    w: ${b.w || 100}\n`;
-            yaml += `    h: ${b.h || 40}\n`;
-            yaml += `    text: '${b.text || ''}'\n`;
-            if (b.entity) yaml += `    entity: ${b.entity}\n`;
-            yaml += `    color: '${b.color || '#fff'}'\n`;
-            if (b.glow) yaml += `    glow: ${b.glow}\n`;
-            if (b.animation && b.animation !== 'none') {
-                yaml += `    animation: ${b.animation}\n`;
-                yaml += `    animDuration: ${b.animDuration || 2}\n`;
-            }
-            if (b.tap_action) yaml += `    tap_action: ${b.tap_action}\n`;
-            if (b.double_tap_action) yaml += `    double_tap_action: ${b.double_tap_action}\n`;
-            if (b.hold_action) yaml += `    hold_action: ${b.hold_action}\n`;
-        });
+        if (state.blocks && Array.isArray(state.blocks)) {
+            state.blocks.forEach(b => {
+                yaml += `  - id: '${b.id}'\n`;
+                yaml += `    type: '${b.type}'\n`;
+                yaml += `    x: ${b.x}\n`;
+                yaml += `    y: ${b.y}\n`;
+                yaml += `    w: ${b.w || 100}\n`;
+                yaml += `    h: ${b.h || 40}\n`;
+                if (b.text) yaml += `    text: '${b.text}'\n`;
+                if (b.entity) yaml += `    entity: '${b.entity}'\n`;
+                if (b.color) yaml += `    color: '${b.color}'\n`;
+                if (b.glow) yaml += `    glow: ${b.glow}\n`;
+                if (b.animation && b.animation !== 'none') {
+                    yaml += `    animation: '${b.animation}'\n`;
+                }
+                if (b.tap_action) yaml += `    tap_action: '${b.tap_action}'\n`;
+            });
+        }
         
-        return yaml;
+        return yaml.trim();
     },
 
     /**
