@@ -80,5 +80,37 @@ export const Templates = {
      * Loads all saved templates.
      * @returns {Object} All saved templates.
      */
-    loadTemplates: () => JSON.parse(localStorage.getItem('kairo_templates') || '{}')
+    loadTemplates: () => JSON.parse(localStorage.getItem('kairo_templates') || '{}'),
+
+    /**
+     * Factory presets for common rooms.
+     * @returns {Object} Predefined high-quality layouts.
+     */
+    getFactoryPresets: () => ({
+        'Wohnzimmer Basis': {
+            name: 'Living Room',
+            style: { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 },
+            blocks: [
+                { id: 'l1', type: 'Light', x: 20, y: 100, w: 100, h: 40, text: 'Decke', color: '#00f6ff', tap_action: 'toggle' },
+                { id: 'l2', type: 'Light', x: 130, y: 100, w: 100, h: 40, text: 'Wand', color: '#00f6ff', tap_action: 'toggle' },
+                { id: 'c1', type: 'Klima-Bogen', x: 75, y: 180, w: 140, h: 140, text: '22°', color: '#10b981' }
+            ]
+        },
+        'Schlafzimmer': {
+            name: 'Bedroom',
+            style: { glow: 30, blur: 20, color: '#fca5a5', opacity: 0.2 },
+            blocks: [
+                { id: 'b1', type: 'Light', x: 20, y: 80, w: 100, h: 40, text: 'Nachtlicht', color: '#fca5a5', tap_action: 'toggle' },
+                { id: 's1', type: 'Sensor', x: 130, y: 80, w: 100, h: 40, text: 'Temp', state: '19.5', unit: '°C' }
+            ]
+        },
+        'Klima-Zentrum': {
+            name: 'Climate Pro',
+            style: { glow: 50, blur: 30, color: '#10b981', opacity: 0.4 },
+            blocks: [
+                { id: 'ca1', type: 'Klima-Bogen', x: 80, y: 100, w: 160, h: 160, text: '23.5°', color: '#10b981' },
+                { id: 'f1', type: 'Fan', x: 110, y: 300, w: 100, h: 40, text: 'Lüftung', color: '#10b981', state: 'on', speed: 50 }
+            ]
+        }
+    })
 };

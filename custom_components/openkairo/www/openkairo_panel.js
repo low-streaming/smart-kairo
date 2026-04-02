@@ -96,20 +96,133 @@ const BlockRegistry = {
         return `
             <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
                 <div style="font-size:9px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px;">${b.text || 'Sensor'}</div>
-                <div style="font-size:18px; font-weight:900;">${b.state || '--'}<span style="font-size:10px; opacity:0.6; margin-left:2px;">${b.unit || ''}</span></div>
+                <div style="font-size:18px; font-weight:900;">${b.state || '24'}<span style="font-size:10px; opacity:0.6; margin-left:2px;">${b.unit || '°C'}</span></div>
             </div>`;
     },
     renderClimateArc: (b) => {
+        const color = b.color || '#10b981';
         return `
-            <div class="studio-pro-arc" style="background:rgba(0,0,0,0.6); border:1px solid ${b.color}20; box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 20px ${b.color}10;">
-                <div class="val" style="color:#fff; text-shadow:0 0 15px ${b.color}80;">${b.text || '21°'}</div>
+            <div class="studio-pro-arc" style="background:rgba(0,0,0,0.6); border:1px solid ${color}20; box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 20px ${color}10;">
+                <div class="val" style="color:#fff; text-shadow:0 0 15px ${color}80;">${b.text || '21°'}</div>
             </div>`;
+    },
+    renderHexPower: (b) => {
+        const color = b.color || '#00f6ff';
+        return `
+            <div style="width:100%; height:100%; background:${color}; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center; opacity:0.8;">
+                <div style="width:90%; height:90%; background:#000; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <ha-icon icon="mdi:flash" style="--mdc-icon-size:18px; color:${color};"></ha-icon>
+                    <div style="font-size:10px; font-weight:900; color:#fff;">ON</div>
+                </div>
+            </div>`;
+    },
+    renderPulseChart: (b) => {
+        const color = b.color || '#00f6ff';
+        return `
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:12px; border:1px solid rgba(255,255,255,0.05); padding:8px; display:flex; flex-direction:column;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="font-size:8px; color:${color}; font-weight:900; text-transform:uppercase;">${b.text || 'Load'}</span>
+                    <span style="font-size:8px; color:#fff; font-weight:900;">85%</span>
+                </div>
+                <div style="flex:1; display:flex; align-items:flex-end; gap:2px;">
+                    <div style="flex:1; background:${color}; height:40%; opacity:0.3;"></div>
+                    <div style="flex:1; background:${color}; height:70%; opacity:0.6;"></div>
+                    <div style="flex:1; background:${color}; height:30%; opacity:0.3;"></div>
+                    <div style="flex:1; background:${color}; height:90%; opacity:0.9; box-shadow:0 0 10px ${color};"></div>
+                </div>
+            </div>`;
+    },
+    renderWeather: (b) => {
+        return `
+            <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; padding:0 12px;">
+                <ha-icon icon="mdi:weather-sunny" style="color:#fbbf24; filter:drop-shadow(0 0 8px #fbbf24);"></ha-icon>
+                <div style="font-size:18px; font-weight:900; color:#fff;">18°</div>
+            </div>`;
+    },
+    renderMediaPlayer: (b) => {
+        return `
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:20px; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; padding:10px;">
+                <div style="width:30px; height:30px; background:linear-gradient(45deg, #7c3aed, #db2777); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <ha-icon icon="mdi:music" style="--mdc-icon-size:16px; color:#fff;"></ha-icon>
+                </div>
+                <div style="overflow:hidden; flex:1;">
+                    <div style="font-size:10px; font-weight:900; color:#fff; white-space:nowrap;">Night City</div>
+                    <div style="font-size:8px; color:rgba(255,255,255,0.4);">REAKTOR</div>
+                </div>
+            </div>`;
+    },
+    renderNeonSwitch: (b) => {
+        const color = b.color || '#10b981';
+        return `
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); border:1px solid ${color}; border-radius:16px; display:flex; flex-direction:column; gap:4px; padding:8px; box-shadow: 0 0 15px ${color}30;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <ha-icon icon="mdi:lightbulb-on" style="--mdc-icon-size:16px; color:${color};"></ha-icon>
+              <div style="width:24px; height:12px; background:${color}; border-radius:10px; position:relative;">
+                <div style="position:absolute; width:8px; height:8px; background:#fff; border-radius:50%; top:2px; right:2px;"></div>
+              </div>
+            </div>
+            <div style="font-size:8px; font-weight:900; color:#fff;">${b.text || 'Toggle'}</div>
+          </div>`;
+    },
+    renderStatusPill: (b) => {
+        const color = b.color || '#10b981';
+        return `
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:20px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <div style="width:6px; height:6px; background:${color}; border-radius:50%; box-shadow:0 0 8px ${color};"></div>
+            <div style="font-size:9px; font-weight:900; color:#fff;">ONLINE</div>
+          </div>`;
+    },
+    renderSliderDimmer: (b) => {
+        const color = b.color || '#10b981';
+        return `
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:4px; padding:8px;">
+            <div style="font-size:8px; font-weight:900; color:rgba(255,255,255,0.4);">DIMMER</div>
+            <div style="height:6px; background:rgba(255,255,255,0.05); border-radius:3px; position:relative;">
+                <div style="width:60%; height:100%; background:${color}; border-radius:3px; box-shadow:0 0 10px ${color}80;"></div>
+            </div>
+          </div>`;
+    },
+    renderEnergyRing: (b) => {
+        const color = b.color || '#00f6ff';
+        return `
+          <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative;">
+             <div style="position:absolute; width:80%; height:80%; border-radius:50%; border:1px solid ${color}; opacity:0.1;"></div>
+             <div style="font-size:14px; font-weight:900; color:#fff;">240W</div>
+          </div>`;
+    },
+    renderGlitchText: (b) => {
+        return `<div style="font-weight:900; letter-spacing:2px; text-shadow: 2px 0 #ff003c, -2px 0 #00f6ff;">${b.text || 'GLITCH'}</div>`;
+    },
+    renderModeSwitch: (b) => {
+        return `
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:12px; display:flex; gap:4px; padding:4px;">
+             <div style="flex:1; background:var(--kairo-cyan); border-radius:8px;"></div>
+             <div style="flex:1;"></div>
+             <div style="flex:1;"></div>
+          </div>`;
+    },
+    renderGlassAction: (b) => {
+        return `
+          <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center;">
+             <ha-icon icon="mdi:flash" style="color:#fff;"></ha-icon>
+          </div>`;
     },
     getStandardBlocks: () => [
         { type: 'Light', icon: 'mdi:lightbulb', preview: '<ha-icon icon="mdi:lightbulb" style="color:var(--kairo-cyan)"></ha-icon>' },
         { type: 'Sensor', icon: 'mdi:gauge', preview: '<div style="font-size:14px; font-weight:900;">24°</div>' },
         { type: 'Fan', icon: 'mdi:fan', preview: '<ha-icon icon="mdi:fan"></ha-icon>' },
         { type: 'Klima-Bogen', icon: 'mdi:circle-slice-8', preview: '<div style="width:24px; height:24px; border:2px solid var(--kairo-cyan); border-radius:50%; border-right-color:transparent;"></div>' },
+        { type: 'Hex-Power', icon: 'mdi:hexagon-slice-6', preview: '<ha-icon icon="mdi:hexagon-slice-6" style="color:var(--kairo-cyan)"></ha-icon>' },
+        { type: 'Pulse-Chart', icon: 'mdi:chart-timeline-variant', preview: '<ha-icon icon="mdi:chart-timeline-variant"></ha-icon>' },
+        { type: 'Weather-Card', icon: 'mdi:weather-partly-cloudy', preview: '<ha-icon icon="mdi:weather-partly-cloudy"></ha-icon>' },
+        { type: 'Media-Player', icon: 'mdi:music-box', preview: '<ha-icon icon="mdi:music-box"></ha-icon>' },
+        { type: 'Neon-Switch', icon: 'mdi:toggle-switch', preview: '<ha-icon icon="mdi:toggle-switch" style="color:var(--kairo-cyan)"></ha-icon>' },
+        { type: 'Status-Pill', icon: 'mdi:pill', preview: '<div style="width:12px; height:12px; border-radius:50%; background:var(--kairo-cyan);"></div>' },
+        { type: 'Slider-Dimmer', icon: 'mdi:tune-variant', preview: '<ha-icon icon="mdi:tune-variant"></ha-icon>' },
+        { type: 'Energie-Ring', icon: 'mdi:progress-wrench', preview: '<ha-icon icon="mdi:loading" class="anim-fan" style="--fan-dur:4s;"></ha-icon>' },
+        { type: 'Glitch-Text', icon: 'mdi:format-text', preview: '<span style="font-weight:900; text-shadow:1px 0 red, -1px 0 cyan;">TXT</span>' },
+        { type: 'Modus-Schalter', icon: 'mdi:view-list', preview: '<ha-icon icon="mdi:view-list"></ha-icon>' },
+        { type: 'Glass-Action', icon: 'mdi:gesture-tap', preview: '<div style="width:20px; height:20px; background:rgba(255,255,255,0.1); border:1px solid #fff; border-radius:4px;"></div>' },
         { type: 'Container', icon: 'mdi:crop-square', preview: '<div style="width:30px; height:20px; border:1px solid rgba(255,255,255,0.2); border-radius:4px;"></div>' }
     ]
 };
@@ -136,6 +249,7 @@ const Renderer = {
                         <div class="dev-btn" id="dev-tablet"><ha-icon icon="mdi:tablet-android"></ha-icon></div>
                         <div class="dev-btn" id="dev-mobile"><ha-icon icon="mdi:cellphone"></ha-icon></div>
                     </div>
+                    <button class="btn-primary" id="btn-save-template" style="background:rgba(161,255,16,0.1); color:#a1ff10; border:1px solid rgba(161,255,16,0.2);"><ha-icon icon="mdi:content-save-outline"></ha-icon> ALS TEMPLATE SPEICHERN</button>
                     <button class="btn-primary" id="btn-save"><ha-icon icon="mdi:code-braces"></ha-icon> CODE GENERIEREN</button>
                     <button class="btn-primary" id="btn-import" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1);"><ha-icon icon="mdi:upload"></ha-icon> IMPORT</button>
                 </div>
@@ -217,7 +331,32 @@ const Templates = {
             console.error("Import Error:", e);
             return null;
         }
-    }
+    },
+    loadTemplates: () => JSON.parse(localStorage.getItem('kairo_templates') || '{}'),
+    saveTemplate: (name, state) => {
+        const templates = JSON.parse(localStorage.getItem('kairo_templates') || '{}');
+        templates[name] = state;
+        localStorage.setItem('kairo_templates', JSON.stringify(templates));
+    },
+    getFactoryPresets: () => ({
+        'Wohnzimmer Basis': {
+            name: 'Living Room',
+            style: { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 },
+            blocks: [
+                { id: 'l1', type: 'Light', x: 20, y: 100, w: 100, h: 40, text: 'Decke', color: '#00f6ff', tap_action: 'toggle' },
+                { id: 'l2', type: 'Light', x: 130, y: 100, w: 100, h: 40, text: 'Wand', color: '#00f6ff', tap_action: 'toggle' },
+                { id: 'c1', type: 'Klima-Bogen', x: 75, y: 180, w: 140, h: 140, text: '22°', color: '#10b981' }
+            ]
+        },
+        'Schlafzimmer': {
+            name: 'Bedroom',
+            style: { glow: 30, blur: 20, color: '#fca5a5', opacity: 0.2 },
+            blocks: [
+                { id: 'b1', type: 'Light', x: 20, y: 80, w: 100, h: 40, text: 'Nachtlicht', color: '#fca5a5', tap_action: 'toggle' },
+                { id: 's1', type: 'Sensor', x: 130, y: 80, w: 100, h: 40, text: 'Temp', state: '19.5', unit: '°C' }
+            ]
+        }
+    })
 };
 
 // --- MODULE: AI-AGENT ---
@@ -385,6 +524,14 @@ class OpenKairoBuilder extends HTMLElement {
         root.querySelector('#btn-close-export').addEventListener('click', () => { root.querySelector('#export-modal').style.display = 'none'; });
         root.querySelector('#btn-close-import').addEventListener('click', () => { root.querySelector('#import-modal').style.display = 'none'; });
         root.querySelector('#btn-do-import').addEventListener('click', () => this._handleImport());
+        root.querySelector('#btn-save-template').addEventListener('click', () => {
+            const name = prompt('Name für das Template:', this.state.name);
+            if (name) {
+                Templates.saveTemplate(name, JSON.parse(JSON.stringify(this.state)));
+                this._renderSidebars();
+                alert('Template gespeichert!');
+            }
+        });
         root.querySelector('#btn-copy-code').addEventListener('click', () => {
             const code = root.querySelector('#export-code-box').innerText;
             navigator.clipboard.writeText(code);
@@ -434,6 +581,13 @@ class OpenKairoBuilder extends HTMLElement {
         const id = 'b' + Math.random().toString(36).substr(2, 9);
         const b = { id, type, x, y, w: 120, h: 40, color: this.state.style.color, text: type, glow: 20, blur: 15, opacity: 1, fontSize: 13, tap_action: 'toggle' };
         if (type === 'Klima-Bogen') { b.w = 140; b.h = 140; b.color = '#10b981'; }
+        else if (type === 'Hex-Power') { b.w = 80; b.h = 100; }
+        else if (type === 'Pulse-Chart') { b.w = 200; b.h = 80; }
+        else if (type === 'Weather-Card') { b.w = 150; b.h = 60; }
+        else if (type === 'Media-Player') { b.w = 250; b.h = 80; }
+        else if (type === 'Neon-Switch') { b.w = 120; b.h = 80; }
+        else if (type === 'Status-Pill') { b.w = 120; b.h = 40; }
+        else if (type === 'Slider-Dimmer') { b.w = 200; b.h = 80; }
         this.state.blocks.push(b); this.selectBlock(id);
     }
     _renderAll() { 
@@ -455,6 +609,17 @@ class OpenKairoBuilder extends HTMLElement {
             else if (b.type === 'Fan') el.innerHTML = BlockRegistry.renderFan(b);
             else if (b.type === 'Sensor') el.innerHTML = BlockRegistry.renderSensor(b);
             else if (b.type === 'Klima-Bogen') el.innerHTML = BlockRegistry.renderClimateArc(b);
+            else if (b.type === 'Hex-Power') el.innerHTML = BlockRegistry.renderHexPower(b);
+            else if (b.type === 'Pulse-Chart') el.innerHTML = BlockRegistry.renderPulseChart(b);
+            else if (b.type === 'Weather-Card') el.innerHTML = BlockRegistry.renderWeather(b);
+            else if (b.type === 'Media-Player') el.innerHTML = BlockRegistry.renderMediaPlayer(b);
+            else if (b.type === 'Neon-Switch') el.innerHTML = BlockRegistry.renderNeonSwitch(b);
+            else if (b.type === 'Status-Pill') el.innerHTML = BlockRegistry.renderStatusPill(b);
+            else if (b.type === 'Slider-Dimmer') el.innerHTML = BlockRegistry.renderSliderDimmer(b);
+            else if (b.type === 'Energie-Ring') el.innerHTML = BlockRegistry.renderEnergyRing(b);
+            else if (b.type === 'Glitch-Text') el.innerHTML = BlockRegistry.renderGlitchText(b);
+            else if (b.type === 'Modus-Schalter') el.innerHTML = BlockRegistry.renderModeSwitch(b);
+            else if (b.type === 'Glass-Action') el.innerHTML = BlockRegistry.renderGlassAction(b);
             else el.innerHTML = `<span>${b.text || b.type}</span>`;
             el.addEventListener('mousedown', (e) => this.interaction.handleStart(e, b.id));
             el.addEventListener('mouseup', (e) => this.interaction.handleEnd(e, b.id));
@@ -495,8 +660,65 @@ class OpenKairoBuilder extends HTMLElement {
                 });
                 i.addEventListener('dragend', () => i.style.opacity = '1');
             });
-        } else {
-            left.innerHTML = `<div style="text-align:center; padding-top:100px; opacity:0.3; font-size:11px; font-weight:900; letter-spacing:2px;">EMPTY SLOT</div>`;
+        } else if (this.activeLeftTab === 'TEMPLATES') {
+            const presets = Templates.getFactoryPresets();
+            const saved = Templates.loadTemplates();
+            left.innerHTML = `
+                <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Factory Presets</div>
+                ${Object.keys(presets).map(name => `
+                    <div class="preset-item" data-name="${name}" style="background:rgba(255,255,255,0.04); border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer; transition:0.3s;">
+                        <div style="font-weight:800; font-size:12px; margin-bottom:4px; color:var(--kairo-cyan);">${name}</div>
+                        <div style="font-size:9px; opacity:0.6;">High-quality room layout</div>
+                    </div>
+                `).join('')}
+                ${Object.keys(saved).length > 0 ? `
+                    <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin: 20px 0 12px;">Your Templates</div>
+                    ${Object.keys(saved).map(name => `
+                        <div class="saved-item" data-name="${name}" style="background:rgba(255,255,255,0.04); border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer;">
+                            <div style="font-weight:800; font-size:12px;">${name}</div>
+                        </div>
+                    `).join('')}
+                ` : ''}
+            `;
+            left.querySelectorAll('.preset-item').forEach(p => {
+                p.addEventListener('click', () => {
+                    if (confirm(`Load template "${p.dataset.name}"? Current progress will be lost.`)) {
+                        this._saveHistory();
+                        this.state = JSON.parse(JSON.stringify(presets[p.dataset.name]));
+                        this._renderAll();
+                    }
+                });
+            });
+        } else if (this.activeLeftTab === 'LAYERS') {
+            left.innerHTML = `
+                <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Active Blocks</div>
+                <div class="layer-list" style="display:flex; flex-direction:column; gap:8px;">
+                    ${this.state.blocks.map(b => `
+                        <div class="layer-item ${this.selectedBlockId === b.id ? 'active' : ''}" data-id="${b.id}" style="background:${this.selectedBlockId === b.id ? 'var(--kairo-cyan)' : 'rgba(255,255,255,0.03)'}; color:${this.selectedBlockId === b.id ? '#000' : '#fff'}; border:1px solid var(--border-color); border-radius:8px; padding:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-weight:800; font-size:11px;">${b.text || b.type}</span>
+                                <span style="font-size:9px; opacity:0.5;">${b.id.substr(0,4)}</span>
+                            </div>
+                            <ha-icon icon="mdi:delete-outline" class="btn-delete-layer" data-id="${b.id}" style="--mdc-icon-size:16px; opacity:0.6; cursor:pointer;"></ha-icon>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            left.querySelectorAll('.layer-item').forEach(l => {
+                l.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('btn-delete-layer') || e.target.closest('.btn-delete-layer')) {
+                        e.stopPropagation();
+                        if (confirm('Block löschen?')) {
+                            this._saveHistory();
+                            this.state.blocks = this.state.blocks.filter(x => x.id === l.dataset.id ? false : true);
+                            if (this.selectedBlockId === l.dataset.id) this.selectedBlockId = null;
+                            this._renderAll();
+                        }
+                        return;
+                    }
+                    this.selectBlock(l.dataset.id);
+                });
+            });
         }
     }
     selectBlock(id) { this.selectedBlockId = id; this._renderCanvas(); this._renderRightSidebar(); }
