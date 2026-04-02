@@ -179,10 +179,16 @@ class OpenKairoCustomCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     const c = this._config;
     
+    if (!window.openkairo_fonts_loaded) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Rajdhani:wght@400;700&display=swap';
+      document.head.appendChild(link);
+      window.openkairo_fonts_loaded = true;
+    }
+
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Rajdhani:wght@400;700&display=swap');
-        
         ha-card {
            background: rgba(4, 4, 6, 0.95);
            border-radius: 35px;
