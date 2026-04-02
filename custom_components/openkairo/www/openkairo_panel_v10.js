@@ -437,7 +437,8 @@ class OpenKairoBuilder extends HTMLElement {
     }
     setupDOM() {
         if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
-        this.state = {
+        const saved = localStorage.getItem('kairo_builder_state');
+        this.state = saved ? JSON.parse(saved) : {
             name: 'LIVING ROOM',
             blocks: [],
             style: { glow: 40, blur: 25, color: '#00f6ff', opacity: 0.3 }
@@ -515,7 +516,7 @@ class OpenKairoBuilder extends HTMLElement {
                 #drop-target {
                     background: rgba(10, 10, 15, 0.85);
                     backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-                    width: 320px; min-height: 480px; border-radius: 32px;
+                    width: 340px; min-height: 520px; border-radius: 32px;
                     position: relative; 
                     box-shadow: 
                         0 50px 100px rgba(0,0,0,0.95), 
@@ -524,7 +525,7 @@ class OpenKairoBuilder extends HTMLElement {
                     transform: rotateX(8deg);
                     transform-origin: center center;
                     overflow: hidden;
-                    transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s;
                 }
                 .btn-primary { 
                     background: var(--kairo-cyan); color: #000; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; font-size: 11px; text-transform: uppercase;
@@ -663,6 +664,7 @@ class OpenKairoBuilder extends HTMLElement {
         this._renderSidebars(); 
         this._renderRightSidebar(); 
         this._updateGlobalStyles(); 
+        localStorage.setItem('kairo_builder_state', JSON.stringify(this.state));
     }
     _renderCanvas() {
         const board = this.shadowRoot.querySelector('#drop-target'); if (!board) return;
@@ -904,7 +906,9 @@ class OpenKairoBuilder extends HTMLElement {
         const canvas = this.shadowRoot.querySelector('#drop-target');
         this.shadowRoot.querySelectorAll('.dev-btn').forEach(b => b.classList.remove('active'));
         this.shadowRoot.querySelector('#dev-' + type).classList.add('active');
-        canvas.style.width = type === 'mobile' ? '320px' : (type === 'tablet' ? '600px' : '320px');
+        if (type === 'mobile') canvas.style.width = '340px';
+        else if (type === 'tablet') canvas.style.width = '550px';
+        else canvas.style.width = '850px';
     }
     _bindResizers(el, b) {
         const root = this.shadowRoot;
