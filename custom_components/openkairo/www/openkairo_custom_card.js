@@ -1,7 +1,7 @@
 /**
  * OpenKairo Custom Card - Dashboard Part
  * This card renders the layouts created in Kairo Architect.
- * Version: 2.0 (Premium Design Sync)
+ * Version: 2.1 (Full UI/UX Design Sync)
  */
 
 const BlockRegistry = {
@@ -26,9 +26,9 @@ const BlockRegistry = {
         const color = b.color || '#00f6ff';
         return `
             <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.05); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; position:relative;">
-                <div style="position:absolute; width:100%; height:20%; top:0; background:linear-gradient(to bottom, ${color}10, transparent);"></div>
+                <div style="position:absolute; width:100%; height:30%; top:0; background:linear-gradient(to bottom, ${color}15, transparent);"></div>
                 <div style="font-size:8px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:2px; margin-bottom:4px; font-weight:900;">${b.text || 'Sensor'}</div>
-                <div style="font-size:22px; font-weight:900; color:#fff; text-shadow:0 0 10px rgba(0,0,0,0.5);">${b.state || '24'}<span style="font-size:10px; opacity:0.6; margin-left:2px; font-weight:400;">${b.unit || '°C'}</span></div>
+                <div style="font-size:22px; font-weight:900; color:#fff; text-shadow:0 0 15px rgba(0,0,0,0.5);">${b.state || '--'}<span style="font-size:10px; opacity:0.6; margin-left:2px; font-weight:400;">${b.unit || ''}</span></div>
             </div>`;
     },
     renderClimateArc: (b) => {
@@ -41,11 +41,12 @@ const BlockRegistry = {
     },
     renderHexPower: (b) => {
         const color = b.color || '#00f6ff';
+        const isOn = b.state !== 'off' && b.state !== '0';
         return `
             <div style="width:100%; height:100%; background:linear-gradient(135deg, ${color}, ${color}80); clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 0 15px ${color}40);">
                 <div style="width:92%; height:92%; background:rgba(0,0,0,0.9); clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                    <ha-icon icon="mdi:flash" style="--mdc-icon-size:22px; color:${color}; filter:drop-shadow(0 0 5px ${color});"></ha-icon>
-                    <div style="font-size:9px; font-weight:900; color:#fff; letter-spacing:1px; margin-top:-2px;">AKTIV</div>
+                    <ha-icon icon="mdi:flash" style="--mdc-icon-size:22px; color:${color}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'};"></ha-icon>
+                    <div style="font-size:9px; font-weight:900; color:#fff; letter-spacing:1px; margin-top:-2px;">${isOn ? 'AKTIV' : 'STANDBY'}</div>
                 </div>
             </div>`;
     },
@@ -55,9 +56,29 @@ const BlockRegistry = {
             <div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border-radius:18px; border:1px solid rgba(255,255,255,0.06); padding:10px; display:flex; flex-direction:column; box-shadow:inset 0 0 20px rgba(0,0,0,0.4);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span style="font-size:9px; color:${color}; font-weight:900; text-transform:uppercase; letter-spacing:1px;">${b.text || 'System'}</span>
+                    <span style="font-size:9px; color:#fff; font-weight:900; background:${color}30; padding:2px 6px; border-radius:10px; border:1px solid ${color}40;">85%</span>
                 </div>
                 <div style="flex:1; display:flex; align-items:flex-end; gap:3px; padding-bottom:4px;">
                     ${Array(12).fill(0).map((_,i) => `<div style="flex:1; background:linear-gradient(to top, ${color}20, ${color}); height:${[30,40,20,60,45,70,30,85,40,95,65,80][i]}%; border-radius:10px; opacity:${i === 9 ? 1 : 0.4}; box-shadow:${i === 9 ? '0 0 15px ' + color : 'none'}; transition:0.3s;"></div>`).join('')}
+                </div>
+            </div>`;
+    },
+    renderWeather: (b) => {
+        return `
+            <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; padding:0 12px;">
+                <ha-icon icon="mdi:weather-partly-cloudy" style="color:#fbbf24; filter:drop-shadow(0 0 8px #fbbf24);"></ha-icon>
+                <div style="font-size:18px; font-weight:900; color:#fff;">${b.state || '20'}°</div>
+            </div>`;
+    },
+    renderMediaPlayer: (b) => {
+        return `
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(15px); border-radius:20px; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; padding:10px;">
+                <div style="width:34px; height:34px; background:linear-gradient(45deg, #7c3aed, #db2777); border-radius:10px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 15px rgba(124, 58, 237, 0.4);">
+                    <ha-icon icon="mdi:music" style="--mdc-icon-size:18px; color:#fff;"></ha-icon>
+                </div>
+                <div style="overflow:hidden; flex:1;">
+                    <div style="font-size:10px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.text || 'Night City'}</div>
+                    <div style="font-size:8px; color:rgba(255,255,255,0.4);">REAKTOR</div>
                 </div>
             </div>`;
     },
@@ -82,13 +103,13 @@ const BlockRegistry = {
             <div style="width:8px; height:8px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 12px ${color};">
                 <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.4; animation:anim-pulse 2s infinite;"></div>
             </div>
-            <div style="font-size:10px; font-weight:900; color:#fff; letter-spacing:2px;">ONLINE</div>
+            <div style="font-size:10px; font-weight:900; color:#fff; letter-spacing:2px;">${b.text || 'ONLINE'}</div>
           </div>`;
     },
     renderSliderDimmer: (b) => {
         const color = b.color || '#00f6ff';
-        const val = b.state || 0;
-        const pct = Math.round(val / 255 * 100);
+        const rawVal = b.attributes && b.attributes.brightness ? b.attributes.brightness : 0;
+        const pct = Math.round(rawVal / 255 * 100);
         return `
           <div style="width:100%; height:100%; background:rgba(255,255,255,0.02); backdrop-filter:blur(15px); border-radius:18px; border:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 12px; box-shadow:inset 0 0 20px rgba(255,255,255,0.02);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -102,12 +123,31 @@ const BlockRegistry = {
             </div>
           </div>`;
     },
-    renderWeather: (b) => {
+    renderEnergyRing: (b) => {
+        const color = b.color || '#00f6ff';
         return `
-            <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; padding:0 12px;">
-                <ha-icon icon="mdi:weather-sunny" style="color:#fbbf24; filter:drop-shadow(0 0 8px #fbbf24);"></ha-icon>
-                <div style="font-size:18px; font-weight:900; color:#fff;">18°</div>
-            </div>`;
+          <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative; background:rgba(0,0,0,0.4); border-radius:50%; border:1px solid rgba(255,255,255,0.05);">
+             <div style="position:absolute; inset:6px; border-radius:50%; border:2px solid ${color}20;"></div>
+             <div style="position:absolute; inset:6px; border-radius:50%; border:2px solid ${color}; clip-path:polygon(50% 50%, 50% 0, 100% 0, 100% 40%, 50% 50%); filter:drop-shadow(0 0 8px ${color});"></div>
+             <div style="font-size:14px; font-weight:900; color:#fff; text-shadow:0 0 10px ${color}80;">${b.state || '240W'}</div>
+          </div>`;
+    },
+    renderGlitchText: (b) => {
+        return `<div style="font-weight:900; letter-spacing:2px; text-shadow: 2px 0 #ff003c, -2px 0 #00f6ff; font-family:'Rajdhani'; font-size:18px;">${b.text || 'GLITCH'}</div>`;
+    },
+    renderModeSwitch: (b) => {
+        return `
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); border-radius:14px; display:flex; gap:4px; padding:6px; border:1px solid rgba(255,255,255,0.05);">
+             <div style="flex:1; background:var(--kairo-cyan, #00f6ff); border-radius:8px; box-shadow:0 0 15px rgba(0,246,255,0.4);"></div>
+             <div style="flex:1; background:rgba(255,255,255,0.03); border-radius:8px;"></div>
+             <div style="flex:1; background:rgba(255,255,255,0.03); border-radius:8px;"></div>
+          </div>`;
+    },
+    renderGlassAction: (b) => {
+        return `
+          <div style="width:100%; height:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; backdrop-filter:blur(15px); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+             <ha-icon icon="mdi:gesture-tap" style="color:#fff; filter:drop-shadow(0 0 10px rgba(255,255,255,0.3));"></ha-icon>
+          </div>`;
     }
 };
 
@@ -137,16 +177,18 @@ class OpenKairoCustomCard extends HTMLElement {
     
     this.shadowRoot.innerHTML = `
       <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Rajdhani:wght@400;700&display=swap');
+        
         ha-card {
-           background: rgba(8, 8, 10, 0.85);
+           background: rgba(8, 8, 10, 0.9);
            border-radius: 32px;
            backdrop-filter: blur(${c.blur || 25}px);
            -webkit-backdrop-filter: blur(${c.blur || 25}px);
            position: relative; 
            box-shadow: 
              0 50px 100px rgba(0,0,0,0.9),
-             inset 0 0 50px ${c.color || '#00f6ff'}15,
-             0 0 0 1px rgba(255,255,255,0.1);
+             inset 0 0 40px ${c.color || '#00f6ff'}15,
+             ${c.glow > 0 ? `0 0 ${c.glow}px ${c.color || '#00f6ff'}30, 0 0 0 1px ${c.color || '#00f6ff'}30` : '0 0 0 1px rgba(255,255,255,0.1)'};
            overflow: hidden !important; 
            color: #fff; font-family: 'Outfit', 'Inter', sans-serif;
            min-height: ${c.height || 480}px;
@@ -158,7 +200,7 @@ class OpenKairoCustomCard extends HTMLElement {
            position: absolute;
            top: 0; left: 0; right: 0; bottom: 0;
            background-image: 
-             radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
+             radial-gradient(circle at 2px 2px, rgba(0, 246, 255, 0.05) 1.5px, transparent 0);
            background-size: 24px 24px;
            opacity: 0.8;
            pointer-events: none;
@@ -169,7 +211,7 @@ class OpenKairoCustomCard extends HTMLElement {
           text-align: center; 
           color: ${c.color || '#00f6ff'}; 
           font-weight: 900; 
-          filter: drop-shadow(0 0 20px ${c.color || '#00f6ff'}80); 
+          filter: drop-shadow(0 0 15px ${c.color || '#00f6ff'}80); 
           opacity: 0.9; 
           font-size: 24px; 
           letter-spacing: 6px; 
@@ -178,17 +220,19 @@ class OpenKairoCustomCard extends HTMLElement {
           pointer-events: none;
           position: relative;
           z-index: 10;
+          font-family: 'Outfit';
         }
 
         #blocks-container { position: absolute; inset: 0; }
-        .block-element { position: absolute; cursor: pointer; transition: transform 0.2s; z-index: 20; }
-        .block-element:hover { transform: scale(1.02); }
-        .block-element:active { transform: scale(0.98); }
+        .block-element { position: absolute; cursor: pointer; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 20; }
+        .block-element:hover { transform: scale(1.05); z-index: 100; }
+        .block-element:active { transform: scale(0.95); }
 
         @keyframes fan-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes anim-pulse { 0% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.3); opacity: 0.1; } 100% { transform: scale(1); opacity: 0.4; } }
+        @keyframes anim-pulse { 0% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.4); opacity: 0.1; } 100% { transform: scale(1); opacity: 0.4; } }
         @keyframes anim-glow-slide { 0% { left: -100%; } 100% { left: 100%; } }
-        .anim-fan { animation: fan-spin 2s infinite linear; }
+        .anim-fan { animation: fan-spin var(--fan-dur, 2s) infinite linear; }
+        .val { font-family: 'Outfit', sans-serif; }
       </style>
       <ha-card>
         <div class="card-header-text">${c.name || 'LIVING ROOM'}</div>
@@ -211,12 +255,20 @@ class OpenKairoCustomCard extends HTMLElement {
         el.style.top = b.y + 'px';
         el.style.width = b.w + 'px';
         el.style.height = b.h + 'px';
-        el.addEventListener('click', () => this.handleAction(b));
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleAction(b);
+        });
         container.appendChild(el);
       }
 
       const stateObj = b.entity ? this._hass.states[b.entity] : null;
-      const bWithState = { ...b, state: stateObj ? stateObj.state : 'off', attributes: stateObj ? stateObj.attributes : {} };
+      const bWithState = { 
+        ...b, 
+        state: stateObj ? stateObj.state : 'off', 
+        attributes: stateObj ? stateObj.attributes : {},
+        unit: b.unit || (stateObj && stateObj.attributes.unit_of_measurement ? stateObj.attributes.unit_of_measurement : '')
+      };
       
       // Select render function
       let html = '';
@@ -225,10 +277,17 @@ class OpenKairoCustomCard extends HTMLElement {
         case 'Fan': html = BlockRegistry.renderFan(bWithState); break;
         case 'Sensor': html = BlockRegistry.renderSensor(bWithState); break;
         case 'Klima-Bogen': html = BlockRegistry.renderClimateArc(bWithState); break;
+        case 'Hex-Power': html = BlockRegistry.renderHexPower(bWithState); break;
         case 'Neon-Switch': html = BlockRegistry.renderNeonSwitch(bWithState); break;
         case 'Status-Pill': html = BlockRegistry.renderStatusPill(bWithState); break;
         case 'Slider-Dimmer': html = BlockRegistry.renderSliderDimmer(bWithState); break;
         case 'Pulse-Chart': html = BlockRegistry.renderPulseChart(bWithState); break;
+        case 'Weather-Card': html = BlockRegistry.renderWeather(bWithState); break;
+        case 'Media-Player': html = BlockRegistry.renderMediaPlayer(bWithState); break;
+        case 'Glitch-Text': html = BlockRegistry.renderGlitchText(bWithState); break;
+        case 'Modus-Schalter': html = BlockRegistry.renderModeSwitch(bWithState); break;
+        case 'Glass-Action': html = BlockRegistry.renderGlassAction(bWithState); break;
+        case 'Energie-Ring': html = BlockRegistry.renderEnergyRing(bWithState); break;
         default: html = `<div style="color:#fff; font-size:10px;">${b.text || b.type}</div>`;
       }
       
@@ -239,10 +298,10 @@ class OpenKairoCustomCard extends HTMLElement {
   handleAction(b) {
     if (!b.entity) return;
     const action = b.tap_action || 'toggle';
-    const [domain, service] = action === 'toggle' ? [b.entity.split('.')[0], 'toggle'] : ['browser_mod', 'more_info'];
+    const domain = b.entity.split('.')[0];
     
     if (action === 'toggle') {
-        this._hass.callService(domain, service, { entity_id: b.entity });
+        this._hass.callService(domain, 'toggle', { entity_id: b.entity });
     } else if (action === 'more-info') {
         const event = new CustomEvent("hass-more-info", {
             detail: { entityId: b.entity },
@@ -253,17 +312,24 @@ class OpenKairoCustomCard extends HTMLElement {
     }
   }
 
-  getCardSize() { return 6; }
+  getCardSize() { return 8; }
 }
 
 if (!customElements.get("openkairo-custom-card")) {
   customElements.define("openkairo-custom-card", OpenKairoCustomCard);
 }
 
-// Editor Placeholder (Simplified)
+// Editor Placeholder (Advanced Editor)
 class OpenKairoCustomCardEditor extends HTMLElement {
   setConfig(config) { this._config = config; this.render(); }
-  render() { this.innerHTML = `<div style="padding:20px; color:#fff; background:#111; border-radius:12px;">Nutze den Architect Builder in der Seitenleiste für Design-Änderungen.</div>`; }
+  render() { 
+    this.innerHTML = `
+      <div style="padding:24px; color:#fff; background:rgba(8,8,10,0.9); border-radius:18px; border:1px solid rgba(255,255,255,0.1); font-family:'Outfit', sans-serif;">
+         <div style="font-weight:900; color:#00f6ff; letter-spacing:2px; margin-bottom:12px; font-size:14px;">KAIRO STUDIO - DASHBOARD EDITOR</div>
+         <div style="font-size:12px; opacity:0.6; line-height:1.6;">Design-Änderungen und Layouts werden bequem im <b>Kairo Architect</b> (Seitenleiste) vorgenommen. Deine Änderungen werden hier automatisch übernommen.</div>
+         <button style="margin-top:20px; width:100%; padding:12px; background:#00f6ff; border:none; border-radius:10px; font-weight:900; cursor:pointer;" onclick="window.history.pushState(null,null,'/openkairo'); window.dispatchEvent(new CustomEvent('location-changed'));">ARCHITECT ÖFFNEN</button>
+      </div>`; 
+  }
 }
 if (!customElements.get("openkairo-custom-card-editor")) {
   customElements.define("openkairo-custom-card-editor", OpenKairoCustomCardEditor);
