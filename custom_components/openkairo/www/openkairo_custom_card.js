@@ -231,12 +231,12 @@ class OpenKairoCustomCard extends HTMLElement {
           text-align: center; 
           color: ${c.color || '#00f6ff'}; 
           font-weight: 900; 
-          filter: drop-shadow(0 0 20px ${c.color || '#00f6ff'}); 
-          opacity: 0.85; 
-          font-size: 26px; 
-          letter-spacing: 8px; 
-          padding-top: 55px; 
-          margin-bottom: 25px;
+          filter: drop-shadow(0 0 15px ${c.color || '#00f6ff'}40); 
+          opacity: 0.6; 
+          font-size: 18px; 
+          letter-spacing: 12px; 
+          padding-top: 30px; 
+          margin-bottom: 0;
           text-transform: uppercase; 
           pointer-events: none;
           position: relative;
@@ -276,10 +276,10 @@ class OpenKairoCustomCard extends HTMLElement {
         el = document.createElement('div');
         el.className = 'block-element';
         el.dataset.id = b.id;
-        el.style.left = b.x + 'px';
-        el.style.top = b.y + 'px';
-        el.style.width = b.w + 'px';
-        el.style.height = b.h + 'px';
+        el.style.left = b.x + '%';
+        el.style.top = b.y + '%';
+        el.style.width = b.w + '%';
+        el.style.height = b.h + '%';
         el.addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleAction(b);

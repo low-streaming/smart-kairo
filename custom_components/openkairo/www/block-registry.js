@@ -38,7 +38,7 @@ export const BlockRegistry = {
         return `
             <div class="studio-pro-arc" style="background:rgba(0,0,0,0.7); backdrop-filter:blur(20px); border:1px solid ${color}30; box-shadow: 0 15px 50px rgba(0,0,0,0.5), inset 0 0 30px ${color}10; width:100%; height:100%; border-radius:50%; position:relative; overflow:hidden;">
                 <div style="position:absolute; inset:5px; border:1px dashed ${color}40; border-radius:50%; opacity:0.5;"></div>
-                <div class="val" style="color:#fff; text-shadow:0 0 20px ${color}; font-size:28px; font-weight:900;">${b.text || '21°'}</div>
+                <div class="val" style="color:#fff; text-shadow:0 0 20px ${color}; font-size:clamp(12px, 15vw, 24px); font-weight:900; font-family:'Outfit'; text-align:center; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${b.text || '21°'}</div>
             </div>`;
     },
 
@@ -89,11 +89,11 @@ export const BlockRegistry = {
     renderStatusPill: (b) => {
         const color = b.color || '#10b981';
         return `
-          <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.1); border-radius:30px; display:flex; align-items:center; gap:12px; padding:0 18px; box-shadow:0 10px 40px rgba(0,0,0,0.4);">
-            <div style="width:10px; height:10px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 15px ${color};">
-                <div style="position:absolute; inset:-5px; background:${color}; border-radius:50%; opacity:0.5; animation:anim-pulse 2.5s infinite;"></div>
+          <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.1); border-radius:30px; display:flex; align-items:center; gap:8px; padding:0 12px; box-shadow:0 10px 40px rgba(0,0,0,0.4); overflow:hidden;">
+            <div style="flex-shrink:0; width:8px; height:8px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 15px ${color};">
+                <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.5; animation:anim-pulse 2.5s infinite;"></div>
             </div>
-            <div style="font-size:11px; font-weight:900; color:#fff; letter-spacing:2px; font-family:'Outfit'; text-transform:uppercase;">${b.text || 'STATUS'}</div>
+            <div style="font-size:clamp(8px, 10cqw, 11px); font-weight:900; color:#fff; letter-spacing:1px; font-family:'Outfit'; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.text || 'STATUS'}</div>
           </div>`;
     },
 

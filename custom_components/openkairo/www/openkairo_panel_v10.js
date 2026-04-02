@@ -638,25 +638,25 @@ class OpenKairoBuilder extends HTMLElement {
         if (moveId) {
             const b = this.state.blocks.find(x => x.id === moveId);
             const ox = parseFloat(e.dataTransfer.getData('offsetX')) || 0, oy = parseFloat(e.dataTransfer.getData('offsetY')) || 0;
-            b.x = Math.round((e.clientX - rect.left - ox) / 12) * 12;
-            b.y = Math.round((e.clientY - rect.top - oy) / 12) * 12;
+            b.x = ((e.clientX - rect.left - ox) / rect.width) * 100;
+            b.y = ((e.clientY - rect.top - oy) / rect.height) * 100;
         } else if (type) {
-            const x = Math.round((e.clientX - rect.left - 40) / 12) * 12, y = Math.round((e.clientY - rect.top - 20) / 12) * 12;
+            const x = ((e.clientX - rect.left - 40) / rect.width) * 100, y = ((e.clientY - rect.top - 20) / rect.height) * 100;
             this._addBlock(type, x, y);
         }
         this._renderAll();
     }
     _addBlock(type, x, y) {
         const id = 'b' + Math.random().toString(36).substr(2, 9);
-        const b = { id, type, x, y, w: 120, h: 40, color: this.state.style.color, text: type, glow: 20, blur: 15, opacity: 1, fontSize: 13, tap_action: 'toggle' };
-        if (type === 'Klima-Bogen') { b.w = 140; b.h = 140; b.color = '#10b981'; }
-        else if (type === 'Hex-Power') { b.w = 80; b.h = 100; }
-        else if (type === 'Pulse-Chart') { b.w = 200; b.h = 80; }
-        else if (type === 'Weather-Card') { b.w = 150; b.h = 60; }
-        else if (type === 'Media-Player') { b.w = 250; b.h = 80; }
-        else if (type === 'Neon-Switch') { b.w = 120; b.h = 80; }
-        else if (type === 'Status-Pill') { b.w = 120; b.h = 40; }
-        else if (type === 'Slider-Dimmer') { b.w = 200; b.h = 80; }
+        const b = { id, type, x, y, w: 35, h: 8, color: this.state.style.color, text: type, glow: 20, blur: 15, opacity: 1, fontSize: 13, tap_action: 'toggle' };
+        if (type === 'Klima-Bogen') { b.w = 40; b.h = 40; b.color = '#10b981'; }
+        else if (type === 'Hex-Power') { b.w = 25; b.h = 20; }
+        else if (type === 'Pulse-Chart') { b.w = 60; b.h = 20; }
+        else if (type === 'Weather-Card') { b.w = 45; b.h = 12; }
+        else if (type === 'Media-Player') { b.w = 75; b.h = 16; }
+        else if (type === 'Neon-Switch') { b.w = 35; b.h = 16; }
+        else if (type === 'Status-Pill') { b.w = 35; b.h = 8; }
+        else if (type === 'Slider-Dimmer') { b.w = 60; b.h = 16; }
         this.state.blocks.push(b); this.selectBlock(id);
     }
     _renderAll() { 
@@ -672,7 +672,7 @@ class OpenKairoBuilder extends HTMLElement {
         this.state.blocks.forEach(b => {
             const el = document.createElement('div');
             el.className = 'canvas-element' + (this.selectedBlockId === b.id ? ' selected' : '');
-            el.id = b.id; el.style.cssText = `left:${b.x}px; top:${b.y}px; width:${b.w}px; height:${b.h}px; color:${b.color};`;
+            el.id = b.id; el.style.cssText = `left:${b.x}%; top:${b.y}%; width:${b.w}%; height:${b.h}%; color:${b.color};`;
             if(b.glow) el.style.boxShadow = `0 0 ${b.glow}px ${b.color}40`;
             if(b.blur) el.style.backdropFilter = `blur(${b.blur}px)`;
             if (b.type === 'Light') el.innerHTML = BlockRegistry.renderLight(b);
@@ -914,20 +914,31 @@ class OpenKairoBuilder extends HTMLElement {
         if (type === 'mobile') canvas.style.width = '340px';
         else if (type === 'tablet') canvas.style.width = '550px';
         else canvas.style.width = '850px';
+        setTimeout(() => this._renderCanvas(), 600); // Re-render after resize for precision
     }
     _bindResizers(el, b) {
         const root = this.shadowRoot;
+        const board = root.querySelector('#drop-target');
         el.querySelectorAll('.resizer').forEach(r => {
             r.addEventListener('mousedown', e => {
                 e.preventDefault(); e.stopPropagation();
+                const bW = board.offsetWidth, bH = board.offsetHeight;
                 const pos = r.className.split(' ')[1];
-                const startX = e.clientX, startY = e.clientY, startW = b.w, startH = b.h, startXP = b.x, startYP = b.y;
+                const startX = e.clientX, startY = e.clientY;
+                const sW_px = b.w * bW / 100, sH_px = b.h * bH / 100;
+                const sX_px = b.x * bW / 100, sY_px = b.y * bH / 100;
+
                 const onMouseMove = (me) => {
                     const dx = me.clientX - startX, dy = me.clientY - startY;
-                    if (pos.includes('e')) b.w = Math.max(20, startW + dx);
-                    if (pos.includes('s')) b.h = Math.max(20, startH + dy);
-                    if (pos.includes('w')) { b.w = Math.max(20, startW - dx); b.x = startXP + dx; }
-                    if (pos.includes('n')) { b.h = Math.max(20, startH - dy); b.y = startYP + dy; }
+                    let nW = sW_px, nH = sH_px, nX = sX_px, nY = sY_px;
+
+                    if (pos.includes('e')) nW = Math.max(20, sW_px + dx);
+                    if (pos.includes('s')) nH = Math.max(20, sH_px + dy);
+                    if (pos.includes('w')) { nW = Math.max(20, sW_px - dx); nX = sX_px + dx; }
+                    if (pos.includes('n')) { nH = Math.max(20, sH_px - dy); nY = sY_px + dy; }
+
+                    b.w = nW / bW * 100; b.h = nH / bH * 100;
+                    b.x = nX / bW * 100; b.y = nY / bH * 100;
                     this._renderCanvas();
                 };
                 const onMouseUp = () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp); };
