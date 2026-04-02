@@ -215,7 +215,8 @@ class OpenKairoCustomCard extends HTMLElement {
           opacity: 0.9; 
           font-size: 24px; 
           letter-spacing: 6px; 
-          padding-top: 30px; 
+          padding-top: 50px; 
+          margin-bottom: 20px;
           text-transform: uppercase; 
           pointer-events: none;
           position: relative;
@@ -298,9 +299,9 @@ class OpenKairoCustomCard extends HTMLElement {
   handleAction(b) {
     if (!b.entity) return;
     const action = b.tap_action || 'toggle';
-    const domain = b.entity.split('.')[0];
     
     if (action === 'toggle') {
+        const domain = b.entity.split('.')[0];
         this._hass.callService(domain, 'toggle', { entity_id: b.entity });
     } else if (action === 'more-info') {
         const event = new CustomEvent("hass-more-info", {
@@ -327,7 +328,7 @@ class OpenKairoCustomCardEditor extends HTMLElement {
       <div style="padding:24px; color:#fff; background:rgba(8,8,10,0.9); border-radius:18px; border:1px solid rgba(255,255,255,0.1); font-family:'Outfit', sans-serif;">
          <div style="font-weight:900; color:#00f6ff; letter-spacing:2px; margin-bottom:12px; font-size:14px;">KAIRO STUDIO - DASHBOARD EDITOR</div>
          <div style="font-size:12px; opacity:0.6; line-height:1.6;">Design-Änderungen und Layouts werden bequem im <b>Kairo Architect</b> (Seitenleiste) vorgenommen. Deine Änderungen werden hier automatisch übernommen.</div>
-         <button style="margin-top:20px; width:100%; padding:12px; background:#00f6ff; border:none; border-radius:10px; font-weight:900; cursor:pointer;" onclick="window.history.pushState(null,null,'/openkairo'); window.dispatchEvent(new CustomEvent('location-changed'));">ARCHITECT ÖFFNEN</button>
+         <button style="margin-top:20px; width:100%; padding:12px; background:#00f6ff; border:none; border-radius:10px; font-weight:900; cursor:pointer;" onclick="window.top.location.href='/openkairo'">ARCHITECT ÖFFNEN</button>
       </div>`; 
   }
 }
