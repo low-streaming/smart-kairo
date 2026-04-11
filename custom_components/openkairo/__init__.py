@@ -1,6 +1,7 @@
 """OpenKAIRO OS Integration."""
 import logging
 import os
+import json
 import time
 
 from homeassistant.core import HomeAssistant
@@ -38,22 +39,25 @@ async def _setup_internal(hass: HomeAssistant):
             _LOGGER.info(f"OpenKAIRO Resource detected: {file_name}")
 
     try:
-        async_register_built_in_panel(
-            hass,
-            component_name="custom",
-            sidebar_title=PANEL_TITLE,
-            sidebar_icon=PANEL_ICON,
-            frontend_url_path=PANEL_URL,
-            config={
-                "_panel_custom": {
-                    "name": "openkairo-panel",
-                    "embed_iframe": False,
-                    "trust_external": False,
-                    "js_url": f"/openkairo_os/openkairo_panel_v10.js?v={int(time.time())}"
-                }
-            },
-            require_admin=True
-        )
+        # --- OPENKAIRO DEVELOPER MODE ---
+        # To enable the Infinity Studio Builder, uncomment the following block:
+        # 
+        # async_register_built_in_panel(
+        #     hass,
+        #     component_name="custom",
+        #     sidebar_title=PANEL_TITLE,
+        #     sidebar_icon=PANEL_ICON,
+        #     frontend_url_path=PANEL_URL,
+        #     config={
+        #         "_panel_custom": {
+        #             "name": "openkairo-panel",
+        #             "embed_iframe": False,
+        #             "trust_external": False,
+        #             "js_url": f"/openkairo_os/openkairo_panel_v10.js?v={get_version(hass)}"
+        #         }
+        #     },
+        #     require_admin=True
+        # )
 
         # Register Dashboard Card as Lovelace Resource
         if "lovelace" in hass.data:
@@ -90,3 +94,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     async_remove_panel(hass, PANEL_URL)
     _LOGGER.info("OpenKAIRO OS unloaded.")
     return True
+
+def get_version(hass):
+    """Get version from manifest."""
+    try:
+        manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
+        with open(manifest_path, "r") as f:
+            manifest = json.load(f)
+            return manifest.get("version", "1.0.0")
+    except Exception:
+        return "1.0.0"

@@ -135,18 +135,18 @@ const BlockRegistry = {
     renderWeather: (b) => {
         return `
             <div style="width:100%; height:100%; background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; padding:0 12px;">
-                <ha-icon icon="mdi:weather-sunny" style="color:#fbbf24; filter:drop-shadow(0 0 8px #fbbf24);"></ha-icon>
-                <div style="font-size:18px; font-weight:900; color:#fff;">18°</div>
+                <ha-icon icon="mdi:weather-partly-cloudy" style="color:#fbbf24; filter:drop-shadow(0 0 8px #fbbf24);"></ha-icon>
+                <div style="font-size:18px; font-weight:900; color:#fff; font-family:'Outfit';">${b.state || '20'}°</div>
             </div>`;
     },
     renderMediaPlayer: (b) => {
         return `
             <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(15px); border-radius:20px; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; padding:10px;">
-                <div style="width:30px; height:30px; background:linear-gradient(45deg, #7c3aed, #db2777); border-radius:8px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(124, 58, 237, 0.4);">
-                    <ha-icon icon="mdi:music" style="--mdc-icon-size:16px; color:#fff;"></ha-icon>
+                <div style="width:34px; height:34px; background:linear-gradient(45deg, #7c3aed, #db2777); border-radius:10px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 15px rgba(124, 58, 237, 0.4);">
+                    <ha-icon icon="mdi:music" style="--mdc-icon-size:18px; color:#fff;"></ha-icon>
                 </div>
                 <div style="overflow:hidden; flex:1;">
-                    <div style="font-size:10px; font-weight:900; color:#fff; white-space:nowrap;">Night City</div>
+                    <div style="font-size:10px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'Outfit';">${b.text || 'Night City'}</div>
                     <div style="font-size:8px; color:rgba(255,255,255,0.4);">REAKTOR</div>
                 </div>
             </div>`;
@@ -190,43 +190,14 @@ const BlockRegistry = {
             </div>
           </div>`;
     },
-    renderNeonSwitch: (b) => {
-        const color = b.color || '#10b981';
-        return `
-          <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); border:1px solid ${color}; border-radius:16px; display:flex; flex-direction:column; gap:4px; padding:8px; box-shadow: 0 0 15px ${color}30;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <ha-icon icon="mdi:lightbulb-on" style="--mdc-icon-size:16px; color:${color};"></ha-icon>
-              <div style="width:24px; height:12px; background:${color}; border-radius:10px; position:relative;">
-                <div style="position:absolute; width:8px; height:8px; background:#fff; border-radius:50%; top:2px; right:2px;"></div>
-              </div>
-            </div>
-            <div style="font-size:8px; font-weight:900; color:#fff;">${b.text || 'Toggle'}</div>
-          </div>`;
-    },
-    renderStatusPill: (b) => {
-        const color = b.color || '#10b981';
-        return `
-          <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:20px; display:flex; align-items:center; justify-content:center; gap:6px;">
-            <div style="width:6px; height:6px; background:${color}; border-radius:50%; box-shadow:0 0 8px ${color};"></div>
-            <div style="font-size:9px; font-weight:900; color:#fff;">ONLINE</div>
-          </div>`;
-    },
-    renderSliderDimmer: (b) => {
-        const color = b.color || '#10b981';
-        return `
-          <div style="width:100%; height:100%; background:rgba(0,0,0,0.4); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:4px; padding:8px;">
-            <div style="font-size:8px; font-weight:900; color:rgba(255,255,255,0.4);">DIMMER</div>
-            <div style="height:6px; background:rgba(255,255,255,0.05); border-radius:3px; position:relative;">
-                <div style="width:60%; height:100%; background:${color}; border-radius:3px; box-shadow:0 0 10px ${color}80;"></div>
-            </div>
-          </div>`;
-    },
+
     renderEnergyRing: (b) => {
         const color = b.color || '#00f6ff';
         return `
-          <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative;">
-             <div style="position:absolute; width:80%; height:80%; border-radius:50%; border:1px solid ${color}; opacity:0.1;"></div>
-             <div style="font-size:14px; font-weight:900; color:#fff;">240W</div>
+          <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative; background:rgba(0,0,0,0.4); border-radius:50%; border:1px solid rgba(255,255,255,0.05);">
+             <div style="position:absolute; inset:6px; border-radius:50%; border:2px solid ${color}20;"></div>
+             <div style="position:absolute; inset:6px; border-radius:50%; border:2px solid ${color}; clip-path:polygon(50% 50%, 50% 0, 100% 0, 100% 40%, 50% 50%); filter:drop-shadow(0 0 8px ${color});"></div>
+             <div style="font-size:14px; font-weight:900; color:#fff; text-shadow:0 0 10px ${color}80; font-family:'Outfit';">${b.state || '240W'}</div>
           </div>`;
     },
     renderGlitchText: (b) => {
@@ -624,11 +595,16 @@ class OpenKairoBuilder extends HTMLElement {
                 t.classList.add('active'); this.activeRightTab = t.dataset.tab; this.selectBlock(this.selectedBlockId);
             });
         });
-        window.addEventListener('keydown', e => {
-            if (e.ctrlKey && e.key === 'z') { e.preventDefault(); this.undo(); }
-            if (e.ctrlKey && e.key === 'y') { e.preventDefault(); this.redo(); }
-            if (e.key === 'Delete' && this.selectedBlockId) this._deleteSelected();
-        });
+        this._boundKeyHandler = this._handleKeyDown.bind(this);
+        window.addEventListener('keydown', this._boundKeyHandler);
+    }
+    disconnectedCallback() {
+        window.removeEventListener('keydown', this._boundKeyHandler);
+    }
+    _handleKeyDown(e) {
+        if (e.ctrlKey && e.key === 'z') { e.preventDefault(); this.undo(); }
+        if (e.ctrlKey && e.key === 'y') { e.preventDefault(); this.redo(); }
+        if (e.key === 'Delete' && this.selectedBlockId) this._deleteSelected();
     }
     _handleDrop(e) {
         e.preventDefault();
