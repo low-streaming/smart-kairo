@@ -1,8 +1,8 @@
 class OpenKairoCard extends HTMLElement {
   _initGlobalOS() {
-    console.error(">>> OPENKAIRO OS KERNEL INJECTED! <<<");
     if (window.KairoOS) return;
-
+    
+    // Create Global Namespace
     window.KairoOS = {
       idleTime: 0,
       locked: false,
@@ -20,13 +20,6 @@ class OpenKairoCard extends HTMLElement {
           </div>
         `;
         container.appendChild(toast);
-        
-        try {
-          const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3');
-          audio.volume = 0.2;
-          audio.play();
-        } catch(e) {}
-
         requestAnimationFrame(() => toast.style.transform = 'translateY(0)');
         setTimeout(() => {
           toast.style.opacity = '0';
@@ -36,107 +29,99 @@ class OpenKairoCard extends HTMLElement {
       }
     };
 
+    // Inject Styles into Head
     const style = document.createElement('style');
+    style.id = 'kairo-os-styles';
     style.innerHTML = `
       #kairo-toast-container {
-        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        position: fixed; top: 20px; right: 20px; z-index: 200000;
         display: flex; flex-direction: column; gap: 10px; pointer-events: none;
       }
       .kairo-toast {
-        background: rgba(5, 12, 18, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px; padding: 15px 20px;
+        background: rgba(5, 12, 18, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 15px; padding: 15px 20px;
         color: white; display: flex; align-items: center; gap: 15px;
         box-shadow: 0 20px 40px rgba(0,0,0,0.8);
         transform: translateY(-20px); opacity: 1; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        font-family: 'Inter', sans-serif; pointer-events: auto; min-width: 250px;
+        font-family: 'Inter', sans-serif; pointer-events: auto; min-width: 280px;
       }
-      .kairo-toast-error { border-color: rgba(255, 74, 74, 0.5); }
-      .kairo-toast-success { border-color: rgba(5, 240, 160, 0.5); }
+      .kairo-toast-error { border-color: rgba(255, 74, 74, 0.6); }
+      .kairo-toast-success { border-color: rgba(5, 240, 160, 0.6); }
       .toast-icon {
-        width: 30px; height: 30px; border-radius: 50%; background: rgba(16,185,129,0.1);
+        width: 32px; height: 32px; border-radius: 50%; background: rgba(16,185,129,0.15);
         display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Orbitron'; font-size: 1.1rem;
       }
-      .kairo-toast-error .toast-icon { background: rgba(255, 74, 74, 0.1); color: #ff4a4a; }
-      .kairo-toast-success .toast-icon { background: rgba(5, 240, 160, 0.1); color: #05f0a0; }
-      .toast-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 3px; font-family: 'Orbitron'; letter-spacing: 1px;}
+      .kairo-toast-error .toast-icon { background: rgba(255, 74, 74, 0.2); color: #ff4a4a; }
+      .kairo-toast-success .toast-icon { background: rgba(5, 240, 160, 0.2); color: #05f0a0; }
+      .toast-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 2px; font-family: 'Orbitron'; letter-spacing: 1px;}
       .toast-message { font-size: 0.8rem; opacity: 0.7; }
 
       #kairo-lock-screen {
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10001;
-        background: radial-gradient(circle at center, rgba(5,16,20,0.95) 0%, rgba(1,3,5,0.98) 100%);
-        backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 190000;
+        background: radial-gradient(circle at center, rgba(5,16,20,0.96) 0%, rgba(1,3,5,0.99) 100%);
+        backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
         display: none; flex-direction: column; align-items: center; justify-content: center;
         color: white; font-family: 'Orbitron', sans-serif;
         opacity: 0; transition: opacity 0.8s ease; cursor: pointer;
       }
-      .lock-time { font-size: 6rem; font-weight: 900; background: linear-gradient(180deg, #ffffff 30%, #5caaa0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 50px rgba(16,185,129,0.2); margin: 0; line-height: 1.1;}
-      .lock-date { font-size: 1.5rem; font-weight: 300; font-family: 'Inter'; opacity: 0.6; margin-top: 5px; }
-      .lock-hint { position: absolute; bottom: 50px; font-size: 0.8rem; letter-spacing: 4px; color: var(--primary); opacity: 0.8; animation: pulseHint 2s infinite; }
-      @keyframes pulseHint { 0%, 100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-5px); text-shadow: 0 0 10px var(--primary); } }
+      .lock-time { font-size: 7rem; font-weight: 900; background: linear-gradient(180deg, #ffffff 30%, #5caaa0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 50px rgba(16,185,129,0.2); margin: 0; }
+      .lock-date { font-size: 1.6rem; font-weight: 300; font-family: 'Inter'; opacity: 0.6; margin-top: 10px; }
+      .lock-hint { position: absolute; bottom: 60px; font-size: 0.9rem; letter-spacing: 5px; color: #10b981; animation: pulseHint 2s infinite; }
+      @keyframes pulseHint { 0%, 100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-5px); } }
 
       #kairo-fab {
-        position: fixed; bottom: 30px; right: 30px; z-index: 10002;
-        width: 60px; height: 60px; border-radius: 30px;
-        background: rgba(5,12,18,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(16,185,129,0.4);
+        position: fixed; bottom: 40px; right: 40px; z-index: 180000;
+        width: 65px; height: 65px; border-radius: 50%;
+        background: rgba(16, 185, 129, 0.15); backdrop-filter: blur(25px); border: 1px solid rgba(16,185,129,0.5);
         display: flex; align-items: center; justify-content: center; cursor: pointer;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(16,185,129,0.2);
-        color: #10b981; font-family: 'Orbitron'; font-weight: 900; font-size: 0.9rem; letter-spacing: 1px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.6), 0 0 20px rgba(16,185,129,0.15);
+        color: #10b981; font-family: 'Orbitron'; font-weight: 900; font-size: 1rem;
         transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
-      #kairo-fab:hover { transform: scale(1.1) translateY(-5px); background: rgba(16,185,129,0.15); border-color: #10b981; box-shadow: 0 15px 40px rgba(16,185,129,0.3); }
+      #kairo-fab:hover { transform: scale(1.15) rotate(5deg); background: rgba(16,185,129,0.25); border-color: #05f0a0; box-shadow: 0 20px 50px rgba(16,185,129,0.4); }
     `;
     document.head.appendChild(style);
 
+    // Create Toast Container
     const toasts = document.createElement('div');
     toasts.id = 'kairo-toast-container';
     document.body.appendChild(toasts);
 
+    // Create Lock Screen
     const lock = document.createElement('div');
     lock.id = 'kairo-lock-screen';
-    lock.innerHTML = `
-      <div class="lock-time">--:--</div>
-      <div class="lock-date">KAIRO OS</div>
-      <div class="lock-hint">CLICK TO UNLOCK</div>
-    `;
+    lock.innerHTML = `<div class="lock-time">--:--</div><div class="lock-date">KAIRO OS</div><div class="lock-hint">CLICK TO UNLOCK</div>`;
     document.body.appendChild(lock);
 
+    // Create FAB
     const fab = document.createElement('div');
     fab.id = 'kairo-fab';
     fab.innerHTML = 'SYS';
     document.body.appendChild(fab);
 
+    // OS Background Services
     setInterval(() => {
       window.KairoOS.idleTime++;
-      if (window.KairoOS.idleTime > 60 && !window.KairoOS.locked) { // 60s idle timeout
+      if (window.KairoOS.idleTime > 300 && !window.KairoOS.locked) { // Default 5min idle
         window.KairoOS.locked = true;
         lock.style.display = 'flex';
-        void lock.offsetWidth;
-        lock.style.opacity = '1';
+        setTimeout(() => lock.style.opacity = '1', 10);
       }
-      
       if (window.KairoOS.locked) {
         const now = new Date();
-        lock.querySelector('.lock-time').innerText = now.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
-        lock.querySelector('.lock-date').innerText = now.toLocaleDateString('de-DE', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+        lock.querySelector('.lock-time').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+        lock.querySelector('.lock-date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
       }
     }, 1000);
 
-    const resetIdle = () => {
-      if (window.KairoOS.locked) return;
-      window.KairoOS.idleTime = 0;
-    };
-
-    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => 
-      window.addEventListener(evt, resetIdle, {passive: true})
-    );
+    // Event Listeners
+    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => window.addEventListener(evt, () => {
+      if (!window.KairoOS.locked) window.KairoOS.idleTime = 0;
+    }, {passive: true}));
 
     lock.addEventListener('click', () => {
       lock.style.opacity = '0';
-      setTimeout(() => {
-        lock.style.display = 'none';
-        window.KairoOS.locked = false;
-        window.KairoOS.idleTime = 0;
-      }, 800);
+      setTimeout(() => { lock.style.display = 'none'; window.KairoOS.locked = false; window.KairoOS.idleTime = 0; }, 800);
     });
 
     fab.addEventListener('click', () => {
@@ -147,19 +132,14 @@ class OpenKairoCard extends HTMLElement {
              window.KairoOS.launchpad.style.transform = 'scale(1)';
              window.KairoOS.launchpad.style.pointerEvents = 'auto';
          }, 10);
-       } else {
-         window.KairoOS.showToast('Achtung', 'Das Launchpad ist gerade nicht im DOM gemounted.', 'error');
        }
     });
 
-    setTimeout(() => {
-      window.KairoOS.showToast('OS Initialisiert', 'Das OpenKAIRO System-Level ist bereit.', 'success');
-    }, 2000);
+    setTimeout(() => window.KairoOS.showToast('OS Initialisiert', 'Das OpenKAIRO System-Level ist bereit.', 'success'), 1500);
   }
 
   set hass(hass) {
     if (!this.initialized) {
-      console.error(">>> OPENKAIRO CARD INIT STARTED! <<<");
       this.initialized = true;
       this._initGlobalOS();
       this.innerHTML = `
