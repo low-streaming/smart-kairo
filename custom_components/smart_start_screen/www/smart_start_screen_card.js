@@ -1,7 +1,165 @@
 class OpenKairoCard extends HTMLElement {
+  _initGlobalOS() {
+    if (window.KairoOS) return;
+
+    window.KairoOS = {
+      idleTime: 0,
+      locked: false,
+      launchpad: null,
+      showToast: (title, message, type = 'info') => {
+        const container = document.getElementById('kairo-toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `kairo-toast kairo-toast-${type}`;
+        toast.innerHTML = `
+          <div class="toast-icon">${type === 'error' ? '!' : (type === 'success' ? '✓' : 'i')}</div>
+          <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+          </div>
+        `;
+        container.appendChild(toast);
+        
+        try {
+          const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3');
+          audio.volume = 0.2;
+          audio.play();
+        } catch(e) {}
+
+        requestAnimationFrame(() => toast.style.transform = 'translateY(0)');
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(20px)';
+          setTimeout(() => toast.remove(), 400);
+        }, 5000);
+      }
+    };
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+      #kairo-toast-container {
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+      }
+      .kairo-toast {
+        background: rgba(5, 12, 18, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px; padding: 15px 20px;
+        color: white; display: flex; align-items: center; gap: 15px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        transform: translateY(-20px); opacity: 1; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-family: 'Inter', sans-serif; pointer-events: auto; min-width: 250px;
+      }
+      .kairo-toast-error { border-color: rgba(255, 74, 74, 0.5); }
+      .kairo-toast-success { border-color: rgba(5, 240, 160, 0.5); }
+      .toast-icon {
+        width: 30px; height: 30px; border-radius: 50%; background: rgba(16,185,129,0.1);
+        display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Orbitron'; font-size: 1.1rem;
+      }
+      .kairo-toast-error .toast-icon { background: rgba(255, 74, 74, 0.1); color: #ff4a4a; }
+      .kairo-toast-success .toast-icon { background: rgba(5, 240, 160, 0.1); color: #05f0a0; }
+      .toast-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 3px; font-family: 'Orbitron'; letter-spacing: 1px;}
+      .toast-message { font-size: 0.8rem; opacity: 0.7; }
+
+      #kairo-lock-screen {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10001;
+        background: radial-gradient(circle at center, rgba(5,16,20,0.95) 0%, rgba(1,3,5,0.98) 100%);
+        backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+        display: none; flex-direction: column; align-items: center; justify-content: center;
+        color: white; font-family: 'Orbitron', sans-serif;
+        opacity: 0; transition: opacity 0.8s ease; cursor: pointer;
+      }
+      .lock-time { font-size: 6rem; font-weight: 900; background: linear-gradient(180deg, #ffffff 30%, #5caaa0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 50px rgba(16,185,129,0.2); margin: 0; line-height: 1.1;}
+      .lock-date { font-size: 1.5rem; font-weight: 300; font-family: 'Inter'; opacity: 0.6; margin-top: 5px; }
+      .lock-hint { position: absolute; bottom: 50px; font-size: 0.8rem; letter-spacing: 4px; color: var(--primary); opacity: 0.8; animation: pulseHint 2s infinite; }
+      @keyframes pulseHint { 0%, 100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-5px); text-shadow: 0 0 10px var(--primary); } }
+
+      #kairo-fab {
+        position: fixed; bottom: 30px; right: 30px; z-index: 9998;
+        width: 60px; height: 60px; border-radius: 30px;
+        background: rgba(5,12,18,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(16,185,129,0.4);
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(16,185,129,0.2);
+        color: #10b981; font-family: 'Orbitron'; font-weight: 900; font-size: 0.9rem; letter-spacing: 1px;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      #kairo-fab:hover { transform: scale(1.1) translateY(-5px); background: rgba(16,185,129,0.15); border-color: #10b981; box-shadow: 0 15px 40px rgba(16,185,129,0.3); }
+    `;
+    document.head.appendChild(style);
+
+    const toasts = document.createElement('div');
+    toasts.id = 'kairo-toast-container';
+    document.body.appendChild(toasts);
+
+    const lock = document.createElement('div');
+    lock.id = 'kairo-lock-screen';
+    lock.innerHTML = `
+      <div class="lock-time">--:--</div>
+      <div class="lock-date">KAIRO OS</div>
+      <div class="lock-hint">CLICK TO UNLOCK</div>
+    `;
+    document.body.appendChild(lock);
+
+    const fab = document.createElement('div');
+    fab.id = 'kairo-fab';
+    fab.innerHTML = 'SYS';
+    document.body.appendChild(fab);
+
+    setInterval(() => {
+      window.KairoOS.idleTime++;
+      if (window.KairoOS.idleTime > 60 && !window.KairoOS.locked) { // 60s idle timeout
+        window.KairoOS.locked = true;
+        lock.style.display = 'flex';
+        void lock.offsetWidth;
+        lock.style.opacity = '1';
+      }
+      
+      if (window.KairoOS.locked) {
+        const now = new Date();
+        lock.querySelector('.lock-time').innerText = now.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+        lock.querySelector('.lock-date').innerText = now.toLocaleDateString('de-DE', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+      }
+    }, 1000);
+
+    const resetIdle = () => {
+      if (window.KairoOS.locked) return;
+      window.KairoOS.idleTime = 0;
+    };
+
+    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => 
+      window.addEventListener(evt, resetIdle, {passive: true})
+    );
+
+    lock.addEventListener('click', () => {
+      lock.style.opacity = '0';
+      setTimeout(() => {
+        lock.style.display = 'none';
+        window.KairoOS.locked = false;
+        window.KairoOS.idleTime = 0;
+      }, 800);
+    });
+
+    fab.addEventListener('click', () => {
+       if (window.KairoOS.launchpad) {
+         window.KairoOS.launchpad.style.display = 'flex';
+         setTimeout(() => {
+             window.KairoOS.launchpad.style.opacity = '1';
+             window.KairoOS.launchpad.style.transform = 'scale(1)';
+             window.KairoOS.launchpad.style.pointerEvents = 'auto';
+         }, 10);
+       } else {
+         window.KairoOS.showToast('Achtung', 'Das Launchpad ist gerade nicht im DOM gemounted.', 'error');
+       }
+    });
+
+    setTimeout(() => {
+      window.KairoOS.showToast('OS Initialisiert', 'Das OpenKAIRO System-Level ist bereit.', 'success');
+    }, 2000);
+  }
+
   set hass(hass) {
     if (!this.initialized) {
       this.initialized = true;
+      this._initGlobalOS();
       this.innerHTML = `
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;800&display=swap');
@@ -531,15 +689,18 @@ class OpenKairoCard extends HTMLElement {
         setTimeout(() => { osLayer.style.display = 'none'; }, 600);
       };
       
+      if (window.KairoOS) {
+         window.KairoOS.launchpad = this.querySelector('#os-container');
+      }
+      
       // Shortcuts to meaningful pages
       this.querySelector('#dev-btn').onclick = () => { window.location.href = '/config/devices/dashboard'; };
       this.querySelector('#auto-btn').onclick = () => { window.location.href = '/config/automation/dashboard'; };
       this.querySelector('#ent-btn').onclick = () => { window.location.href = '/config/entities'; };
     }
 
-    try {
-      if (!hass || !hass.states) return;
-      this._hass = hass; 
+    // --- Update Checker & Sci-Fi Logs ---
+    this._hass = hass; // Save the reference so the interval always grabs the LIVE data and not a stale first-render object
 
     const updateBanner = this.querySelector('#update-banner');
     const updateEntities = Object.keys(this._hass.states).filter(k => k.startsWith('update.') && this._hass.states[k].state === 'on');
@@ -683,16 +844,10 @@ class OpenKairoCard extends HTMLElement {
            };
         });
       }
-      }
-    } catch (err) {
-      console.error("OpenKairo OS Launchpad Error:", err);
     }
   }
 
-  setConfig(config) {
-    if (!config) throw new Error("Invalid configuration");
-    this._config = Object.assign({}, config);
-  }
+  setConfig(config) {}
   getCardSize() { return 10; }
 }
 
