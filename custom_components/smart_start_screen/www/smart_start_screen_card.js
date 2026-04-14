@@ -1,5 +1,6 @@
 class OpenKairoCard extends HTMLElement {
   _initGlobalOS() {
+    console.error(">>> OPENKAIRO OS KERNEL INJECTED! <<<");
     if (window.KairoOS) return;
 
     window.KairoOS = {
@@ -158,6 +159,7 @@ class OpenKairoCard extends HTMLElement {
 
   set hass(hass) {
     if (!this.initialized) {
+      console.error(">>> OPENKAIRO CARD INIT STARTED! <<<");
       this.initialized = true;
       this._initGlobalOS();
       this.innerHTML = `
