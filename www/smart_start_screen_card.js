@@ -74,7 +74,7 @@ class OpenKairoCard extends HTMLElement {
       @keyframes pulseHint { 0%, 100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-5px); text-shadow: 0 0 10px var(--primary); } }
 
       #kairo-fab {
-        position: fixed; bottom: 30px; right: 30px; z-index: 9998;
+        position: fixed; bottom: 30px; right: 30px; z-index: 10002;
         width: 60px; height: 60px; border-radius: 30px;
         background: rgba(5,12,18,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(16,185,129,0.4);
         display: flex; align-items: center; justify-content: center; cursor: pointer;
