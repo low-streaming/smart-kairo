@@ -1,12 +1,15 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.2.4 ---
-console.log("%c 🚀 KAIRO OS V4.2.4 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.2.5 ---
+console.log("%c 🚀 KAIRO OS V4.2.5 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 class OpenKairoCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
   }
-  setConfig(config) { this._config = config; }
+  setConfig(config) { 
+    this._config = config || {}; 
+    if (this.initialized) this.render();
+  }
   set hass(hass) {
     this._hass = hass;
     if (!this.initialized) {
@@ -16,6 +19,7 @@ class OpenKairoCardEditor extends HTMLElement {
   }
   render() {
     if (!this._hass) return;
+    const config = this._config || {};
     const entities = Object.keys(this._hass.states).sort();
     this.shadowRoot.innerHTML = `
       <style>
@@ -23,36 +27,44 @@ class OpenKairoCardEditor extends HTMLElement {
         .row { margin-bottom: 16px; }
         label { display: block; font-size: 10px; font-weight: 800; color: #05f0a0; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
         select { width: 100%; padding: 10px; border-radius: 8px; background: #1a1d23; color: #fff; border: 1px solid #333; outline: none; }
+        .success-msg { color: #10b981; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; }
       </style>
       <div class="config">
+        <h3 style="margin-top:0; color: white;">OS Konfiguration</h3>
         <div class="row">
           <label>Netz-Verbrauch (W)</label>
           <select id="energy_main_entity">
             <option value="">-- Sensor wählen --</option>
-            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_main_entity ? 'selected' : ''}>${e}</option>`).join('')}
+            ${entities.map(e => `<option value="${e}" ${e === config.energy_main_entity ? 'selected' : ''}>${e}</option>`).join('')}
           </select>
         </div>
         <div class="row">
           <label>Solar-Erzeugung (W)</label>
           <select id="energy_solar_entity">
             <option value="">-- Sensor wählen --</option>
-            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_solar_entity ? 'selected' : ''}>${e}</option>`).join('')}
+            ${entities.map(e => `<option value="${e}" ${e === config.energy_solar_entity ? 'selected' : ''}>${e}</option>`).join('')}
           </select>
         </div>
         <div class="row">
           <label>Wetter-Entität</label>
           <select id="weather_entity">
             <option value="">-- Wetter wählen --</option>
-            ${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}" ${e === this._config.weather_entity ? 'selected' : ''}>${e}</option>`).join('')}
+            ${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}" ${e === config.weather_entity ? 'selected' : ''}>${e}</option>`).join('')}
           </select>
         </div>
+        <div id="success" class="success-msg">✓ Gespeichert</div>
       </div>
     `;
     this.shadowRoot.querySelectorAll('select').forEach(el => {
       el.addEventListener('change', (ev) => {
-        const config = { ...this._config, [ev.target.id]: ev.target.value };
-        const event = new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true });
+        const newConfig = { ...this._config, [ev.target.id]: ev.target.value };
+        this._config = newConfig;
+        const event = new CustomEvent("config-changed", { detail: { config: newConfig }, bubbles: true, composed: true });
         this.dispatchEvent(event);
+        
+        const success = this.shadowRoot.getElementById('success');
+        success.style.display = 'block';
+        setTimeout(() => success.style.display = 'none', 2000);
       });
     });
   }
@@ -70,12 +82,38 @@ class OpenKairoCard extends HTMLElement {
   static getStubConfig() { return { energy_main_entity: "", energy_solar_entity: "", weather_entity: "" }; }
 
   setConfig(config) { this._config = config; }
+  
+  set editMode(editMode) {
+    this._editMode = editMode;
+    if (this.shadowRoot) {
+      const osContainer = this.shadowRoot.getElementById('os-container');
+      if (osContainer) {
+        if (editMode) {
+          osContainer.style.position = 'relative';
+          osContainer.style.zIndex = '1';
+          osContainer.style.borderRadius = '16px';
+        } else {
+          osContainer.style.position = 'fixed';
+          osContainer.style.zIndex = '9999';
+          osContainer.style.borderRadius = '0px';
+        }
+      }
+    }
+  }
+
   set hass(hass) {
     this._hass = hass;
     if (!this.initialized) {
       this.initialized = true;
       this.attachShadow({ mode: 'open' });
       this.render();
+      // Auto-detect if inside editor preview
+      setTimeout(() => {
+        const parent = this.getRootNode();
+        if (parent && parent.host && parent.host.tagName === 'HUI-CARD-PREVIEW') {
+            this.editMode = true;
+        }
+      }, 100);
     }
     this.updateData();
   }
@@ -90,19 +128,21 @@ class OpenKairoCard extends HTMLElement {
           --font-main: 'Outfit', sans-serif;
           --glass: rgba(255,255,255,0.03);
           --glass-border: rgba(255,255,255,0.08);
+          display: block;
         }
         
         .kairo-os { 
           position: fixed; inset: 0; background: #020406; 
           font-family: var(--font-main); display: flex; z-index: 9999; 
           padding: 40px; gap: 40px; color: white; overflow: hidden;
+          transition: all 0.3s ease;
         }
 
         .mesh {
           position: absolute; inset: 0; z-index: 0;
           background: radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%), 
                       radial-gradient(at 100% 100%, hsla(161, 84%, 39%, 0.05) 0, transparent 50%);
-          filter: blur(80px);
+          filter: blur(80px); pointer-events: none;
         }
 
         .left { flex: 4; display: flex; flex-direction: column; justify-content: space-between; position: relative; z-index: 10; }
@@ -133,6 +173,12 @@ class OpenKairoCard extends HTMLElement {
 
         #kairo-fab { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--glass); border-radius: 15px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; font-size: 0.7rem; border: 1px solid var(--glass-border); color: white; backdrop-filter: blur(10px); }
         #kairo-fab:hover { background: var(--primary); color: #000; }
+
+        @media (max-width: 800px) {
+           .kairo-os { flex-direction: column; overflow-y: auto; position: absolute; }
+           .right { grid-template-columns: 1fr; }
+           .energy, .btn-main { grid-column: 1; }
+        }
       </style>
 
       <div class="kairo-os" id="os-container">
@@ -225,5 +271,5 @@ window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
   editor: "openkairo-card-editor",
-  description: "Redesigned Bento-Grid OS Layer (V4.2.4)."
+  description: "Redesigned Bento-Grid OS Layer (V4.2.5)."
 });
