@@ -121,58 +121,63 @@ class OpenKairoCard extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;400;600;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;600;800;900&display=swap');
         :host { 
           --primary: #10b981; 
           --accent: #05f0a0; 
           --font-main: 'Outfit', sans-serif;
-          --glass: rgba(255,255,255,0.03);
-          --glass-border: rgba(255,255,255,0.08);
+          --glass: rgba(15, 20, 25, 0.4);
+          --glass-border: rgba(255, 255, 255, 0.06);
+          --glass-highlight: rgba(255, 255, 255, 0.1);
           display: block;
         }
         
         .kairo-os { 
-          position: fixed; inset: 0; background: #020406; 
+          position: fixed; inset: 0; background: #010203; 
           font-family: var(--font-main); display: flex; z-index: 9999; 
-          padding: 40px; gap: 40px; color: white; overflow: hidden;
+          padding: 50px 60px; gap: 50px; color: white; overflow: hidden;
           transition: all 0.3s ease;
         }
 
         .mesh {
           position: absolute; inset: 0; z-index: 0;
-          background: radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%), 
-                      radial-gradient(at 100% 100%, hsla(161, 84%, 39%, 0.05) 0, transparent 50%);
-          filter: blur(80px); pointer-events: none;
+          background: radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.15) 0, transparent 40%), 
+                      radial-gradient(at 100% 100%, hsla(161, 84%, 39%, 0.08) 0, transparent 40%);
+          filter: blur(60px); pointer-events: none;
         }
 
-        .left { flex: 4; display: flex; flex-direction: column; justify-content: space-between; position: relative; z-index: 10; }
-        .branding { display: flex; align-items: center; gap: 15px; font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; }
+        .left { flex: 4; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; padding-bottom: 20px; }
+        .branding { display: flex; align-items: center; gap: 15px; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; margin-bottom: 40px; }
         
-        .clock-area { margin-top: 30px; }
-        .clock { font-size: 5rem; font-weight: 900; letter-spacing: -3px; margin: 0; line-height: 1; }
-        .date { opacity: 0.5; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-top: 5px; }
-        .weather { margin-top: 15px; font-weight: 600; font-size: 1rem; color: var(--accent); }
+        .clock-area { margin-bottom: 40px; }
+        .clock { font-size: 6.5rem; font-weight: 800; letter-spacing: -3px; margin: 0; line-height: 1; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .date { opacity: 0.6; text-transform: uppercase; letter-spacing: 3px; font-size: 1rem; margin-top: 10px; font-weight: 600; }
+        .weather { margin-top: 15px; font-weight: 600; font-size: 1.1rem; color: var(--accent); display: flex; align-items: center; gap: 8px; }
 
-        .health { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px 20px; border-radius: 100px; width: fit-content; font-size: 0.7rem; font-weight: 900; letter-spacing: 1px; color: var(--accent); display: flex; align-items: center; gap: 10px; }
-        .health-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+        .health { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 10px 20px; border-radius: 100px; width: fit-content; font-size: 0.75rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); display: flex; align-items: center; gap: 10px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.05); }
+        .health-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 12px var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
 
-        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 15px; position: relative; z-index: 10; }
-        .bento { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px; transition: 0.3s ease; cursor: pointer; }
-        .bento:hover { background: rgba(255,255,255,0.06); transform: translateY(-4px); }
+        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: min-content min-content auto; gap: 20px; position: relative; z-index: 10; align-content: center; }
+        .bento { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 30px; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .bento::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 100%); opacity: 0.5; pointer-events: none; }
+        .bento:hover { transform: translateY(-5px); border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
 
-        .energy { grid-column: span 2; display: flex; justify-content: space-between; align-items: center; padding: 25px 35px; }
-        .energy-val { font-size: 2rem; font-weight: 900; }
-        .energy-label { font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
+        .energy { grid-column: span 2; flex-direction: row; align-items: center; padding: 35px 40px; }
+        .energy-val { font-size: 3.5rem; font-weight: 800; line-height: 1; margin: 10px 0; text-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .energy-label { font-size: 0.8rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+        .energy-icon-wrapper { width: 70px; height: 70px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); border: 2px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.2); }
 
-        .stat-label { font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; }
-        .stat-val { font-size: 2rem; font-weight: 900; }
+        .stat-card { min-height: 160px; }
+        .stat-label { font-size: 0.8rem; opacity: 0.6; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+        .stat-val { font-size: 3.5rem; font-weight: 800; line-height: 1; }
 
-        .btn-main { grid-column: span 2; background: var(--primary); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; letter-spacing: 1px; border: none; height: 70px; }
-        .btn-main:hover { background: var(--accent); }
+        .btn-main { grid-column: span 2; background: linear-gradient(135deg, var(--primary) 0%, #0d9467 100%); color: #000; font-weight: 900; display: flex; flex-direction: row; align-items: center; justify-content: center; font-size: 1.2rem; letter-spacing: 2px; border: none; height: 80px; padding: 0; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2); }
+        .btn-main::before { display: none; }
+        .btn-main:hover { transform: scale(0.98); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
 
-        #kairo-fab { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--glass); border-radius: 15px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; font-size: 0.7rem; border: 1px solid var(--glass-border); color: white; backdrop-filter: blur(10px); }
-        #kairo-fab:hover { background: var(--primary); color: #000; }
+        #kairo-fab { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; background: rgba(15, 20, 25, 0.6); border-radius: 18px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; font-size: 0.8rem; border: 1px solid var(--glass-border); color: white; backdrop-filter: blur(20px); transition: 0.3s; }
+        #kairo-fab:hover { background: var(--primary); color: #000; transform: rotate(10deg); }
 
         @media (max-width: 800px) {
            .kairo-os { flex-direction: column; overflow-y: auto; position: absolute; }
@@ -206,16 +211,18 @@ class OpenKairoCard extends HTMLElement {
             <div>
               <div class="energy-label">Energy Hub</div>
               <div class="energy-val" id="p-main">0 W</div>
-              <div style="opacity:0.6; font-size:0.8rem; margin-top:4px;">Solar: <span id="p-solar" style="color:var(--accent)">0 W</span></div>
+              <div style="opacity:0.7; font-size:0.9rem; font-weight: 600; letter-spacing: 1px;">SOLAR: <span id="p-solar" style="color:var(--accent)">0 W</span></div>
             </div>
-            <ha-icon icon="mdi:lightning-bolt" style="color:var(--accent); --mdc-icon-size:32px;"></ha-icon>
+            <div class="energy-icon-wrapper">
+              <ha-icon icon="mdi:lightning-bolt" style="color:var(--accent); --mdc-icon-size:36px;"></ha-icon>
+            </div>
           </div>
 
-          <div class="bento">
-            <div class="stat-label">Geräte</div>
+          <div class="bento stat-card">
+            <div class="stat-label">Geräte Online</div>
             <div class="stat-val" id="v-dev">0</div>
           </div>
-          <div class="bento">
+          <div class="bento stat-card">
             <div class="stat-label">Routinen</div>
             <div class="stat-val" id="v-auto">0</div>
           </div>
