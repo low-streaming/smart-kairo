@@ -1,13 +1,12 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.2.2 ---
+// --- OPENKAIRO OS LAUNCHPAD V4.2.3 ---
+console.log("%c 🚀 OPENKAIRO OS LAUNCHPAD V4.2.3 LOADED ", "background: #10b981; color: #000; font-weight: bold;");
 
 class OpenKairoCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
   }
-  setConfig(config) {
-    this._config = config;
-  }
+  setConfig(config) { this._config = config; }
   set hass(hass) {
     this._hass = hass;
     if (!this.initialized) {
@@ -20,30 +19,31 @@ class OpenKairoCardEditor extends HTMLElement {
     const entities = Object.keys(this._hass.states).sort();
     this.shadowRoot.innerHTML = `
       <style>
-        .config-container { padding: 20px; font-family: sans-serif; }
+        .config-container { padding: 20px; font-family: sans-serif; background: #111; color: #fff; }
         .row { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: #10b981; font-size: 12px; text-transform: uppercase; }
-        select { width: 100%; padding: 10px; border-radius: 8px; background: var(--card-background-color); color: var(--primary-text-color); border: 1px solid var(--divider-color); }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #10b981; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        select { width: 100%; padding: 12px; border-radius: 12px; background: #222; color: #fff; border: 1px solid #333; outline: none; }
+        select:focus { border-color: #10b981; }
       </style>
       <div class="config-container">
         <div class="row">
           <label>Netz-Verbrauch (W)</label>
           <select id="energy_main_entity">
-            <option value="">-- Wählen --</option>
+            <option value="">-- Sensor wählen --</option>
             ${entities.map(e => `<option value="${e}" ${e === this._config.energy_main_entity ? 'selected' : ''}>${e}</option>`).join('')}
           </select>
         </div>
         <div class="row">
           <label>Solar-Erzeugung (W)</label>
           <select id="energy_solar_entity">
-            <option value="">-- Wählen --</option>
+            <option value="">-- Sensor wählen --</option>
             ${entities.map(e => `<option value="${e}" ${e === this._config.energy_solar_entity ? 'selected' : ''}>${e}</option>`).join('')}
           </select>
         </div>
         <div class="row">
           <label>Wetter-Entität</label>
           <select id="weather_entity">
-            <option value="">-- Wählen --</option>
+            <option value="">-- Wetter wählen --</option>
             ${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}" ${e === this._config.weather_entity ? 'selected' : ''}>${e}</option>`).join('')}
           </select>
         </div>
@@ -58,7 +58,9 @@ class OpenKairoCardEditor extends HTMLElement {
     });
   }
 }
-customElements.define('openkairo-card-editor', OpenKairoCardEditor);
+if (!customElements.get('openkairo-card-editor')) {
+  customElements.define('openkairo-card-editor', OpenKairoCardEditor);
+}
 
 class OpenKairoCard extends HTMLElement {
   constructor() {
@@ -84,15 +86,15 @@ class OpenKairoCard extends HTMLElement {
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;400;900&display=swap');
         :host { --primary: #10b981; --accent: #05f0a0; --font-main: 'Outfit', sans-serif; }
-        .kairo-os { position: fixed; inset: 0; background: #020406; font-family: var(--font-main); display: flex; z-index: 9999; padding: 60px; gap: 60px; }
+        .kairo-os { position: fixed; inset: 0; background: #020406; font-family: var(--font-main); display: flex; z-index: 9999; padding: 60px; gap: 60px; color: white; }
         .left { flex: 4; display: flex; flex-direction: column; justify-content: space-between; }
         .clock { font-size: 6rem; font-weight: 900; letter-spacing: -4px; margin: 20px 0; }
         .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .bento { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 32px; padding: 30px; }
         .energy { grid-column: span 2; display: flex; justify-content: space-between; align-items: center; border-color: rgba(16,185,129,0.2); }
         .energy-val { font-size: 2.5rem; font-weight: 900; }
-        .btn-main { grid-column: span 2; background: var(--primary); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        #kairo-fab { position: fixed; bottom: 40px; right: 40px; width: 60px; height: 60px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-main { grid-column: span 2; background: var(--primary); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 1.4rem; letter-spacing: 1px; }
+        #kairo-fab { position: fixed; bottom: 40px; right: 40px; width: 60px; height: 60px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; border: 1px solid rgba(255,255,255,0.1); color: white; }
       </style>
       <div class="kairo-os" id="os-container">
         <div class="left">
@@ -100,7 +102,7 @@ class OpenKairoCard extends HTMLElement {
             <div style="font-weight:900; font-size:1.8rem;">KAIRO <span style="color:var(--primary)">OS</span></div>
             <div class="clock" id="clock">--:--</div>
             <div id="date" style="opacity:0.5; text-transform:uppercase; letter-spacing:2px;">--</div>
-            <div id="weather" style="margin-top:20px; font-weight:600; display:none;"></div>
+            <div id="weather" style="margin-top:20px; font-weight:600; font-size:1.1rem;"></div>
           </div>
           <div style="background:rgba(255,255,255,0.03); padding:15px 25px; border-radius:100px; width:fit-content; color:var(--accent); font-size:0.8rem; font-weight:900;">SYSTEM OPTIMAL</div>
         </div>
@@ -126,12 +128,8 @@ class OpenKairoCard extends HTMLElement {
       </div>
       <div id="kairo-fab">SYS</div>
     `;
-    this.shadowRoot.getElementById('go').onclick = () => {
-      this.shadowRoot.getElementById('os-container').style.display = 'none';
-    };
-    this.shadowRoot.getElementById('kairo-fab').onclick = () => {
-      this.shadowRoot.getElementById('os-container').style.display = 'flex';
-    };
+    this.shadowRoot.getElementById('go').onclick = () => { this.shadowRoot.getElementById('os-container').style.display = 'none'; };
+    this.shadowRoot.getElementById('kairo-fab').onclick = () => { this.shadowRoot.getElementById('os-container').style.display = 'flex'; };
     setInterval(() => {
       const now = new Date();
       if(this.shadowRoot.getElementById('clock')) this.shadowRoot.getElementById('clock').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
@@ -148,27 +146,31 @@ class OpenKairoCard extends HTMLElement {
     if(shadow.getElementById('v-auto')) shadow.getElementById('v-auto').innerText = Object.values(this._hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
 
     const w = config.weather_entity ? this._hass.states[config.weather_entity] : null;
-    if (w) {
-      shadow.getElementById('weather').style.display = 'block';
-      shadow.getElementById('weather').innerText = `${w.attributes.temperature}°C | ${w.state}`;
+    if (w && shadow.getElementById('weather')) {
+      shadow.getElementById('weather').innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
     }
 
     const m = config.energy_main_entity ? this._hass.states[config.energy_main_entity] : null;
-    if (m) {
+    if (m && shadow.getElementById('p-main')) {
       const val = Math.round(parseFloat(m.state) || 0);
       shadow.getElementById('p-main').innerText = `${val} W`;
       shadow.getElementById('p-main').style.color = val < 0 ? 'var(--accent)' : 'white';
     }
     const s = config.energy_solar_entity ? this._hass.states[config.energy_solar_entity] : null;
-    if (s) shadow.getElementById('p-solar').innerText = `${Math.round(parseFloat(s.state) || 0)} W`;
+    if (s && shadow.getElementById('p-solar')) shadow.getElementById('p-solar').innerText = `${Math.round(parseFloat(s.state) || 0)} W`;
   }
 }
-customElements.define('openkairo-card', OpenKairoCard);
+if (!customElements.get('openkairo-card')) {
+  customElements.define('openkairo-card', OpenKairoCard);
+}
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "openkairo-card",
-  name: "OpenKairo OS Launchpad",
-  editor: "openkairo-card-editor",
-  description: "Bento-Grid OS Layer for OpenKairo (V4.2.2)."
-});
+const existingCard = window.customCards.find(c => c.type === 'openkairo-card');
+if (!existingCard) {
+  window.customCards.push({
+    type: "openkairo-card",
+    name: "OpenKairo OS Launchpad",
+    editor: "openkairo-card-editor",
+    description: "Final Bento-Grid OS Layer (V4.2.3)."
+  });
+}

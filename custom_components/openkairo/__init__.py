@@ -22,11 +22,11 @@ async def _setup_internal(hass: HomeAssistant, config: dict = None):
 
     static_path = hass.config.path(f"custom_components/{DOMAIN}/www")
     
-    # Check if folder exists, if not create it
+    # Ensure folder exists
     if not os.path.exists(static_path):
         os.makedirs(static_path)
 
-    # Register multiple paths for backward compatibility
+    # Register static paths
     await hass.http.async_register_static_paths([
         StaticPathConfig(url_path="/openkairo_os", path=static_path, cache_headers=False),
         StaticPathConfig(url_path="/smart_start_screen", path=static_path, cache_headers=False)
@@ -35,42 +35,57 @@ async def _setup_internal(hass: HomeAssistant, config: dict = None):
     version = get_version(hass)
     files = await hass.async_add_executor_job(os.listdir, static_path)
     
+    # 1. Add as extra JS URLs (for global OS features)
     for file_name in files:
         if file_name.endswith(".js"):
-            # Inject as extra JS URL for global availability
-            # Using /openkairo_os/ as the primary path
             url = f"/openkairo_os/{file_name}?v={version}"
             add_extra_js_url(hass, url)
-            _LOGGER.info(f"OpenKAIRO Resource registered: {url}")
+
+    # 2. Register specifically as Lovelace Resources (Crucial for Editor support!)
+    try:
+        if "lovelace" in hass.data:
+            lovelace = hass.data["lovelace"]
+            # Check for storage-based lovelace resources
+            if hasattr(lovelace, "resources"):
+                resources = lovelace.resources
+                if resources:
+                    # We register the primary cards
+                    for card_file in ["smart_start_screen_card.js", "openkairo_custom_card.js"]:
+                        if card_file in files:
+                            url = f"/openkairo_os/{card_file}"
+                            exists = any(res.get("url") == url for res in resources.async_items())
+                            if not exists:
+                                _LOGGER.info(f"Registering Lovelace Resource: {url}")
+                                await resources.async_create_item({"res_type": "module", "url": url})
+    except Exception as e:
+        _LOGGER.warning(f"Lovelace Resource registration failed (this is normal on some systems): {e}")
 
     # Start the sensor platform
     hass.async_create_task(
         discovery.async_load_platform(hass, "sensor", DOMAIN, {}, config or {})
     )
 
-    _LOGGER.info("OpenKAIRO OS successfully initialized.")
+    _LOGGER.info("OpenKAIRO OS V4.2.2 fully initialized.")
 
 async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up the OpenKAIRO OS component via YAML configuration."""
+    """Set up via YAML."""
     if DOMAIN in config:
         await _setup_internal(hass, config)
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up OpenKAIRO OS from a config entry (UI)."""
+    """Set up via UI."""
     await _setup_internal(hass)
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Unload a config entry."""
+    """Unload."""
     if DOMAIN in hass.data:
         del hass.data[DOMAIN]
     async_remove_panel(hass, PANEL_URL)
-    _LOGGER.info("OpenKAIRO OS unloaded.")
     return True
 
 def get_version(hass):
-    """Get version from manifest."""
     try:
         manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
         with open(manifest_path, "r") as f:
