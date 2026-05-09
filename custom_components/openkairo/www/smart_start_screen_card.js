@@ -4,11 +4,23 @@ class OpenKairoCard extends HTMLElement {
     this.initialized = false;
   }
 
+  static getConfigElement() {
+    return document.createElement("openkairo-card-editor");
+  }
+
+  static getStubConfig() {
+    return {
+      energy_main_entity: "",
+      energy_solar_entity: "",
+      weather_entity: ""
+    };
+  }
+
   _initGlobalOS() {
-    if (window.KairoOS && window.KairoOS.version === '4.1.2') return;
+    if (window.KairoOS && window.KairoOS.version === '4.2.0') return;
     
     window.KairoOS = {
-      version: '4.1.2',
+      version: '4.2.0',
       idleTime: 0,
       locked: false,
       launchpad: null,
@@ -25,16 +37,14 @@ class OpenKairoCard extends HTMLElement {
           </div>
         `;
         container.appendChild(toast);
-        requestAnimationFrame(() => toast.style.transform = 'translateY(0)');
+        requestAnimationFrame(() => toast.classList.add('kairo-toast-active'));
         setTimeout(() => {
-          toast.style.opacity = '0';
-          toast.style.transform = 'translateY(20px)';
-          setTimeout(() => toast.remove(), 400);
+          toast.classList.remove('kairo-toast-active');
+          setTimeout(() => toast.remove(), 500);
         }, 5000);
       }
     };
 
-    // OS Background Services
     if (!window.KairoOSInterval) {
         window.KairoOSInterval = setInterval(() => {
           window.KairoOS.idleTime++;
@@ -57,8 +67,6 @@ class OpenKairoCard extends HTMLElement {
     ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => window.addEventListener(evt, () => {
       if (!window.KairoOS.locked) window.KairoOS.idleTime = 0;
     }, {passive: true}));
-
-    setTimeout(() => window.KairoOS.showToast('OS Initialisiert', 'System-Layer V4.1.2 aktiv.', 'success'), 1500);
   }
 
   _lockMode(state) {
@@ -79,383 +87,377 @@ class OpenKairoCard extends HTMLElement {
   }
 
   set hass(hass) {
+    this._hass = hass;
     if (!this.initialized) {
       this.initialized = true;
       this.attachShadow({ mode: 'open' });
       this._initGlobalOS();
-      
-      this.shadowRoot.innerHTML = `
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;600;900&family=Inter:wght@300;400;800&display=swap');
-          
-          :host { 
-            --primary: #10b981; 
-            --accent: #05f0a0;
-            --bg-dark: #020406;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --font-main: 'Outfit', sans-serif;
-          }
-
-          * { box-sizing: border-box; }
-
-          #kairo-toast-container {
-            position: fixed; top: 20px; right: 20px; z-index: 200000;
-            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-          }
-          .kairo-toast {
-            background: rgba(5, 12, 18, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border); border-radius: 20px; padding: 18px 25px;
-            color: white; display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
-            transform: translateY(-20px); opacity: 0; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            font-family: var(--font-main); pointer-events: auto; min-width: 300px;
-          }
-          .kairo-toast-active { transform: translateY(0); opacity: 1; }
-          .toast-icon { width: 32px; height: 32px; border-radius: 10px; background: rgba(16,185,129,0.1); display: flex; align-items: center; justify-content: center; font-weight: 900; }
-          .toast-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 2px; letter-spacing: 0.5px;}
-          .toast-message { font-size: 0.85rem; opacity: 0.6; }
-
-          .kairo-os {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg-dark);
-            font-family: var(--font-main);
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; z-index: 9999; transition: 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-          }
-
-          /* Mesh Gradient Background */
-          .mesh-gradient {
-            position: absolute; inset: 0;
-            background-color: var(--bg-dark);
-            background-image: 
-              radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.15) 0, transparent 50%), 
-              radial-gradient(at 50% 0%, hsla(161, 84%, 39%, 0.05) 0, transparent 50%), 
-              radial-gradient(at 100% 0%, hsla(161, 84%, 39%, 0.15) 0, transparent 50%), 
-              radial-gradient(at 0% 100%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%), 
-              radial-gradient(at 100% 100%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%);
-            filter: blur(80px);
-            animation: meshMove 20s infinite alternate ease-in-out;
-            z-index: 0;
-          }
-          @keyframes meshMove {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.1) rotate(2deg); }
-          }
-
-          .hub-shell {
-            position: relative; z-index: 10;
-            width: 100%; height: 100%;
-            display: flex; padding: 60px;
-            gap: 60px; max-width: 1600px;
-          }
-
-          /* Left Panel */
-          .left-panel {
-            flex: 4; display: flex; flex-direction: column; justify-content: space-between;
-            animation: slideInLeft 1s forwards cubic-bezier(0.19, 1, 0.22, 1);
-          }
-          @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
-
-          .branding { display: flex; align-items: center; gap: 20px; }
-          .logo-img { width: 80px; filter: drop-shadow(0 0 20px rgba(16,185,129,0.3)); transition: 0.5s; }
-          .logo-img:hover { transform: rotate(5deg) scale(1.05); }
-          .brand-name { font-weight: 900; font-size: 1.8rem; letter-spacing: -1px; }
-
-          .greeting-area { margin-top: 40px; }
-          .greeting { font-size: 1.2rem; font-weight: 300; opacity: 0.6; margin-bottom: 5px; }
-          .clock { font-size: 6rem; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -4px; background: linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.4) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-          .date { font-size: 1.2rem; font-weight: 400; opacity: 0.5; margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; }
-
-          .system-health {
-            margin-top: auto; display: flex; align-items: center; gap: 12px;
-            background: var(--glass); border: 1px solid var(--glass-border); padding: 15px 25px; border-radius: 100px; width: fit-content;
-          }
-          .health-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulseDot 2s infinite; }
-          @keyframes pulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.4; } }
-          .health-text { font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; color: var(--accent); }
-
-          /* Right Panel */
-          .right-panel {
-            flex: 6; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: auto auto 1fr; gap: 20px;
-            animation: slideInRight 1s 0.2s forwards cubic-bezier(0.19, 1, 0.22, 1); opacity: 0;
-          }
-          @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
-
-          .bento-card {
-            background: var(--glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-            border: 1px solid var(--glass-border); border-radius: 32px; padding: 30px;
-            transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1); cursor: pointer;
-            display: flex; flex-direction: column; justify-content: space-between;
-            animation: fadeInScale 0.6s backwards;
-          }
-          .bento-card:hover { transform: translateY(-8px); background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
-          
-          @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-          .delay-1 { animation-delay: 0.3s; }
-          .delay-2 { animation-delay: 0.4s; }
-          .delay-3 { animation-delay: 0.5s; }
-          .delay-4 { animation-delay: 0.6s; }
-          .delay-5 { animation-delay: 0.7s; }
-
-          .update-card { grid-column: span 2; background: rgba(255, 0, 80, 0.03); border-color: rgba(255, 0, 80, 0.2); flex-direction: row; align-items: center; gap: 30px; }
-          .update-card:hover { background: rgba(255, 0, 80, 0.05); border-color: rgba(255, 0, 80, 0.4); }
-          .update-icon { width: 50px; height: 50px; border-radius: 15px; background: rgba(255, 0, 80, 0.1); display: flex; align-items: center; justify-content: center; color: #ff0050; }
-
-          .stat-card { min-height: 160px; }
-          .stat-header { display: flex; justify-content: space-between; align-items: flex-start; }
-          .stat-icon { color: var(--primary); opacity: 0.7; --mdc-icon-size: 28px; }
-          .stat-val { font-size: 2.8rem; font-weight: 900; margin-top: 15px; }
-          .stat-label { font-size: 0.8rem; font-weight: 600; opacity: 0.4; letter-spacing: 1px; text-transform: uppercase; }
-
-          .action-card { grid-column: span 2; background: var(--primary); border: none; padding: 40px; color: #000; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-          .action-card:hover { transform: scale(1.02); box-shadow: 0 40px 80px rgba(16, 185, 129, 0.3); }
-          .action-text { font-size: 1.6rem; font-weight: 900; letter-spacing: 2px; position: relative; z-index: 5; }
-          .action-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: translateX(-100%); transition: 0.6s; }
-          .action-card:hover::after { transform: translateX(100%); }
-
-          .social-links { grid-column: span 2; display: flex; gap: 15px; }
-          .social-pill { flex: 1; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 100px; padding: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 0.8rem; transition: 0.3s; }
-          .social-pill:hover { background: rgba(255,255,255,0.1); transform: translateY(-4px); }
-
-          /* Lock Screen */
-          #kairo-lock-screen {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10001;
-            background: rgba(1, 3, 5, 0.9); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px);
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            color: white; font-family: var(--font-main);
-            opacity: 0; transition: 1s ease; cursor: pointer;
-          }
-          .lock-clock { font-size: 10rem; font-weight: 100; letter-spacing: -5px; }
-          .lock-hint { position: absolute; bottom: 80px; font-size: 0.8rem; letter-spacing: 8px; opacity: 0.5; animation: blink 2s infinite; }
-          @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
-
-          #kairo-fab {
-            position: fixed; bottom: 40px; right: 40px; z-index: 10000;
-            width: 50px; height: 50px; border-radius: 15px;
-            background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            color: #fff; font-family: var(--font-main); font-weight: 900; font-size: 0.7rem;
-            transition: 0.4s;
-          }
-          #kairo-fab:hover { background: var(--primary); color: #000; border-color: var(--primary); transform: scale(1.1); }
-
-          @media (max-width: 1024px) {
-            .hub-shell { flex-direction: column; padding: 30px; gap: 30px; overflow-y: auto; }
-            .left-panel { flex: none; align-items: center; text-align: center; }
-            .clock { font-size: 4rem; }
-            .right-panel { flex: none; display: flex; flex-direction: column; padding-bottom: 100px; }
-            .bento-card { min-height: 120px; }
-          }
-        </style>
-        
-        <div class="kairo-os" id="os-container">
-          <div class="mesh-gradient"></div>
-          
-          <div class="hub-shell">
-            <div class="left-panel">
-              <div class="top">
-                <div class="branding">
-                  <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" class="logo-img">
-                  <div class="brand-name">KAIRO <span style="color:var(--primary)">OS</span></div>
-                </div>
-                
-                <div class="greeting-area">
-                  <div class="greeting" id="greeting-text">Guten Tag,</div>
-                  <div class="clock" id="main-clock">--:--</div>
-                  <div class="date" id="main-date">--. --. ----</div>
-                </div>
-              </div>
-              
-              <div class="system-health">
-                <div class="health-dot"></div>
-                <div class="health-text">SYSTEM STATUS: OPTIMAL</div>
-              </div>
-            </div>
-
-            <div class="right-panel">
-              <div id="update-banner-container" style="grid-column: span 2; display: none;"></div>
-              
-              <div class="bento-card stat-card delay-1" id="dev-btn">
-                <div class="stat-header">
-                  <div class="stat-label">Geräte</div>
-                  <ha-icon icon="mdi:devices" class="stat-icon"></ha-icon>
-                </div>
-                <div class="stat-val" id="dev-val">0</div>
-              </div>
-
-              <div class="bento-card stat-card delay-2" id="auto-btn">
-                <div class="stat-header">
-                  <div class="stat-label">Routinen</div>
-                  <ha-icon icon="mdi:robot" class="stat-icon"></ha-icon>
-                </div>
-                <div class="stat-val" id="auto-val">0</div>
-              </div>
-
-              <div class="bento-card stat-card delay-3" id="ent-btn">
-                <div class="stat-header">
-                  <div class="stat-label">Entitäten</div>
-                  <ha-icon icon="mdi:cube-outline" class="stat-icon"></ha-icon>
-                </div>
-                <div class="stat-val" id="ent-val">0</div>
-              </div>
-
-              <div class="bento-card stat-card delay-4">
-                <div class="stat-header">
-                  <div class="stat-label">System</div>
-                  <ha-icon icon="mdi:cog" class="stat-icon"></ha-icon>
-                </div>
-                <div id="nav-dock" style="display: flex; gap: 10px; margin-top: 10px; overflow-x: auto;"></div>
-              </div>
-
-              <div class="social-links delay-5">
-                <div class="social-pill" id="tiktok-btn">
-                  <ha-icon icon="mdi:video-vintage"></ha-icon> TIKTOK
-                </div>
-                <div class="social-pill" id="youtube-btn">
-                  <ha-icon icon="mdi:youtube"></ha-icon> YOUTUBE
-                </div>
-              </div>
-
-              <div class="bento-card action-card delay-5" id="go">
-                <div class="action-text">DASHBOARD AUFRUFEN</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="kairo-toast-container"></div>
-        <div id="kairo-lock-screen">
-          <div class="lock-clock">--:--</div>
-          <div class="lock-date" style="font-size: 1.5rem; opacity: 0.5; margin-top: 20px;">KAIRO OS</div>
-          <div class="lock-hint">ZUM ENTSPERREN TIPPEN</div>
-        </div>
-        <div id="kairo-fab">SYS</div>
-      `;
-
-      // Static Handlers
-      this.shadowRoot.getElementById('go').onclick = () => {
-        const osLayer = this.shadowRoot.getElementById('os-container');
-        osLayer.style.opacity = '0';
-        osLayer.style.transform = 'scale(1.1) blur(20px)';
-        osLayer.style.pointerEvents = 'none';
-        setTimeout(() => { osLayer.style.display = 'none'; }, 800);
-      };
-
-      this.shadowRoot.getElementById('tiktok-btn').onclick = () => { window.open('https://www.tiktok.com/@openkairo', '_blank'); };
-      this.shadowRoot.getElementById('youtube-btn').onclick = () => { window.open('https://www.youtube.com/@openkairo', '_blank'); };
-      this.shadowRoot.getElementById('dev-btn').onclick = () => { window.location.href = '/config/devices/dashboard'; };
-      this.shadowRoot.getElementById('auto-btn').onclick = () => { window.location.href = '/config/automation/dashboard'; };
-      this.shadowRoot.getElementById('ent-btn').onclick = () => { window.location.href = '/config/entities'; };
-      this.shadowRoot.getElementById('kairo-lock-screen').onclick = () => this._lockMode(false);
-      this.shadowRoot.getElementById('kairo-fab').onclick = () => {
-         const osLayer = this.shadowRoot.getElementById('os-container');
-         osLayer.style.display = 'flex';
-         setTimeout(() => {
-           osLayer.style.opacity = '1';
-           osLayer.style.transform = 'scale(1) blur(0px)';
-           osLayer.style.pointerEvents = 'auto';
-         }, 10);
-      };
-
-      // Live Clock
-      setInterval(() => {
-        const now = new Date();
-        const hrs = now.getHours();
-        let greet = "Guten Abend,";
-        if (hrs < 12) greet = "Guten Morgen,";
-        else if (hrs < 18) greet = "Guten Tag,";
-        
-        const greetEl = this.shadowRoot.getElementById('greeting-text');
-        const clockEl = this.shadowRoot.getElementById('main-clock');
-        const dateEl = this.shadowRoot.getElementById('main-date');
-        const lockClock = this.shadowRoot.querySelector('.lock-clock');
-
-        if (greetEl) greetEl.innerText = greet;
-        if (clockEl) clockEl.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-        if (dateEl) dateEl.innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
-        if (lockClock) lockClock.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-      }, 1000);
-
-      if (window.KairoOS) {
-         window.KairoOS.launchpad = this.shadowRoot.getElementById('os-container');
-      }
+      this.render();
     }
-
-    try {
-      if (!hass || !hass.states) return;
-      this._hass = hass; 
-
-      const shadow = this.shadowRoot;
-      const updateContainer = shadow.getElementById('update-banner-container');
-      const updateEntities = Object.keys(this._hass.states).filter(k => k.startsWith('update.') && this._hass.states[k].state === 'on');
-      
-      if (updateEntities.length > 0) {
-        const up = this._hass.states[updateEntities[0]];
-        const title = up.attributes.title || up.attributes.friendly_name || "System";
-        if (updateContainer) {
-          updateContainer.style.display = 'block';
-          updateContainer.innerHTML = `
-            <div class="bento-card update-card" id="update-click-btn">
-              <div class="update-icon"><ha-icon icon="mdi:update"></ha-icon></div>
-              <div>
-                <div style="font-weight:900; font-size:0.8rem; color:#ff0050; letter-spacing:1px;">UPDATE VERFÜGBAR</div>
-                <div style="font-weight:400; font-size:1.1rem; opacity:0.8;">${title} v${up.attributes.latest_version}</div>
-              </div>
-            </div>`;
-          shadow.getElementById('update-click-btn').onclick = () => {
-            const event = new Event('hass-more-info', { bubbles: true, composed: true });
-            event.detail = { entityId: updateEntities[0] };
-            this.dispatchEvent(event);
-          };
-        }
-      } else {
-         if (updateContainer) updateContainer.style.display = 'none';
-      }
-      
-      const totalEntities = Object.values(hass.states).length;
-      const totalAutos = Object.values(hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
-      
-      const devVal = shadow.getElementById('dev-val');
-      const autoVal = shadow.getElementById('auto-val');
-      const entVal = shadow.getElementById('ent-val');
-
-      if (devVal) devVal.innerText = hass.devices ? Object.keys(hass.devices).length : "-";
-      if (autoVal) autoVal.innerText = totalAutos;
-      if (entVal) entVal.innerText = totalEntities;
-
-      // Nav Dock Logic
-      const navDock = shadow.getElementById('nav-dock');
-      if (navDock && hass.panels) {
-        let dockHtml = '';
-        const paths = Object.keys(hass.panels).filter(p => !['lovelace', 'profile', 'config'].includes(p)).slice(0, 4);
-        paths.forEach(path => {
-           const p = hass.panels[path];
-           dockHtml += `
-             <div class="nav-item" data-path="/${path}" style="cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; display:flex; align-items:center; justify-content:center;">
-               <ha-icon icon="${p.icon || 'mdi:view-dashboard'}" style="--mdc-icon-size:20px; color:var(--primary)"></ha-icon>
-             </div>
-           `;
-        });
-        navDock.innerHTML = dockHtml;
-        shadow.querySelectorAll('.nav-item').forEach(item => {
-           item.onclick = () => { window.location.href = item.getAttribute('data-path'); };
-        });
-      }
-
-    } catch (err) { console.error("OS Error:", err); }
+    this.updateData();
   }
 
-  setConfig(config) {}
+  setConfig(config) {
+    this._config = config;
+  }
+
+  render() {
+    this.shadowRoot.innerHTML = `
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;600;900&family=Inter:wght@300;400;800&display=swap');
+        
+        :host { 
+          --primary: #10b981; 
+          --accent: #05f0a0;
+          --bg-dark: #020406;
+          --glass: rgba(255, 255, 255, 0.03);
+          --glass-border: rgba(255, 255, 255, 0.08);
+          --font-main: 'Outfit', sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        #kairo-toast-container {
+          position: fixed; top: 20px; right: 20px; z-index: 200000;
+          display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .kairo-toast {
+          background: rgba(5, 12, 18, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+          border: 1px solid var(--glass-border); border-radius: 20px; padding: 18px 25px;
+          color: white; display: flex; align-items: center; gap: 15px;
+          box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+          transform: translateY(-20px); opacity: 0; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+          font-family: var(--font-main); pointer-events: auto; min-width: 300px;
+        }
+        .kairo-toast-active { transform: translateY(0); opacity: 1; }
+        .toast-icon { width: 32px; height: 32px; border-radius: 10px; background: rgba(16,185,129,0.1); display: flex; align-items: center; justify-content: center; font-weight: 900; }
+
+        .kairo-os {
+          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+          background: var(--bg-dark);
+          font-family: var(--font-main);
+          display: flex; align-items: center; justify-content: center;
+          overflow: hidden; z-index: 9999; transition: 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .mesh-gradient {
+          position: absolute; inset: 0; z-index: 0;
+          background: radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.15) 0, transparent 50%), 
+                      radial-gradient(at 100% 0%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%),
+                      radial-gradient(at 50% 100%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%);
+          filter: blur(80px); animation: meshMove 20s infinite alternate ease-in-out;
+        }
+        @keyframes meshMove { 0% { transform: scale(1); } 100% { transform: scale(1.1) rotate(2deg); } }
+
+        .hub-shell {
+          position: relative; z-index: 10; width: 100%; height: 100%;
+          display: flex; padding: 60px; gap: 60px; max-width: 1600px;
+        }
+
+        /* Left Panel */
+        .left-panel { flex: 4; display: flex; flex-direction: column; justify-content: space-between; }
+        .branding { display: flex; align-items: center; gap: 20px; }
+        .logo-img { width: 80px; filter: drop-shadow(0 0 20px rgba(16,185,129,0.3)); }
+        .brand-name { font-weight: 900; font-size: 1.8rem; letter-spacing: -1px; }
+
+        .greeting-area { margin-top: 40px; }
+        .greeting { font-size: 1.2rem; font-weight: 300; opacity: 0.6; }
+        .clock { font-size: 6rem; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -4px; }
+        .date { font-size: 1.2rem; font-weight: 400; opacity: 0.5; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .weather-info {
+          margin-top: 20px; display: flex; align-items: center; gap: 15px;
+          font-size: 1.1rem; font-weight: 600; opacity: 0.8;
+        }
+        .weather-icon { --mdc-icon-size: 32px; color: var(--accent); }
+
+        /* Right Panel */
+        .right-panel {
+          flex: 6; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+          animation: slideInRight 1s 0.2s forwards cubic-bezier(0.19, 1, 0.22, 1); opacity: 0;
+        }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+        .bento-card {
+          background: var(--glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+          border: 1px solid var(--glass-border); border-radius: 32px; padding: 30px;
+          transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1); cursor: pointer;
+        }
+        .bento-card:hover { transform: translateY(-8px); background: rgba(255,255,255,0.06); }
+
+        .energy-card { grid-column: span 2; display: flex; flex-direction: row; align-items: center; justify-content: space-between; position: relative; overflow: hidden; }
+        .energy-core { width: 80px; height: 80px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; position: relative; }
+        .energy-pulse { position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: pulseCore 2s infinite; }
+        @keyframes pulseCore { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+        .energy-val { font-size: 2.5rem; font-weight: 900; }
+        .energy-label { font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
+
+        .stat-card { display: flex; flex-direction: column; justify-content: space-between; min-height: 160px; }
+        .stat-header { display: flex; justify-content: space-between; opacity: 0.5; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        .stat-val { font-size: 2.5rem; font-weight: 900; }
+
+        .action-card { grid-column: span 2; background: var(--primary); color: #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.4rem; border: none; letter-spacing: 1px; }
+
+        #kairo-fab {
+          position: fixed; bottom: 40px; right: 40px; width: 60px; height: 60px; border-radius: 20px;
+          background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+          display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-weight: 900; z-index: 10000;
+        }
+
+        @media (max-width: 1024px) {
+          .hub-shell { flex-direction: column; padding: 30px; gap: 30px; overflow-y: auto; }
+          .left-panel { flex: none; align-items: center; text-align: center; }
+          .right-panel { flex: none; display: flex; flex-direction: column; padding-bottom: 100px; }
+        }
+      </style>
+
+      <div class="kairo-os" id="os-container">
+        <div class="mesh-gradient"></div>
+        <div class="hub-shell">
+          <div class="left-panel">
+            <div class="top">
+              <div class="branding">
+                <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" class="logo-img">
+                <div class="brand-name">KAIRO <span style="color:var(--primary)">OS</span></div>
+              </div>
+              <div class="greeting-area">
+                <div class="greeting" id="greeting-text">Lade OS...</div>
+                <div class="clock" id="main-clock">--:--</div>
+                <div class="date" id="main-date">--. --. ----</div>
+                <div class="weather-info" id="weather-row" style="display:none">
+                   <ha-icon icon="mdi:weather-partly-cloudy" class="weather-icon" id="w-icon"></ha-icon>
+                   <span id="w-temp">--°C</span>
+                   <span style="opacity:0.4">|</span>
+                   <span id="w-desc">--</span>
+                </div>
+              </div>
+            </div>
+            <div class="system-health">
+              <div class="health-dot"></div>
+              <div class="health-text">SYSTEM STATUS: OPTIMAL</div>
+            </div>
+          </div>
+
+          <div class="right-panel">
+            <div id="update-banner-container" style="grid-column: span 2; display: none;"></div>
+            
+            <div class="bento-card energy-card" id="energy-hub">
+              <div>
+                <div class="energy-label">Energie Hub</div>
+                <div class="energy-val" id="power-main">0 W</div>
+                <div style="font-size: 0.9rem; opacity: 0.6; margin-top: 5px;">Solar: <span id="power-solar" style="color:var(--accent)">0 W</span></div>
+              </div>
+              <div class="energy-core">
+                <div class="energy-pulse"></div>
+                <ha-icon icon="mdi:lightning-bolt" style="color:var(--accent); --mdc-icon-size:40px;"></ha-icon>
+              </div>
+            </div>
+
+            <div class="bento-card stat-card" id="dev-btn">
+              <div class="stat-header">Geräte <ha-icon icon="mdi:devices"></ha-icon></div>
+              <div class="stat-val" id="dev-val">0</div>
+            </div>
+            <div class="bento-card stat-card" id="auto-btn">
+              <div class="stat-header">Routinen <ha-icon icon="mdi:robot"></ha-icon></div>
+              <div class="stat-val" id="auto-val">0</div>
+            </div>
+
+            <div class="bento-card action-card" id="go">DASHBOARD AUFRUFEN</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="kairo-toast-container"></div>
+      <div id="kairo-fab">SYS</div>
+    `;
+
+    this._setupHandlers();
+    this._startClock();
+  }
+
+  _setupHandlers() {
+    const shadow = this.shadowRoot;
+    shadow.getElementById('go').onclick = () => {
+      const os = shadow.getElementById('os-container');
+      os.style.opacity = '0';
+      os.style.transform = 'scale(1.1) blur(20px)';
+      os.style.pointerEvents = 'none';
+      setTimeout(() => os.style.display = 'none', 800);
+    };
+    shadow.getElementById('kairo-fab').onclick = () => {
+      const os = shadow.getElementById('os-container');
+      os.style.display = 'flex';
+      setTimeout(() => {
+        os.style.opacity = '1';
+        os.style.transform = 'scale(1) blur(0px)';
+        os.style.pointerEvents = 'auto';
+      }, 10);
+    };
+    shadow.getElementById('dev-btn').onclick = () => window.location.href = '/config/devices/dashboard';
+    shadow.getElementById('auto-btn').onclick = () => window.location.href = '/config/automation/dashboard';
+  }
+
+  _startClock() {
+    setInterval(() => {
+      const now = new Date();
+      const hrs = now.getHours();
+      let greet = "Guten Abend,";
+      if (hrs < 12) greet = "Guten Morgen,";
+      else if (hrs < 18) greet = "Guten Tag,";
+      
+      const shadow = this.shadowRoot;
+      shadow.getElementById('greeting-text').innerText = greet;
+      shadow.getElementById('main-clock').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+      shadow.getElementById('main-date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+    }, 1000);
+  }
+
+  setConfig(config) {
+    this._config = config;
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this.updateData();
+  }
+
+  updateData() {
+    if (!this._hass || !this.shadowRoot) return;
+    const shadow = this.shadowRoot;
+
+    // Update Clock & Greeting
+    const now = new Date();
+    const hrs = now.getHours();
+    let greet = "Guten Abend,";
+    if (hrs < 12) greet = "Guten Morgen,";
+    else if (hrs < 18) greet = "Guten Tag,";
+    
+    const greetEl = shadow.getElementById('greeting-text');
+    const clockEl = shadow.getElementById('main-clock');
+    const dateEl = shadow.getElementById('main-date');
+    if (greetEl) greetEl.innerText = greet;
+    if (clockEl) clockEl.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+    if (dateEl) dateEl.innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+
+    // Update Stats
+    const devVal = shadow.getElementById('dev-val');
+    const autoVal = shadow.getElementById('auto-val');
+    if (devVal) devVal.innerText = this._hass.devices ? Object.keys(this._hass.devices).length : "-";
+    if (autoVal) autoVal.innerText = Object.values(this._hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
+
+    // Update Weather
+    const weatherEntity = this._config.weather_entity;
+    const weatherRow = shadow.getElementById('weather-row');
+    if (weatherEntity && this._hass.states[weatherEntity] && weatherRow) {
+      const w = this._hass.states[weatherEntity];
+      weatherRow.style.display = 'flex';
+      shadow.getElementById('w-temp').innerText = `${w.attributes.temperature}°C`;
+      shadow.getElementById('w-desc').innerText = w.state;
+    } else if (weatherRow) {
+      weatherRow.style.display = 'none';
+    }
+
+    // Update Energy
+    const mainPwr = this._config.energy_main_entity;
+    const solarPwr = this._config.energy_solar_entity;
+    const pwrMainEl = shadow.getElementById('power-main');
+    const pwrSolarEl = shadow.getElementById('power-solar');
+    
+    if (mainPwr && this._hass.states[mainPwr] && pwrMainEl) {
+      const val = parseFloat(this._hass.states[mainPwr].state) || 0;
+      pwrMainEl.innerText = `${Math.round(val)} W`;
+      pwrMainEl.style.color = val < 0 ? 'var(--accent)' : 'white';
+    }
+    if (solarPwr && this._hass.states[solarPwr] && pwrSolarEl) {
+      const val = parseFloat(this._hass.states[solarPwr].state) || 0;
+      pwrSolarEl.innerText = `${Math.round(val)} W`;
+    }
+  }
+
   getCardSize() { return 10; }
+}
+
+class OpenKairoCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = config;
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (!this.initialized) {
+      this.initialized = true;
+      this.render();
+    }
+  }
+
+  render() {
+    if (!this._hass) return;
+    const entities = Object.keys(this._hass.states).sort();
+    const weatherEntities = entities.filter(e => e.startsWith('weather.'));
+
+    this.innerHTML = `
+      <style>
+        .config-container { padding: 20px; color: var(--primary-text-color); }
+        .config-row { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .config-label { font-weight: 600; font-size: 0.9rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+        select { 
+          width: 100%; padding: 12px; border-radius: 12px; 
+          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+          color: white; font-family: inherit; font-size: 1rem; outline: none;
+        }
+        select:focus { border-color: #10b981; }
+        .config-hint { font-size: 0.8rem; opacity: 0.4; }
+      </style>
+      <div class="config-container">
+        <div class="config-row">
+          <div class="config-label">Netz-Verbrauch (W)</div>
+          <select id="energy_main_entity">
+            <option value="">Nicht konfiguriert</option>
+            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_main_entity ? 'selected' : ''}>${e}</option>`).join('')}
+          </select>
+          <div class="config-hint">Sensor für den aktuellen Hausverbrauch vom Netz.</div>
+        </div>
+
+        <div class="config-row">
+          <div class="config-label">Solar-Erzeugung (W)</div>
+          <select id="energy_solar_entity">
+            <option value="">Nicht konfiguriert</option>
+            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_solar_entity ? 'selected' : ''}>${e}</option>`).join('')}
+          </select>
+          <div class="config-hint">Sensor für die aktuelle PV-Leistung.</div>
+        </div>
+
+        <div class="config-row">
+          <div class="config-label">Wetter-Dienst</div>
+          <select id="weather_entity">
+            <option value="">Nicht konfiguriert</option>
+            ${weatherEntities.map(e => `<option value="${e}" ${e === this._config.weather_entity ? 'selected' : ''}>${e}</option>`).join('')}
+          </select>
+          <div class="config-hint">Zeigt Temperatur und Status im Launchpad.</div>
+        </div>
+      </div>
+    `;
+
+    ['energy_main_entity', 'energy_solar_entity', 'weather_entity'].forEach(id => {
+      this.querySelector(`#${id}`).addEventListener('change', (ev) => {
+        const config = { ...this._config, [id]: ev.target.value };
+        const event = new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true });
+        this.dispatchEvent(event);
+      });
+    });
+  }
 }
 
 if (!customElements.get('openkairo-card')) {
   customElements.define('openkairo-card', OpenKairoCard);
-  window.customCards = window.customCards || [];
-  window.customCards.push({
-    type: "openkairo-card",
-    name: "OpenKairo OS Launchpad",
-    description: "Shadow-DOM Optimized OS Layer for OpenKairo."
-  });
 }
+if (!customElements.get('openkairo-card-editor')) {
+  customElements.define('openkairo-card-editor', OpenKairoCardEditor);
+}
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "openkairo-card",
+  name: "OpenKairo OS Launchpad",
+  description: "Shadow-DOM Optimized OS Layer for OpenKairo (V4.2.0)."
+});
