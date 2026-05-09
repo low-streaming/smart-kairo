@@ -180,7 +180,9 @@ class OpenKairoButtonCardEditor extends HTMLElement {
     }
   }
 }
-customElements.define("openkairo-button-editor", OpenKairoButtonCardEditor);
+if (!customElements.get("openkairo-button-editor")) {
+  customElements.define("openkairo-button-editor", OpenKairoButtonCardEditor);
+}
 
 
 class OpenKairoButtonCard extends HTMLElement {
@@ -650,7 +652,7 @@ class OpenKairoButtonCard extends HTMLElement {
     cardIcon.setAttribute('icon', icon);
 
     let isActive = false;
-    const s = stateObj.state.toLowerCase();
+    const s = String(stateObj.state).toLowerCase();
     if (['on', 'playing', 'active', 'home', 'open', 'unlocked'].includes(s)) {
         isActive = true;
     } else if (!isNaN(s) && parseFloat(s) > 0) {
@@ -724,7 +726,9 @@ class OpenKairoButtonCard extends HTMLElement {
   }
 }
 
-customElements.define("openkairo-button-card", OpenKairoButtonCard);
+if (!customElements.get("openkairo-button-card")) {
+  customElements.define("openkairo-button-card", OpenKairoButtonCard);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({

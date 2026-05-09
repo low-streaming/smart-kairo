@@ -169,7 +169,9 @@ class OpenKairoHistoryCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("openkairo-history-card-editor", OpenKairoHistoryCardEditor);
+if (!customElements.get("openkairo-history-card-editor")) {
+  customElements.define("openkairo-history-card-editor", OpenKairoHistoryCardEditor);
+}
 
 class OpenKairoHistoryCard extends HTMLElement {
   constructor() {
@@ -552,7 +554,9 @@ class OpenKairoHistoryCard extends HTMLElement {
   }
 }
 
-customElements.define("openkairo-history-card", OpenKairoHistoryCard);
+if (!customElements.get("openkairo-history-card")) {
+  customElements.define("openkairo-history-card", OpenKairoHistoryCard);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({
