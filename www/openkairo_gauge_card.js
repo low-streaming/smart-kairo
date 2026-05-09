@@ -186,7 +186,9 @@ class OpenKairoGaugeCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("openkairo-gauge-card-editor", OpenKairoGaugeCardEditor);
+if (!customElements.get("openkairo-gauge-card-editor")) {
+  customElements.define("openkairo-gauge-card-editor", OpenKairoGaugeCardEditor);
+}
 
 class OpenKairoGaugeCard extends HTMLElement {
   constructor() {
@@ -369,7 +371,9 @@ class OpenKairoGaugeCard extends HTMLElement {
   }
 }
 
-customElements.define("openkairo-gauge-card", OpenKairoGaugeCard);
+if (!customElements.get("openkairo-gauge-card")) {
+  customElements.define("openkairo-gauge-card", OpenKairoGaugeCard);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({

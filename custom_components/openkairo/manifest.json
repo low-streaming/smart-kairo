@@ -1,10 +1,10 @@
 {
   "domain": "openkairo",
   "name": "OpenKAIRO OS",
-  "version": "1.0.2",
-  "documentation": "https://github.com/wait-whois-low/smart-kairo",
+  "version": "4.2.0",
+  "documentation": "https://github.com/open-kairo/smart-kairo",
   "dependencies": ["frontend"],
-  "codeowners": ["@wait-whois-low"],
+  "codeowners": ["@wait-whois-low", "@open-kairo"],
   "requirements": [],
   "config_flow": true,
   "iot_class": "local_push"

@@ -128,7 +128,9 @@ class OpenKairoAlertCardEditor extends HTMLElement {
     }
   }
 }
-customElements.define("openkairo-alert-editor", OpenKairoAlertCardEditor);
+if (!customElements.get("openkairo-alert-editor")) {
+  customElements.define("openkairo-alert-editor", OpenKairoAlertCardEditor);
+}
 
 
 class OpenKairoAlertCard extends HTMLElement {
@@ -185,8 +187,8 @@ class OpenKairoAlertCard extends HTMLElement {
       const numTarget = parseFloat(target);
       const isNum = !isNaN(numState) && !isNaN(numTarget);
 
-      const sL = state.toLowerCase();
-      const tL = target.toLowerCase();
+      const sL = String(state).toLowerCase();
+      const tL = String(target).toLowerCase();
 
       if (op === '==') return (isNum && numState === numTarget) || sL === tL;
       if (op === '!=') return (isNum && numState !== numTarget) || sL !== tL;
@@ -406,7 +408,9 @@ class OpenKairoAlertCard extends HTMLElement {
   }
 }
 
-customElements.define("openkairo-alert-card", OpenKairoAlertCard);
+if (!customElements.get("openkairo-alert-card")) {
+  customElements.define("openkairo-alert-card", OpenKairoAlertCard);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({

@@ -10,11 +10,11 @@ _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=30)
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up the SmartStartScreen sensors."""
-    async_add_entities([SmartStartGitHubSensor()], True)
+    """Set up the OpenKAIRO OS sensors."""
+    async_add_entities([OpenKairoStatusSensor()], True)
 
-class SmartStartGitHubSensor(SensorEntity):
-    """Sensor that fetches updates directly from GitHub for OpenKairo."""
+class OpenKairoStatusSensor(SensorEntity):
+    """Sensor that fetches updates directly from GitHub for OpenKAIRO OS."""
 
     def __init__(self):
         self._state = "Online"
@@ -36,7 +36,7 @@ class SmartStartGitHubSensor(SensorEntity):
         try:
             async with async_timeout.timeout(10):
                 async with aiohttp.ClientSession() as session:
-                    async with session.get("https://api.github.com/repos/openkairo/smart-kairo/commits") as response:
+                    async with session.get(GITHUB_API_URL + "/commits") as response:
                         if response.status == 200:
                             commits = await response.json()
                             if commits:
