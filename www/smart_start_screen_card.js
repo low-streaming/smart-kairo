@@ -26,21 +26,35 @@ class OpenKairoCardEditor extends HTMLElement {
         .config { padding: 20px; font-family: sans-serif; background: #111; color: #eee; border-radius: 12px; }
         .row { margin-bottom: 24px; }
         label { display: block; font-size: 11px; font-weight: 800; color: #05f0a0; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1.5px; }
+        input { 
+          width: 100%; padding: 12px; border-radius: 8px; 
+          background: #222; color: #fff; border: 1px solid #333; 
+          outline: none; font-family: inherit; font-size: 14px; box-sizing: border-box;
+        }
+        input:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
         .success-msg { color: #10b981; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; }
       </style>
       <div class="config">
         <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px;">OS Konfiguration</h3>
+        
+        <datalist id="all-entities">
+          ${entities.map(e => `<option value="${e}">`).join('')}
+        </datalist>
+        <datalist id="weather-entities">
+          ${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}">`).join('')}
+        </datalist>
+
         <div class="row">
           <label>Netz-Verbrauch (W)</label>
-          <ha-entity-picker id="energy_main_entity" value="${config.energy_main_entity || ''}" allow-custom-entity></ha-entity-picker>
+          <input type="text" id="energy_main_entity" list="all-entities" value="${config.energy_main_entity || ''}" placeholder="-- Sensor suchen oder eingeben --" autocomplete="off">
         </div>
         <div class="row">
           <label>Solar-Erzeugung (W)</label>
-          <ha-entity-picker id="energy_solar_entity" value="${config.energy_solar_entity || ''}" allow-custom-entity></ha-entity-picker>
+          <input type="text" id="energy_solar_entity" list="all-entities" value="${config.energy_solar_entity || ''}" placeholder="-- Sensor suchen oder eingeben --" autocomplete="off">
         </div>
         <div class="row">
           <label>Wetter-Entität</label>
-          <ha-entity-picker id="weather_entity" value="${config.weather_entity || ''}" allow-custom-entity></ha-entity-picker>
+          <input type="text" id="weather_entity" list="weather-entities" value="${config.weather_entity || ''}" placeholder="-- Wetter suchen oder eingeben --" autocomplete="off">
         </div>
         <div id="success" class="success-msg">✓ Gespeichert</div>
       </div>
@@ -49,12 +63,8 @@ class OpenKairoCardEditor extends HTMLElement {
     ['energy_main_entity', 'energy_solar_entity', 'weather_entity'].forEach(id => {
       const el = this.shadowRoot.getElementById(id);
       if (el) {
-        el.hass = this._hass;
-        if (id === 'weather_entity') {
-          el.includeDomains = ['weather'];
-        }
-        el.addEventListener('value-changed', (ev) => {
-          const newConfig = { ...this._config, [id]: ev.detail.value };
+        el.addEventListener('change', (ev) => {
+          const newConfig = { ...this._config, [id]: ev.target.value };
           this._config = newConfig;
           const event = new CustomEvent("config-changed", { detail: { config: newConfig }, bubbles: true, composed: true });
           this.dispatchEvent(event);
