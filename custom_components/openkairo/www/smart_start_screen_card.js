@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.2.5 ---
-console.log("%c 🚀 KAIRO OS V4.2.5 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.2.9 ---
+console.log("%c 🚀 KAIRO OS V4.2.9 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 class OpenKairoCardEditor extends HTMLElement {
   constructor() {
@@ -38,10 +38,10 @@ class OpenKairoCardEditor extends HTMLElement {
         <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px;">OS Konfiguration</h3>
         
         <datalist id="all-entities">
-          ${entities.map(e => `<option value="${e}">`).join('')}
+          ${entities.map(e => `<option value="${e}"></option>`).join('')}
         </datalist>
         <datalist id="weather-entities">
-          ${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}">`).join('')}
+          ${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}"></option>`).join('')}
         </datalist>
 
         <div class="row">
