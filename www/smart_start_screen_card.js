@@ -45,8 +45,10 @@ class OpenKairoCard extends HTMLElement {
             const now = new Date();
             const lock = this.shadowRoot.getElementById('kairo-lock-screen');
             if(lock) {
-              lock.querySelector('.lock-time').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-              lock.querySelector('.lock-date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+              const clock = lock.querySelector('.lock-clock');
+              const date = lock.querySelector('.lock-date');
+              if(clock) clock.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+              if(date) date.innerText = now.toLocaleDateString('de-DE', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
             }
           }
         }, 1000);
@@ -84,196 +86,249 @@ class OpenKairoCard extends HTMLElement {
       
       this.shadowRoot.innerHTML = `
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;800&family=Rajdhani:wght@400;700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;600;900&family=Inter:wght@300;400;800&display=swap');
           
-          :host { --primary: #10b981; }
+          :host { 
+            --primary: #10b981; 
+            --accent: #05f0a0;
+            --bg-dark: #020406;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --font-main: 'Outfit', sans-serif;
+          }
+
+          * { box-sizing: border-box; }
 
           #kairo-toast-container {
             position: fixed; top: 20px; right: 20px; z-index: 200000;
             display: flex; flex-direction: column; gap: 10px; pointer-events: none;
           }
           .kairo-toast {
-            background: rgba(5, 12, 18, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 15px; padding: 15px 20px;
+            background: rgba(5, 12, 18, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border); border-radius: 20px; padding: 18px 25px;
             color: white; display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-            transform: translateY(-20px); opacity: 1; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-family: 'Inter', sans-serif; pointer-events: auto; min-width: 280px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            transform: translateY(-20px); opacity: 0; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            font-family: var(--font-main); pointer-events: auto; min-width: 300px;
           }
-          .kairo-toast-error { border-color: rgba(255, 74, 74, 0.6); }
-          .kairo-toast-success { border-color: rgba(5, 240, 160, 0.6); }
-          .toast-icon {
-            width: 32px; height: 32px; border-radius: 50%; background: rgba(16,185,129,0.15);
-            display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Orbitron'; font-size: 1.1rem;
-          }
-          .kairo-toast-error .toast-icon { background: rgba(255, 74, 74, 0.2); color: #ff4a4a; }
-          .kairo-toast-success .toast-icon { background: rgba(5, 240, 160, 0.2); color: #05f0a0; }
-          .toast-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 2px; font-family: 'Orbitron'; letter-spacing: 1px;}
-          .toast-message { font-size: 0.8rem; opacity: 0.7; }
-
-          #kairo-lock-screen {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10001;
-            background: radial-gradient(circle at center, rgba(5,16,20,0.98) 0%, rgba(1,3,5,1) 100%);
-            backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            color: white; font-family: 'Orbitron', sans-serif;
-            opacity: 0; transition: opacity 0.8s ease; cursor: pointer;
-          }
-          .lock-time { font-size: 7rem; font-weight: 900; background: linear-gradient(180deg, #ffffff 30%, #5caaa0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 50px rgba(16,185,129,0.2); margin: 0; }
-          .lock-date { font-size: 1.6rem; font-weight: 300; font-family: 'Inter'; opacity: 0.6; margin-top: 10px; }
-          .lock-hint { position: absolute; bottom: 60px; font-size: 0.9rem; letter-spacing: 5px; color: #10b981; animation: pulseHint 2s infinite; }
-          @keyframes pulseHint { 0%, 100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-5px); } }
-
-          #kairo-fab {
-            position: fixed; bottom: 40px; right: 40px; z-index: 10000;
-            width: 65px; height: 65px; border-radius: 50%;
-            background: rgba(16, 185, 129, 0.1); backdrop-filter: blur(20px); border: 1px solid rgba(16,185,129,0.5);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 15px 45px rgba(0,0,0,0.6);
-            color: #10b981; font-family: 'Orbitron'; font-weight: 900; font-size: 1rem;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 0 0 10px rgba(16,185,129,0.5);
-          }
-          #kairo-fab:hover { transform: scale(1.15) rotate(5deg); background: rgba(16,185,129,0.2); border-color: #05f0a0; box-shadow: 0 20px 50px rgba(16,185,129,0.3); }
+          .kairo-toast-active { transform: translateY(0); opacity: 1; }
+          .toast-icon { width: 32px; height: 32px; border-radius: 10px; background: rgba(16,185,129,0.1); display: flex; align-items: center; justify-content: center; font-weight: 900; }
+          .toast-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 2px; letter-spacing: 0.5px;}
+          .toast-message { font-size: 0.85rem; opacity: 0.6; }
 
           .kairo-os {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at center, #051014 0%, #010305 100%);
-            font-family: 'Inter', sans-serif; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; color: white;
-            overflow: hidden; z-index: 9999; transition: 0.6s ease;
+            background: var(--bg-dark);
+            font-family: var(--font-main);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; z-index: 9999; transition: 0.8s cubic-bezier(0.19, 1, 0.22, 1);
           }
+
+          /* Mesh Gradient Background */
+          .mesh-gradient {
+            position: absolute; inset: 0;
+            background-color: var(--bg-dark);
+            background-image: 
+              radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.15) 0, transparent 50%), 
+              radial-gradient(at 50% 0%, hsla(161, 84%, 39%, 0.05) 0, transparent 50%), 
+              radial-gradient(at 100% 0%, hsla(161, 84%, 39%, 0.15) 0, transparent 50%), 
+              radial-gradient(at 0% 100%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%), 
+              radial-gradient(at 100% 100%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%);
+            filter: blur(80px);
+            animation: meshMove 20s infinite alternate ease-in-out;
+            z-index: 0;
+          }
+          @keyframes meshMove {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1) rotate(2deg); }
+          }
+
+          .hub-shell {
+            position: relative; z-index: 10;
+            width: 100%; height: 100%;
+            display: flex; padding: 60px;
+            gap: 60px; max-width: 1600px;
+          }
+
+          /* Left Panel */
+          .left-panel {
+            flex: 4; display: flex; flex-direction: column; justify-content: space-between;
+            animation: slideInLeft 1s forwards cubic-bezier(0.19, 1, 0.22, 1);
+          }
+          @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+
+          .branding { display: flex; align-items: center; gap: 20px; }
+          .logo-img { width: 80px; filter: drop-shadow(0 0 20px rgba(16,185,129,0.3)); transition: 0.5s; }
+          .logo-img:hover { transform: rotate(5deg) scale(1.05); }
+          .brand-name { font-weight: 900; font-size: 1.8rem; letter-spacing: -1px; }
+
+          .greeting-area { margin-top: 40px; }
+          .greeting { font-size: 1.2rem; font-weight: 300; opacity: 0.6; margin-bottom: 5px; }
+          .clock { font-size: 6rem; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -4px; background: linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.4) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+          .date { font-size: 1.2rem; font-weight: 400; opacity: 0.5; margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; }
+
+          .system-health {
+            margin-top: auto; display: flex; align-items: center; gap: 12px;
+            background: var(--glass); border: 1px solid var(--glass-border); padding: 15px 25px; border-radius: 100px; width: fit-content;
+          }
+          .health-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulseDot 2s infinite; }
+          @keyframes pulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.4; } }
+          .health-text { font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; color: var(--accent); }
+
+          /* Right Panel */
+          .right-panel {
+            flex: 6; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: auto auto 1fr; gap: 20px;
+            animation: slideInRight 1s 0.2s forwards cubic-bezier(0.19, 1, 0.22, 1); opacity: 0;
+          }
+          @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+          .bento-card {
+            background: var(--glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border); border-radius: 32px; padding: 30px;
+            transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1); cursor: pointer;
+            display: flex; flex-direction: column; justify-content: space-between;
+            animation: fadeInScale 0.6s backwards;
+          }
+          .bento-card:hover { transform: translateY(-8px); background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
           
-          .kairo-os::before {
-            content: ''; position: absolute; width: 900px; height: 900px;
-            background: radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(0,0,0,0) 65%);
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            animation: pulseOrb 12s infinite alternate ease-in-out; z-index: 0; pointer-events: none;
+          @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+          .delay-1 { animation-delay: 0.3s; }
+          .delay-2 { animation-delay: 0.4s; }
+          .delay-3 { animation-delay: 0.5s; }
+          .delay-4 { animation-delay: 0.6s; }
+          .delay-5 { animation-delay: 0.7s; }
+
+          .update-card { grid-column: span 2; background: rgba(255, 0, 80, 0.03); border-color: rgba(255, 0, 80, 0.2); flex-direction: row; align-items: center; gap: 30px; }
+          .update-card:hover { background: rgba(255, 0, 80, 0.05); border-color: rgba(255, 0, 80, 0.4); }
+          .update-icon { width: 50px; height: 50px; border-radius: 15px; background: rgba(255, 0, 80, 0.1); display: flex; align-items: center; justify-content: center; color: #ff0050; }
+
+          .stat-card { min-height: 160px; }
+          .stat-header { display: flex; justify-content: space-between; align-items: flex-start; }
+          .stat-icon { color: var(--primary); opacity: 0.7; --mdc-icon-size: 28px; }
+          .stat-val { font-size: 2.8rem; font-weight: 900; margin-top: 15px; }
+          .stat-label { font-size: 0.8rem; font-weight: 600; opacity: 0.4; letter-spacing: 1px; text-transform: uppercase; }
+
+          .action-card { grid-column: span 2; background: var(--primary); border: none; padding: 40px; color: #000; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+          .action-card:hover { transform: scale(1.02); box-shadow: 0 40px 80px rgba(16, 185, 129, 0.3); }
+          .action-text { font-size: 1.6rem; font-weight: 900; letter-spacing: 2px; position: relative; z-index: 5; }
+          .action-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: translateX(-100%); transition: 0.6s; }
+          .action-card:hover::after { transform: translateX(100%); }
+
+          .social-links { grid-column: span 2; display: flex; gap: 15px; }
+          .social-pill { flex: 1; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 100px; padding: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 0.8rem; transition: 0.3s; }
+          .social-pill:hover { background: rgba(255,255,255,0.1); transform: translateY(-4px); }
+
+          /* Lock Screen */
+          #kairo-lock-screen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10001;
+            background: rgba(1, 3, 5, 0.9); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white; font-family: var(--font-main);
+            opacity: 0; transition: 1s ease; cursor: pointer;
           }
-          @keyframes pulseOrb { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; } 100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } }
+          .lock-clock { font-size: 10rem; font-weight: 100; letter-spacing: -5px; }
+          .lock-hint { position: absolute; bottom: 80px; font-size: 0.8rem; letter-spacing: 8px; opacity: 0.5; animation: blink 2s infinite; }
+          @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
 
-          .grid {
-            position: absolute; width: 200%; height: 200%;
-            background-image: linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px; transform: perspective(600px) rotateX(60deg);
-            animation: moveGrid 30s linear infinite; z-index: 1;
+          #kairo-fab {
+            position: fixed; bottom: 40px; right: 40px; z-index: 10000;
+            width: 50px; height: 50px; border-radius: 15px;
+            background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: #fff; font-family: var(--font-main); font-weight: 900; font-size: 0.7rem;
+            transition: 0.4s;
           }
-          @keyframes moveGrid { from { transform: perspective(600px) rotateX(60deg) translateY(0); } to { transform: perspective(600px) rotateX(60deg) translateY(50px); } }
+          #kairo-fab:hover { background: var(--primary); color: #000; border-color: var(--primary); transform: scale(1.1); }
 
-          .content-shell {
-            position: relative; z-index: 10; text-align: center; display: flex; flex-direction: column; align-items: center; width: 100%; padding: 0 20px; box-sizing: border-box; margin-bottom: 80px; 
-            animation: slideUpFade 1.2s forwards;
-          }
-          @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
-
-          .top-bar { position: absolute; top: 30px; left: 30px; right: 30px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
-          .logo { width: 90px; filter: drop-shadow(0 0 20px var(--primary)); margin-bottom: 10px; animation: pulse 4s infinite ease-in-out; }
-          @keyframes pulse { 0%, 100% { filter: drop-shadow(0 0 20px rgba(16,185,129,0.4)); transform: scale(1); } 50% { filter: drop-shadow(0 0 40px rgba(16,185,129,0.8)); transform: scale(1.05); } }
-
-          h1 { font-family: 'Orbitron', sans-serif; font-size: 3.0rem; font-weight: 900; margin: 0; letter-spacing: -1px; background: linear-gradient(180deg, #ffffff 30%, #5caaa0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 40px rgba(16, 185, 129, 0.3); }
-
-          .glass-panel { background: rgba(5, 12, 18, 0.55); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.04); border-top: 1px solid rgba(255, 255, 255, 0.15); border-radius: 40px; padding: 35px; margin-top: 25px; width: 100%; max-width: 680px; box-shadow: 0 40px 100px rgba(0,0,0,0.95); }
-          .hub-badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: 900; letter-spacing: 4px; color: var(--primary); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 18px; border-radius: 50px; margin-bottom: 25px; }
-          .pulse-dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); animation: dotPulse 2s infinite; }
-          @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.5); } }
-          
-          .news-text { font-size: 1.2rem; font-weight: 300; line-height: 1.5; margin-bottom: 25px; color: rgba(255,255,255,0.9); min-height: 55px; }
-          .social-container { display: flex; gap: 15px; width: 100%; margin-bottom: 25px; }
-          .social-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; border-radius: 15px; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); color: white; }
-          .social-btn:hover { transform: translateY(-5px) scale(1.02); }
-          .tiktok-btn:hover { background: rgba(255, 0, 80, 0.15); border-color: rgba(255, 0, 80, 0.5); text-shadow: 0 0 15px rgba(255,0,80,0.8); }
-          .youtube-btn:hover { background: rgba(255, 0, 0, 0.15); border-color: rgba(255, 0, 0, 0.5); text-shadow: 0 0 15px rgba(255,0,0,0.8); }
-
-          .system-stats { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 30px; }
-          .stat-item { display: flex; flex-direction: column; align-items: center; flex: 1; cursor: pointer; transition: 0.4s; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px 10px; border-radius: 20px; }
-          .stat-item:hover { transform: translateY(-8px); background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3); }
-          .stat-icon { color: var(--primary); margin-bottom: 12px; opacity: 0.8; transition: 0.4s; }
-          .stat-value { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 900; color: white; margin-bottom: 4px; }
-          .stat-label { font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 2px; }
-
-          .start-btn { background: var(--primary); color: #000; padding: 18px 40px; border-radius: 20px; font-weight: 900; font-size: 1.15rem; border: none; cursor: pointer; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); transition: 0.4s; font-family: 'Orbitron', sans-serif; letter-spacing: 2px; width: 100%; }
-          .start-btn:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(16, 185, 129, 0.6); }
-
-          .footer { margin-top: 20px; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; opacity: 0.4; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
-
-          .dock-container {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 20px; background: rgba(255,255,255,0.03); backdrop-filter: blur(35px); border: 1px solid rgba(255,255,255,0.05);
-            padding: 15px 35px; border-radius: 40px; z-index: 100;
-          }
-          .dock-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); cursor: pointer; transition: 0.3s; min-width: 70px; }
-          .dock-item:hover { color: var(--primary); transform: translateY(-10px) scale(1.15); }
-          .dock-icon { --mdc-icon-size: 32px; margin-bottom: 8px; }
-          .dock-label { font-family: 'Inter', sans-serif; font-size: 0.7rem; font-weight: 600; opacity: 0; transition: 0.3s; }
-          .dock-item:hover .dock-label { opacity: 1; }
-
-          @media (max-width: 768px) {
-            h1 { font-size: 2.2rem; }
-            .content-shell { margin-bottom: 120px; }
-            .dock-container { bottom: 20px; width: 90%; overflow-x: auto; }
+          @media (max-width: 1024px) {
+            .hub-shell { flex-direction: column; padding: 30px; gap: 30px; overflow-y: auto; }
+            .left-panel { flex: none; align-items: center; text-align: center; }
+            .clock { font-size: 4rem; }
+            .right-panel { flex: none; display: flex; flex-direction: column; padding-bottom: 100px; }
+            .bento-card { min-height: 120px; }
           }
         </style>
         
         <div class="kairo-os" id="os-container">
-          <div class="grid"></div>
+          <div class="mesh-gradient"></div>
           
-          <div class="top-bar">
-            <div style="color: var(--primary); font-family: 'Orbitron'; font-size: 1rem; font-weight: 900; letter-spacing: 4px;">OK<span style="opacity:0.5">_SYS</span></div>
-            <div style="color: white; opacity: 0.5; font-family: 'Orbitron'; font-size: 0.75rem; font-weight: 900; letter-spacing: 2px;">ONLINE</div>
-          </div>
-
-          <div class="content-shell">
-            <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" class="logo">
-            <h1>OPENKAIRO <span style="color:var(--primary)">OS</span></h1>
-            
-            <div class="glass-panel">
-              <div class="hub-badge"><span class="pulse-dot"></span> INTELLIGENCE HUB</div>
-              <div id="update-banner"></div>
-              <div class="news-text" id="news">Stelle Verbindung her...</div>
-
-              <div class="social-container">
-                 <div class="social-btn tiktok-btn" id="tiktok-btn">
-                    <ha-icon icon="mdi:video-vintage"></ha-icon>
-                    <span>TIKTOK</span>
-                 </div>
-                 <div class="social-btn youtube-btn" id="youtube-btn">
-                    <ha-icon icon="mdi:youtube"></ha-icon>
-                    <span>YOUTUBE</span>
-                 </div>
-              </div>
-
-              <div class="system-stats">
-                <div class="stat-item" id="dev-btn">
-                  <div class="stat-icon"><ha-icon icon="mdi:devices"></ha-icon></div>
-                  <div class="stat-value" id="dev-val">0</div>
-                  <div class="stat-label">GERÄTE</div>
+          <div class="hub-shell">
+            <div class="left-panel">
+              <div class="top">
+                <div class="branding">
+                  <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" class="logo-img">
+                  <div class="brand-name">KAIRO <span style="color:var(--primary)">OS</span></div>
                 </div>
-                <div class="stat-item" id="auto-btn">
-                  <div class="stat-icon"><ha-icon icon="mdi:robot"></ha-icon></div>
-                  <div class="stat-value" id="auto-val">0</div>
-                  <div class="stat-label">ROUTINEN</div>
-                </div>
-                <div class="stat-item" id="ent-btn">
-                  <div class="stat-icon"><ha-icon icon="mdi:cube-outline"></ha-icon></div>
-                  <div class="stat-value" id="ent-val">0</div>
-                  <div class="stat-label">ENTITÄTEN</div>
+                
+                <div class="greeting-area">
+                  <div class="greeting" id="greeting-text">Guten Tag,</div>
+                  <div class="clock" id="main-clock">--:--</div>
+                  <div class="date" id="main-date">--. --. ----</div>
                 </div>
               </div>
               
-              <button class="start-btn" id="go">DASHBOARD AUFRUFEN</button>
+              <div class="system-health">
+                <div class="health-dot"></div>
+                <div class="health-text">SYSTEM STATUS: OPTIMAL</div>
+              </div>
             </div>
-            
-            <div class="footer" id="foot">CORE: V4.1.2 | STATUS: CONNECTED | PL-SYS READY</div>
+
+            <div class="right-panel">
+              <div id="update-banner-container" style="grid-column: span 2; display: none;"></div>
+              
+              <div class="bento-card stat-card delay-1" id="dev-btn">
+                <div class="stat-header">
+                  <div class="stat-label">Geräte</div>
+                  <ha-icon icon="mdi:devices" class="stat-icon"></ha-icon>
+                </div>
+                <div class="stat-val" id="dev-val">0</div>
+              </div>
+
+              <div class="bento-card stat-card delay-2" id="auto-btn">
+                <div class="stat-header">
+                  <div class="stat-label">Routinen</div>
+                  <ha-icon icon="mdi:robot" class="stat-icon"></ha-icon>
+                </div>
+                <div class="stat-val" id="auto-val">0</div>
+              </div>
+
+              <div class="bento-card stat-card delay-3" id="ent-btn">
+                <div class="stat-header">
+                  <div class="stat-label">Entitäten</div>
+                  <ha-icon icon="mdi:cube-outline" class="stat-icon"></ha-icon>
+                </div>
+                <div class="stat-val" id="ent-val">0</div>
+              </div>
+
+              <div class="bento-card stat-card delay-4">
+                <div class="stat-header">
+                  <div class="stat-label">System</div>
+                  <ha-icon icon="mdi:cog" class="stat-icon"></ha-icon>
+                </div>
+                <div id="nav-dock" style="display: flex; gap: 10px; margin-top: 10px; overflow-x: auto;"></div>
+              </div>
+
+              <div class="social-links delay-5">
+                <div class="social-pill" id="tiktok-btn">
+                  <ha-icon icon="mdi:video-vintage"></ha-icon> TIKTOK
+                </div>
+                <div class="social-pill" id="youtube-btn">
+                  <ha-icon icon="mdi:youtube"></ha-icon> YOUTUBE
+                </div>
+              </div>
+
+              <div class="bento-card action-card delay-5" id="go">
+                <div class="action-text">DASHBOARD AUFRUFEN</div>
+              </div>
+            </div>
           </div>
-          
-          <div class="dock-container" id="auto-dock"></div>
         </div>
 
         <div id="kairo-toast-container"></div>
         <div id="kairo-lock-screen">
-          <div class="lock-time">--:--</div>
-          <div class="lock-date">KAIRO OS</div>
-          <div class="lock-hint">CLICK TO UNLOCK</div>
+          <div class="lock-clock">--:--</div>
+          <div class="lock-date" style="font-size: 1.5rem; opacity: 0.5; margin-top: 20px;">KAIRO OS</div>
+          <div class="lock-hint">ZUM ENTSPERREN TIPPEN</div>
         </div>
         <div id="kairo-fab">SYS</div>
       `;
@@ -282,9 +337,9 @@ class OpenKairoCard extends HTMLElement {
       this.shadowRoot.getElementById('go').onclick = () => {
         const osLayer = this.shadowRoot.getElementById('os-container');
         osLayer.style.opacity = '0';
+        osLayer.style.transform = 'scale(1.1) blur(20px)';
         osLayer.style.pointerEvents = 'none';
-        osLayer.style.transform = 'scale(1.05)';
-        setTimeout(() => { osLayer.style.display = 'none'; }, 600);
+        setTimeout(() => { osLayer.style.display = 'none'; }, 800);
       };
 
       this.shadowRoot.getElementById('tiktok-btn').onclick = () => { window.open('https://www.tiktok.com/@openkairo', '_blank'); };
@@ -298,10 +353,29 @@ class OpenKairoCard extends HTMLElement {
          osLayer.style.display = 'flex';
          setTimeout(() => {
            osLayer.style.opacity = '1';
-           osLayer.style.transform = 'scale(1)';
+           osLayer.style.transform = 'scale(1) blur(0px)';
            osLayer.style.pointerEvents = 'auto';
          }, 10);
       };
+
+      // Live Clock
+      setInterval(() => {
+        const now = new Date();
+        const hrs = now.getHours();
+        let greet = "Guten Abend,";
+        if (hrs < 12) greet = "Guten Morgen,";
+        else if (hrs < 18) greet = "Guten Tag,";
+        
+        const greetEl = this.shadowRoot.getElementById('greeting-text');
+        const clockEl = this.shadowRoot.getElementById('main-clock');
+        const dateEl = this.shadowRoot.getElementById('main-date');
+        const lockClock = this.shadowRoot.querySelector('.lock-clock');
+
+        if (greetEl) greetEl.innerText = greet;
+        if (clockEl) clockEl.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+        if (dateEl) dateEl.innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+        if (lockClock) lockClock.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+      }, 1000);
 
       if (window.KairoOS) {
          window.KairoOS.launchpad = this.shadowRoot.getElementById('os-container');
@@ -313,17 +387,22 @@ class OpenKairoCard extends HTMLElement {
       this._hass = hass; 
 
       const shadow = this.shadowRoot;
-      const updateBanner = shadow.getElementById('update-banner');
+      const updateContainer = shadow.getElementById('update-banner-container');
       const updateEntities = Object.keys(this._hass.states).filter(k => k.startsWith('update.') && this._hass.states[k].state === 'on');
       
       if (updateEntities.length > 0) {
         const up = this._hass.states[updateEntities[0]];
         const title = up.attributes.title || up.attributes.friendly_name || "System";
-        if (updateBanner) {
-          updateBanner.innerHTML = `<div id="update-click-btn" style="cursor: pointer; background: rgba(255, 0, 80, 0.05); border: 1px solid rgba(255, 0, 80, 0.3); border-radius: 20px; padding: 15px; margin-bottom: 25px; color:#ff4a4a; display:flex; flex-direction:column; align-items:center;">
-             <div style="font-family:'Orbitron'; font-weight:900; letter-spacing:2px; font-size:0.75rem; margin-bottom:8px;">SYSTEM-UPDATE VERFÜGBAR</div>
-             <span style="color:rgba(255,255,255,0.8); font-size: 0.85rem; font-weight:600;">${title} (v${up.attributes.latest_version})</span>
-          </div>`;
+        if (updateContainer) {
+          updateContainer.style.display = 'block';
+          updateContainer.innerHTML = `
+            <div class="bento-card update-card" id="update-click-btn">
+              <div class="update-icon"><ha-icon icon="mdi:update"></ha-icon></div>
+              <div>
+                <div style="font-weight:900; font-size:0.8rem; color:#ff0050; letter-spacing:1px;">UPDATE VERFÜGBAR</div>
+                <div style="font-weight:400; font-size:1.1rem; opacity:0.8;">${title} v${up.attributes.latest_version}</div>
+              </div>
+            </div>`;
           shadow.getElementById('update-click-btn').onclick = () => {
             const event = new Event('hass-more-info', { bubbles: true, composed: true });
             event.detail = { entityId: updateEntities[0] };
@@ -331,54 +410,39 @@ class OpenKairoCard extends HTMLElement {
           };
         }
       } else {
-         if (updateBanner) updateBanner.innerHTML = '';
+         if (updateContainer) updateContainer.style.display = 'none';
       }
       
-      if (!this._logInterval) {
-         this._logInterval = setInterval(() => {
-             const stats = shadow.getElementById('news');
-             if (!stats || !this._hass) return;
-             const liveStates = Object.values(this._hass.states);
-             const dynamicLogs = [
-                `ÜBERWACHE <span style="color:var(--primary)">${liveStates.length}</span> ENTITÄTEN...`,
-                'Lokaler OpenKairo-Core <span style="color:#05f0a0">STABIL</span>.',
-                'Sicherheitsprotokolle <span style="color:var(--primary)">AKTIV</span>.',
-                'Subroutinen arbeiten <span style="color:#ff0050">FEHLERFREI</span>.',
-                'System-Layer <span style="color:var(--primary)">V4.1.2</span> ONLINE.'
-             ];
-             const nextLog = dynamicLogs[Math.floor(Math.random() * dynamicLogs.length)];
-             stats.innerHTML = `<i>"${nextLog}"</i>`;
-         }, 5000); 
-         shadow.getElementById('news').innerHTML = `<i>"Neural-Core synchronisiert..."</i>`;
-      }
-
       const totalEntities = Object.values(hass.states).length;
       const totalAutos = Object.values(hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
       
-      shadow.getElementById('dev-val').innerText = hass.devices ? Object.keys(hass.devices).length : "-";
-      shadow.getElementById('auto-val').innerText = totalAutos;
-      shadow.getElementById('ent-val').innerText = totalEntities;
+      const devVal = shadow.getElementById('dev-val');
+      const autoVal = shadow.getElementById('auto-val');
+      const entVal = shadow.getElementById('ent-val');
 
-      // Dock Logic
-      const dock = shadow.getElementById('auto-dock');
-      if (dock && hass.panels) {
+      if (devVal) devVal.innerText = hass.devices ? Object.keys(hass.devices).length : "-";
+      if (autoVal) autoVal.innerText = totalAutos;
+      if (entVal) entVal.innerText = totalEntities;
+
+      // Nav Dock Logic
+      const navDock = shadow.getElementById('nav-dock');
+      if (navDock && hass.panels) {
         let dockHtml = '';
-        const paths = Object.keys(hass.panels).filter(p => !['lovelace', 'profile', 'config'].includes(p)).slice(0, 5);
+        const paths = Object.keys(hass.panels).filter(p => !['lovelace', 'profile', 'config'].includes(p)).slice(0, 4);
         paths.forEach(path => {
            const p = hass.panels[path];
            dockHtml += `
-             <div class="dock-item" data-path="/${path}">
-               <ha-icon icon="${p.icon || 'mdi:view-dashboard'}" class="dock-icon"></ha-icon>
-               <span class="dock-label">${p.title || path}</span>
+             <div class="nav-item" data-path="/${path}" style="cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+               <ha-icon icon="${p.icon || 'mdi:view-dashboard'}" style="--mdc-icon-size:20px; color:var(--primary)"></ha-icon>
              </div>
            `;
         });
-        dockHtml += `<div class="dock-item" data-path="/config"><ha-icon icon="mdi:cog" class="dock-icon"></ha-icon><span class="dock-label">System</span></div>`;
-        dock.innerHTML = dockHtml;
-        shadow.querySelectorAll('.dock-item').forEach(item => {
+        navDock.innerHTML = dockHtml;
+        shadow.querySelectorAll('.nav-item').forEach(item => {
            item.onclick = () => { window.location.href = item.getAttribute('data-path'); };
         });
       }
+
     } catch (err) { console.error("OS Error:", err); }
   }
 
