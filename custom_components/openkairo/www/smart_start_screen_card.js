@@ -1,3 +1,91 @@
+// --- OPENKAIRO OS LAUNCHPAD V4.2.1 ---
+
+// 1. EDITOR CLASS (Must be defined first)
+class OpenKairoCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  setConfig(config) {
+    this._config = config;
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (!this.initialized) {
+      this.initialized = true;
+      this.render();
+    }
+  }
+
+  render() {
+    if (!this._hass) return;
+    const entities = Object.keys(this._hass.states).sort();
+    const weatherEntities = entities.filter(e => e.startsWith('weather.'));
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        .config-container { padding: 20px; color: var(--primary-text-color); font-family: var(--paper-font-body1_-_font-family); }
+        .config-row { margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px; }
+        .config-label { font-weight: 600; font-size: 14px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; color: #10b981; }
+        select { 
+          width: 100%; padding: 12px; border-radius: 12px; 
+          background: var(--card-background-color); border: 1px solid var(--divider-color); 
+          color: var(--primary-text-color); font-size: 14px; outline: none;
+          cursor: pointer;
+        }
+        select:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+        .config-hint { font-size: 12px; opacity: 0.5; font-style: italic; }
+      </style>
+      <div class="config-container">
+        <h2 style="margin: 0 0 20px 0; font-size: 1.2rem;">OS Konfiguration</h2>
+        
+        <div class="config-row">
+          <div class="config-label">Netz-Verbrauch (Watt)</div>
+          <select id="energy_main_entity">
+            <option value="">-- Sensor wählen --</option>
+            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_main_entity ? 'selected' : ''}>${e}</option>`).join('')}
+          </select>
+          <div class="config-hint">Wähle den Sensor, der deinen aktuellen Gesamtverbrauch (Shelly/Grid) zeigt.</div>
+        </div>
+
+        <div class="config-row">
+          <div class="config-label">Solar-Erzeugung (Watt)</div>
+          <select id="energy_solar_entity">
+            <option value="">-- Sensor wählen --</option>
+            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_solar_entity ? 'selected' : ''}>${e}</option>`).join('')}
+          </select>
+          <div class="config-hint">Wähle den Sensor für deine PV-Produktion (Inverter/SolarFlow).</div>
+        </div>
+
+        <div class="config-row">
+          <div class="config-label">Wetter-Dienst</div>
+          <select id="weather_entity">
+            <option value="">-- Dienst wählen --</option>
+            ${weatherEntities.map(e => `<option value="${e}" ${e === this._config.weather_entity ? 'selected' : ''}>${e}</option>`).join('')}
+          </select>
+          <div class="config-hint">Zeigt Wetter-Infos links neben der Uhrzeit.</div>
+        </div>
+      </div>
+    `;
+
+    ['energy_main_entity', 'energy_solar_entity', 'weather_entity'].forEach(id => {
+      this.shadowRoot.getElementById(id).addEventListener('change', (ev) => {
+        const config = { ...this._config, [id]: ev.target.value };
+        const event = new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true });
+        this.dispatchEvent(event);
+      });
+    });
+  }
+}
+
+// Register Editor immediately
+if (!customElements.get('openkairo-card-editor')) {
+  customElements.define('openkairo-card-editor', OpenKairoCardEditor);
+}
+
+// 2. MAIN CARD CLASS
 class OpenKairoCard extends HTMLElement {
   constructor() {
     super();
@@ -17,10 +105,10 @@ class OpenKairoCard extends HTMLElement {
   }
 
   _initGlobalOS() {
-    if (window.KairoOS && window.KairoOS.version === '4.2.0') return;
+    if (window.KairoOS && window.KairoOS.version === '4.2.1') return;
     
     window.KairoOS = {
-      version: '4.2.0',
+      version: '4.2.1',
       idleTime: 0,
       locked: false,
       launchpad: null,
@@ -51,22 +139,8 @@ class OpenKairoCard extends HTMLElement {
           if (window.KairoOS.idleTime > 300 && !window.KairoOS.locked) {
             this._lockMode(true);
           }
-          if (window.KairoOS.locked) {
-            const now = new Date();
-            const lock = this.shadowRoot.getElementById('kairo-lock-screen');
-            if(lock) {
-              const clock = lock.querySelector('.lock-clock');
-              const date = lock.querySelector('.lock-date');
-              if(clock) clock.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-              if(date) date.innerText = now.toLocaleDateString('de-DE', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-            }
-          }
         }, 1000);
     }
-
-    ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => window.addEventListener(evt, () => {
-      if (!window.KairoOS.locked) window.KairoOS.idleTime = 0;
-    }, {passive: true}));
   }
 
   _lockMode(state) {
@@ -130,7 +204,6 @@ class OpenKairoCard extends HTMLElement {
           font-family: var(--font-main); pointer-events: auto; min-width: 300px;
         }
         .kairo-toast-active { transform: translateY(0); opacity: 1; }
-        .toast-icon { width: 32px; height: 32px; border-radius: 10px; background: rgba(16,185,129,0.1); display: flex; align-items: center; justify-content: center; font-weight: 900; }
 
         .kairo-os {
           position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -204,6 +277,14 @@ class OpenKairoCard extends HTMLElement {
           display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-weight: 900; z-index: 10000;
         }
 
+        #kairo-lock-screen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10001;
+            background: rgba(1, 3, 5, 0.9); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white; font-family: var(--font-main); opacity: 0; transition: 1s ease; cursor: pointer;
+        }
+        .lock-clock { font-size: 10rem; font-weight: 100; letter-spacing: -5px; }
+
         @media (max-width: 1024px) {
           .hub-shell { flex-direction: column; padding: 30px; gap: 30px; overflow-y: auto; }
           .left-panel { flex: none; align-items: center; text-align: center; }
@@ -269,6 +350,7 @@ class OpenKairoCard extends HTMLElement {
 
       <div id="kairo-toast-container"></div>
       <div id="kairo-fab">SYS</div>
+      <div id="kairo-lock-screen"><div class="lock-clock">--:--</div></div>
     `;
 
     this._setupHandlers();
@@ -306,47 +388,25 @@ class OpenKairoCard extends HTMLElement {
       else if (hrs < 18) greet = "Guten Tag,";
       
       const shadow = this.shadowRoot;
-      shadow.getElementById('greeting-text').innerText = greet;
-      shadow.getElementById('main-clock').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-      shadow.getElementById('main-date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+      if (shadow.getElementById('greeting-text')) shadow.getElementById('greeting-text').innerText = greet;
+      if (shadow.getElementById('main-clock')) shadow.getElementById('main-clock').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+      if (shadow.getElementById('main-date')) shadow.getElementById('main-date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
     }, 1000);
-  }
-
-  setConfig(config) {
-    this._config = config;
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    this.updateData();
   }
 
   updateData() {
     if (!this._hass || !this.shadowRoot) return;
     const shadow = this.shadowRoot;
-
-    // Update Clock & Greeting
-    const now = new Date();
-    const hrs = now.getHours();
-    let greet = "Guten Abend,";
-    if (hrs < 12) greet = "Guten Morgen,";
-    else if (hrs < 18) greet = "Guten Tag,";
-    
-    const greetEl = shadow.getElementById('greeting-text');
-    const clockEl = shadow.getElementById('main-clock');
-    const dateEl = shadow.getElementById('main-date');
-    if (greetEl) greetEl.innerText = greet;
-    if (clockEl) clockEl.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-    if (dateEl) dateEl.innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+    const config = this._config || {};
 
     // Update Stats
-    const devVal = shadow.getElementById('dev-val');
-    const autoVal = shadow.getElementById('auto-val');
-    if (devVal) devVal.innerText = this._hass.devices ? Object.keys(this._hass.devices).length : "-";
-    if (autoVal) autoVal.innerText = Object.values(this._hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
+    const totalEntities = Object.values(this._hass.states).length;
+    const totalAutos = Object.values(this._hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
+    if (shadow.getElementById('dev-val')) shadow.getElementById('dev-val').innerText = this._hass.devices ? Object.keys(this._hass.devices).length : "-";
+    if (shadow.getElementById('auto-val')) shadow.getElementById('auto-val').innerText = totalAutos;
 
     // Update Weather
-    const weatherEntity = this._config.weather_entity;
+    const weatherEntity = config.weather_entity;
     const weatherRow = shadow.getElementById('weather-row');
     if (weatherEntity && this._hass.states[weatherEntity] && weatherRow) {
       const w = this._hass.states[weatherEntity];
@@ -358,8 +418,8 @@ class OpenKairoCard extends HTMLElement {
     }
 
     // Update Energy
-    const mainPwr = this._config.energy_main_entity;
-    const solarPwr = this._config.energy_solar_entity;
+    const mainPwr = config.energy_main_entity;
+    const solarPwr = config.energy_solar_entity;
     const pwrMainEl = shadow.getElementById('power-main');
     const pwrSolarEl = shadow.getElementById('power-solar');
     
@@ -377,87 +437,15 @@ class OpenKairoCard extends HTMLElement {
   getCardSize() { return 10; }
 }
 
-class OpenKairoCardEditor extends HTMLElement {
-  setConfig(config) {
-    this._config = config;
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    if (!this.initialized) {
-      this.initialized = true;
-      this.render();
-    }
-  }
-
-  render() {
-    if (!this._hass) return;
-    const entities = Object.keys(this._hass.states).sort();
-    const weatherEntities = entities.filter(e => e.startsWith('weather.'));
-
-    this.innerHTML = `
-      <style>
-        .config-container { padding: 20px; color: var(--primary-text-color); }
-        .config-row { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
-        .config-label { font-weight: 600; font-size: 0.9rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
-        select { 
-          width: 100%; padding: 12px; border-radius: 12px; 
-          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-          color: white; font-family: inherit; font-size: 1rem; outline: none;
-        }
-        select:focus { border-color: #10b981; }
-        .config-hint { font-size: 0.8rem; opacity: 0.4; }
-      </style>
-      <div class="config-container">
-        <div class="config-row">
-          <div class="config-label">Netz-Verbrauch (W)</div>
-          <select id="energy_main_entity">
-            <option value="">Nicht konfiguriert</option>
-            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_main_entity ? 'selected' : ''}>${e}</option>`).join('')}
-          </select>
-          <div class="config-hint">Sensor für den aktuellen Hausverbrauch vom Netz.</div>
-        </div>
-
-        <div class="config-row">
-          <div class="config-label">Solar-Erzeugung (W)</div>
-          <select id="energy_solar_entity">
-            <option value="">Nicht konfiguriert</option>
-            ${entities.map(e => `<option value="${e}" ${e === this._config.energy_solar_entity ? 'selected' : ''}>${e}</option>`).join('')}
-          </select>
-          <div class="config-hint">Sensor für die aktuelle PV-Leistung.</div>
-        </div>
-
-        <div class="config-row">
-          <div class="config-label">Wetter-Dienst</div>
-          <select id="weather_entity">
-            <option value="">Nicht konfiguriert</option>
-            ${weatherEntities.map(e => `<option value="${e}" ${e === this._config.weather_entity ? 'selected' : ''}>${e}</option>`).join('')}
-          </select>
-          <div class="config-hint">Zeigt Temperatur und Status im Launchpad.</div>
-        </div>
-      </div>
-    `;
-
-    ['energy_main_entity', 'energy_solar_entity', 'weather_entity'].forEach(id => {
-      this.querySelector(`#${id}`).addEventListener('change', (ev) => {
-        const config = { ...this._config, [id]: ev.target.value };
-        const event = new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true });
-        this.dispatchEvent(event);
-      });
-    });
-  }
-}
-
+// Register Main Card
 if (!customElements.get('openkairo-card')) {
   customElements.define('openkairo-card', OpenKairoCard);
 }
-if (!customElements.get('openkairo-card-editor')) {
-  customElements.define('openkairo-card-editor', OpenKairoCardEditor);
-}
 
+// Push to global card list
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
-  description: "Shadow-DOM Optimized OS Layer for OpenKairo (V4.2.0)."
+  description: "Bento-Grid OS Layer for OpenKairo (V4.2.1)."
 });
