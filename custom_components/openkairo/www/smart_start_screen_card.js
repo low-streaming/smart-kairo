@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.2.3 ---
-console.log("%c 🚀 OPENKAIRO OS LAUNCHPAD V4.2.3 LOADED ", "background: #10b981; color: #000; font-weight: bold;");
+// --- OPENKAIRO OS LAUNCHPAD V4.2.4 ---
+console.log("%c 🚀 KAIRO OS V4.2.4 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 class OpenKairoCardEditor extends HTMLElement {
   constructor() {
@@ -19,13 +19,12 @@ class OpenKairoCardEditor extends HTMLElement {
     const entities = Object.keys(this._hass.states).sort();
     this.shadowRoot.innerHTML = `
       <style>
-        .config-container { padding: 20px; font-family: sans-serif; background: #111; color: #fff; }
-        .row { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: #10b981; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        select { width: 100%; padding: 12px; border-radius: 12px; background: #222; color: #fff; border: 1px solid #333; outline: none; }
-        select:focus { border-color: #10b981; }
+        .config { padding: 15px; font-family: sans-serif; background: #0a0c10; color: #eee; border-radius: 12px; }
+        .row { margin-bottom: 16px; }
+        label { display: block; font-size: 10px; font-weight: 800; color: #05f0a0; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
+        select { width: 100%; padding: 10px; border-radius: 8px; background: #1a1d23; color: #fff; border: 1px solid #333; outline: none; }
       </style>
-      <div class="config-container">
+      <div class="config">
         <div class="row">
           <label>Netz-Verbrauch (W)</label>
           <select id="energy_main_entity">
@@ -84,52 +83,106 @@ class OpenKairoCard extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;400;900&display=swap');
-        :host { --primary: #10b981; --accent: #05f0a0; --font-main: 'Outfit', sans-serif; }
-        .kairo-os { position: fixed; inset: 0; background: #020406; font-family: var(--font-main); display: flex; z-index: 9999; padding: 60px; gap: 60px; color: white; }
-        .left { flex: 4; display: flex; flex-direction: column; justify-content: space-between; }
-        .clock { font-size: 6rem; font-weight: 900; letter-spacing: -4px; margin: 20px 0; }
-        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .bento { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 32px; padding: 30px; }
-        .energy { grid-column: span 2; display: flex; justify-content: space-between; align-items: center; border-color: rgba(16,185,129,0.2); }
-        .energy-val { font-size: 2.5rem; font-weight: 900; }
-        .btn-main { grid-column: span 2; background: var(--primary); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 1.4rem; letter-spacing: 1px; }
-        #kairo-fab { position: fixed; bottom: 40px; right: 40px; width: 60px; height: 60px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; border: 1px solid rgba(255,255,255,0.1); color: white; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;400;600;900&display=swap');
+        :host { 
+          --primary: #10b981; 
+          --accent: #05f0a0; 
+          --font-main: 'Outfit', sans-serif;
+          --glass: rgba(255,255,255,0.03);
+          --glass-border: rgba(255,255,255,0.08);
+        }
+        
+        .kairo-os { 
+          position: fixed; inset: 0; background: #020406; 
+          font-family: var(--font-main); display: flex; z-index: 9999; 
+          padding: 40px; gap: 40px; color: white; overflow: hidden;
+        }
+
+        .mesh {
+          position: absolute; inset: 0; z-index: 0;
+          background: radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.1) 0, transparent 50%), 
+                      radial-gradient(at 100% 100%, hsla(161, 84%, 39%, 0.05) 0, transparent 50%);
+          filter: blur(80px);
+        }
+
+        .left { flex: 4; display: flex; flex-direction: column; justify-content: space-between; position: relative; z-index: 10; }
+        .branding { display: flex; align-items: center; gap: 15px; font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; }
+        
+        .clock-area { margin-top: 30px; }
+        .clock { font-size: 5rem; font-weight: 900; letter-spacing: -3px; margin: 0; line-height: 1; }
+        .date { opacity: 0.5; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-top: 5px; }
+        .weather { margin-top: 15px; font-weight: 600; font-size: 1rem; color: var(--accent); }
+
+        .health { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px 20px; border-radius: 100px; width: fit-content; font-size: 0.7rem; font-weight: 900; letter-spacing: 1px; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+        .health-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+
+        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 15px; position: relative; z-index: 10; }
+        .bento { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px; transition: 0.3s ease; cursor: pointer; }
+        .bento:hover { background: rgba(255,255,255,0.06); transform: translateY(-4px); }
+
+        .energy { grid-column: span 2; display: flex; justify-content: space-between; align-items: center; padding: 25px 35px; }
+        .energy-val { font-size: 2rem; font-weight: 900; }
+        .energy-label { font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
+
+        .stat-label { font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; }
+        .stat-val { font-size: 2rem; font-weight: 900; }
+
+        .btn-main { grid-column: span 2; background: var(--primary); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; letter-spacing: 1px; border: none; height: 70px; }
+        .btn-main:hover { background: var(--accent); }
+
+        #kairo-fab { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--glass); border-radius: 15px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; font-size: 0.7rem; border: 1px solid var(--glass-border); color: white; backdrop-filter: blur(10px); }
+        #kairo-fab:hover { background: var(--primary); color: #000; }
       </style>
+
       <div class="kairo-os" id="os-container">
+        <div class="mesh"></div>
         <div class="left">
-          <div>
-            <div style="font-weight:900; font-size:1.8rem;">KAIRO <span style="color:var(--primary)">OS</span></div>
-            <div class="clock" id="clock">--:--</div>
-            <div id="date" style="opacity:0.5; text-transform:uppercase; letter-spacing:2px;">--</div>
-            <div id="weather" style="margin-top:20px; font-weight:600; font-size:1.1rem;"></div>
+          <div class="top">
+            <div class="branding">
+               <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" style="width:50px;">
+               <div>KAIRO <span style="color:var(--primary)">OS</span></div>
+            </div>
+            <div class="clock-area">
+              <div class="clock" id="clock">--:--</div>
+              <div class="date" id="date">--</div>
+              <div class="weather" id="weather"></div>
+            </div>
           </div>
-          <div style="background:rgba(255,255,255,0.03); padding:15px 25px; border-radius:100px; width:fit-content; color:var(--accent); font-size:0.8rem; font-weight:900;">SYSTEM OPTIMAL</div>
+          <div class="health">
+            <div class="health-dot"></div>
+            SYSTEM STATUS: OPTIMAL
+          </div>
         </div>
+
         <div class="right">
           <div class="bento energy">
             <div>
-              <div style="font-size:0.8rem; opacity:0.5; text-transform:uppercase;">Energy Hub</div>
+              <div class="energy-label">Energy Hub</div>
               <div class="energy-val" id="p-main">0 W</div>
-              <div style="opacity:0.6; font-size:0.9rem;">Solar: <span id="p-solar" style="color:var(--accent)">0 W</span></div>
+              <div style="opacity:0.6; font-size:0.8rem; margin-top:4px;">Solar: <span id="p-solar" style="color:var(--accent)">0 W</span></div>
             </div>
-            <ha-icon icon="mdi:lightning-bolt" style="color:var(--accent); --mdc-icon-size:40px;"></ha-icon>
+            <ha-icon icon="mdi:lightning-bolt" style="color:var(--accent); --mdc-icon-size:32px;"></ha-icon>
+          </div>
+
+          <div class="bento">
+            <div class="stat-label">Geräte</div>
+            <div class="stat-val" id="v-dev">0</div>
           </div>
           <div class="bento">
-            <div style="opacity:0.5; font-size:0.8rem;">GERÄTE</div>
-            <div style="font-size:2.5rem; font-weight:900;" id="v-dev">0</div>
+            <div class="stat-label">Routinen</div>
+            <div class="stat-val" id="v-auto">0</div>
           </div>
-          <div class="bento">
-            <div style="opacity:0.5; font-size:0.8rem;">ROUTINEN</div>
-            <div style="font-size:2.5rem; font-weight:900;" id="v-auto">0</div>
-          </div>
+
           <div class="bento btn-main" id="go">DASHBOARD AUFRUFEN</div>
         </div>
       </div>
       <div id="kairo-fab">SYS</div>
     `;
+
     this.shadowRoot.getElementById('go').onclick = () => { this.shadowRoot.getElementById('os-container').style.display = 'none'; };
     this.shadowRoot.getElementById('kairo-fab').onclick = () => { this.shadowRoot.getElementById('os-container').style.display = 'flex'; };
+    
     setInterval(() => {
       const now = new Date();
       if(this.shadowRoot.getElementById('clock')) this.shadowRoot.getElementById('clock').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
@@ -160,17 +213,17 @@ class OpenKairoCard extends HTMLElement {
     if (s && shadow.getElementById('p-solar')) shadow.getElementById('p-solar').innerText = `${Math.round(parseFloat(s.state) || 0)} W`;
   }
 }
+
 if (!customElements.get('openkairo-card')) {
   customElements.define('openkairo-card', OpenKairoCard);
 }
 
+// FORCE UPDATE GLOBAL LIST
 window.customCards = window.customCards || [];
-const existingCard = window.customCards.find(c => c.type === 'openkairo-card');
-if (!existingCard) {
-  window.customCards.push({
-    type: "openkairo-card",
-    name: "OpenKairo OS Launchpad",
-    editor: "openkairo-card-editor",
-    description: "Final Bento-Grid OS Layer (V4.2.3)."
-  });
-}
+window.customCards = window.customCards.filter(c => c.type !== 'openkairo-card');
+window.customCards.push({
+  type: "openkairo-card",
+  name: "OpenKairo OS Launchpad",
+  editor: "openkairo-card-editor",
+  description: "Redesigned Bento-Grid OS Layer (V4.2.4)."
+});
