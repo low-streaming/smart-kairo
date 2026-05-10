@@ -84,13 +84,12 @@ class OpenKairoWeather(WeatherEntity):
                                 lon = place["longitude"]
                                 
                                 # 2. Fetch weather from Bright Sky using coordinates
-                                weather_url = f"{BRIGHT_SKY_URL}?lat={lat}&lon={lon}&date=now"
+                                weather_url = f"{BRIGHT_SKY_URL}?lat={lat}&lon={lon}"
                                 async with session.get(weather_url) as weather_resp:
                                     if weather_resp.status == 200:
                                         data = await weather_resp.json()
-                                        weather_list = data.get("weather", [])
-                                        if weather_list:
-                                            weather = weather_list[0]
+                                        weather = data.get("weather", {})
+                                        if weather:
                                             self._temp = weather.get("temperature")
                                             self._condition = weather.get("condition")
                                             self._humidity = weather.get("relative_humidity")

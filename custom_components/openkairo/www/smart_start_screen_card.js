@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.3.3 ---
-console.log("%c 🚀 KAIRO OS V4.3.3 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.3.4 ---
+console.log("%c 🚀 KAIRO OS V4.3.4 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
@@ -295,12 +295,12 @@ class OpenKairoCard extends HTMLElement {
         const { latitude, longitude } = geoData.places[0];
         console.log(`KAIRO OS: Coordinates found: ${latitude}, ${longitude}`);
         
-        const weatherResp = await fetch(`https://api.brightsky.dev/weather?lat=${latitude}&lon=${longitude}&date=now`);
+        const weatherResp = await fetch(`https://api.brightsky.dev/current_weather?lat=${latitude}&lon=${longitude}`);
         const weatherData = await weatherResp.json();
         console.log("KAIRO OS: Weather data received", weatherData);
 
-        if (weatherData && weatherData.weather && weatherData.weather.length > 0) {
-          this._directWeather = weatherData.weather[0];
+        if (weatherData && weatherData.weather) {
+          this._directWeather = weatherData.weather;
           this.updateData();
         }
       } else {
