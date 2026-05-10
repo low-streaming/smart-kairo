@@ -288,11 +288,13 @@ class OpenKairoCard extends HTMLElement {
     this._fetchingWeather = true;
     try {
       console.log("KAIRO OS: Fetching weather for PLZ", plz);
-      const response = await fetch(`https://api.brightsky.dev/current_weather?postcode=${plz}`);
+      const response = await fetch(`https://api.brightsky.dev/weather?postcode=${plz}&date=now`);
       const data = await response.json();
       console.log("KAIRO OS: Weather data received", data);
-      if (data && data.weather) {
-        this._directWeather = data.weather;
+      
+      // The /weather endpoint returns an array in 'weather'
+      if (data && data.weather && data.weather.length > 0) {
+        this._directWeather = data.weather[0];
         this.updateData();
       }
     } catch (e) {
