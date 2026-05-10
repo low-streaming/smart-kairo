@@ -18,7 +18,7 @@ async def _setup_internal(hass: HomeAssistant, config: dict = None):
     """Shared setup logic for both YAML and UI config."""
     if DOMAIN in hass.data:
         return
-    hass.data[DOMAIN] = True
+    hass.data[DOMAIN] = config or {}
 
     static_path = hass.config.path(f"custom_components/{DOMAIN}/www")
     
@@ -60,12 +60,13 @@ async def _setup_internal(hass: HomeAssistant, config: dict = None):
     except Exception as e:
         _LOGGER.warning(f"Lovelace Resource registration failed (this is normal on some systems): {e}")
 
-    # Start the sensor platform
-    hass.async_create_task(
-        discovery.async_load_platform(hass, "sensor", DOMAIN, {}, config or {})
-    )
+    # Start platforms
+    for platform in ["sensor", "weather"]:
+        hass.async_create_task(
+            discovery.async_load_platform(hass, platform, DOMAIN, {}, config or {})
+        )
 
-    _LOGGER.info("OpenKAIRO OS V4.2.2 fully initialized.")
+    _LOGGER.info("OpenKAIRO OS V4.2.9 fully initialized.")
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up via YAML."""
@@ -75,8 +76,15 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up via UI."""
-    await _setup_internal(hass)
+    # Combine data and options
+    config = {**entry.data, **entry.options}
+    await _setup_internal(hass, config)
+    entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
+
+async def update_listener(hass, entry):
+    """Handle options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload."""

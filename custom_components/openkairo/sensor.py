@@ -48,3 +48,4 @@ class OpenKairoStatusSensor(SensorEntity):
             _LOGGER.error("GitHub News Update failed: %s", e)
             self._state = "Offline Mode"
             self._attr_extra_state_attributes["github_news"] = "Verbindung zu GitHub fehlgeschlagen. Lokale Instanz läuft."
+
