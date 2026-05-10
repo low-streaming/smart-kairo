@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.3.4 ---
-console.log("%c 🚀 KAIRO OS V4.3.4 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.3.5 ---
+console.log("%c 🚀 KAIRO OS V4.3.5 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
@@ -387,5 +387,5 @@ window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
   editor: "openkairo-card-editor",
-  description: "Redesigned Bento-Grid OS Layer (V4.3.3)."
+  description: "Redesigned Bento-Grid OS Layer (V4.3.5)."
 });
