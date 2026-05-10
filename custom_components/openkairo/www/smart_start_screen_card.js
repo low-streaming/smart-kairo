@@ -1,10 +1,11 @@
 // --- OPENKAIRO OS LAUNCHPAD V4.3.0 ---
 console.log("%c 🚀 KAIRO OS V4.3.0 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
-if (!String.prototype.capitalize) {
-  String.prototype.capitalize = function() {
-    return this.charAt(0).toUpperCase() + this.slice(1);
-  }
+if (!window.openKairoHelpers) {
+  window.openKairoHelpers = {
+    capitalize: (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '',
+    formatCond: (s) => s ? s.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : ''
+  };
 }
 
 class OpenKairoCardEditor extends HTMLElement {
@@ -337,11 +338,17 @@ class OpenKairoCard extends HTMLElement {
     const weatherText = shadow.getElementById('weather-text');
     const weatherIcon = shadow.getElementById('weather-icon');
 
+    if (!weatherText) {
+      console.warn("KAIRO OS: weather-text element not found in shadowRoot");
+    }
+
     if (w && weatherText) {
       weatherText.innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
       if (weatherIcon && w.attributes.icon) weatherIcon.setAttribute('icon', w.attributes.icon);
     } else if (this._directWeather && weatherText) {
-      weatherText.innerText = `${Math.round(this._directWeather.temperature)}°C | ${this._directWeather.condition.replace(/-/g, ' ').capitalize()}`;
+      const temp = Math.round(this._directWeather.temperature);
+      const cond = window.openKairoHelpers.formatCond(this._directWeather.condition);
+      weatherText.innerText = `${temp}°C | ${cond}`;
       if (weatherIcon) weatherIcon.setAttribute('icon', this._getWeatherIcon(this._directWeather.condition));
     } else if (plz && !this._fetchingWeather && !this._directWeather) {
        this.fetchDirectWeather(plz);
