@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.2.9 ---
-console.log("%c 🚀 KAIRO OS V4.2.9 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.3.0 ---
+console.log("%c 🚀 KAIRO OS V4.3.0 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 class OpenKairoCardEditor extends HTMLElement {
   constructor() {
@@ -97,7 +97,9 @@ class OpenKairoCard extends HTMLElement {
 
   setConfig(config) { 
     this._config = config; 
-    if (config.weather_plz) this.fetchDirectWeather(config.weather_plz);
+    let plz = config.weather_plz;
+    if (!plz && config.weather_entity && /^\d{5}$/.test(config.weather_entity)) plz = config.weather_entity;
+    if (plz) this.fetchDirectWeather(plz);
   }
   
   set editMode(editMode) {
@@ -262,8 +264,11 @@ class OpenKairoCard extends HTMLElement {
       if(this.shadowRoot.getElementById('date')) this.shadowRoot.getElementById('date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
       
       // Refresh direct weather every 15 mins
-      if (this._config && this._config.weather_plz && now.getMinutes() % 15 === 0 && now.getSeconds() === 0) {
-        this.fetchDirectWeather(this._config.weather_plz);
+      let plz = this._config ? this._config.weather_plz : null;
+      if (!plz && this._config && this._config.weather_entity && /^\d{5}$/.test(this._config.weather_entity)) plz = this._config.weather_entity;
+
+      if (plz && now.getMinutes() % 15 === 0 && now.getSeconds() === 0) {
+        this.fetchDirectWeather(plz);
       }
     }, 1000);
   }
@@ -293,11 +298,16 @@ class OpenKairoCard extends HTMLElement {
     if(shadow.getElementById('v-dev')) shadow.getElementById('v-dev').innerText = this._hass.devices ? Object.keys(this._hass.devices).length : "-";
     if(shadow.getElementById('v-auto')) shadow.getElementById('v-auto').innerText = Object.values(this._hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
 
-    const w = config.weather_entity ? this._hass.states[config.weather_entity] : null;
+    let plz = config.weather_plz;
+    if (!plz && config.weather_entity && /^\d{5}$/.test(config.weather_entity)) plz = config.weather_entity;
+
+    const w = config.weather_entity && !/^\d{5}$/.test(config.weather_entity) ? this._hass.states[config.weather_entity] : null;
     if (w && shadow.getElementById('weather')) {
       shadow.getElementById('weather').innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
     } else if (this._directWeather && shadow.getElementById('weather')) {
       shadow.getElementById('weather').innerText = `${Math.round(this._directWeather.temperature)}°C | ${this._directWeather.condition}`;
+    } else if (plz && !this._fetchingWeather && !this._directWeather) {
+       this.fetchDirectWeather(plz);
     }
 
     const m = config.energy_main_entity ? this._hass.states[config.energy_main_entity] : null;
