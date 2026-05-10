@@ -56,11 +56,15 @@ class OpenKairoCardEditor extends HTMLElement {
           <label>Wetter-Entität</label>
           <input type="text" id="weather_entity" list="weather-entities" value="${config.weather_entity || ''}" placeholder="-- Wetter suchen oder eingeben --" autocomplete="off">
         </div>
+        <div class="row">
+          <label>ODER: Wetter PLZ (Direkt)</label>
+          <input type="text" id="weather_plz" value="${config.weather_plz || ''}" placeholder="z.B. 10117" autocomplete="off">
+        </div>
         <div id="success" class="success-msg">✓ Gespeichert</div>
       </div>
     `;
     
-    ['energy_main_entity', 'energy_solar_entity', 'weather_entity'].forEach(id => {
+    ['energy_main_entity', 'energy_solar_entity', 'weather_entity', 'weather_plz'].forEach(id => {
       const el = this.shadowRoot.getElementById(id);
       if (el) {
         el.addEventListener('change', (ev) => {
@@ -91,7 +95,10 @@ class OpenKairoCard extends HTMLElement {
   static getConfigElement() { return document.createElement("openkairo-card-editor"); }
   static getStubConfig() { return { energy_main_entity: "", energy_solar_entity: "", weather_entity: "" }; }
 
-  setConfig(config) { this._config = config; }
+  setConfig(config) { 
+    this._config = config; 
+    if (config.weather_plz) this.fetchDirectWeather(config.weather_plz);
+  }
   
   set editMode(editMode) {
     this._editMode = editMode;
@@ -253,7 +260,29 @@ class OpenKairoCard extends HTMLElement {
       const now = new Date();
       if(this.shadowRoot.getElementById('clock')) this.shadowRoot.getElementById('clock').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
       if(this.shadowRoot.getElementById('date')) this.shadowRoot.getElementById('date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+      
+      // Refresh direct weather every 15 mins
+      if (this._config && this._config.weather_plz && now.getMinutes() % 15 === 0 && now.getSeconds() === 0) {
+        this.fetchDirectWeather(this._config.weather_plz);
+      }
     }, 1000);
+  }
+
+  async fetchDirectWeather(plz) {
+    if (!plz || this._fetchingWeather) return;
+    this._fetchingWeather = true;
+    try {
+      const response = await fetch(`https://api.brightsky.dev/current_weather?postcode=${plz}`);
+      const data = await response.json();
+      if (data && data.weather) {
+        this._directWeather = data.weather;
+        this.updateData();
+      }
+    } catch (e) {
+      console.error("OpenKairo Weather Fetch Failed", e);
+    } finally {
+      this._fetchingWeather = false;
+    }
   }
 
   updateData() {
@@ -267,6 +296,8 @@ class OpenKairoCard extends HTMLElement {
     const w = config.weather_entity ? this._hass.states[config.weather_entity] : null;
     if (w && shadow.getElementById('weather')) {
       shadow.getElementById('weather').innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
+    } else if (this._directWeather && shadow.getElementById('weather')) {
+      shadow.getElementById('weather').innerText = `${Math.round(this._directWeather.temperature)}°C | ${this._directWeather.condition}`;
     }
 
     const m = config.energy_main_entity ? this._hass.states[config.energy_main_entity] : null;
