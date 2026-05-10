@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.3.1 ---
-console.log("%c 🚀 KAIRO OS V4.3.1 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.3.2 ---
+console.log("%c 🚀 KAIRO OS V4.3.2 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
@@ -287,20 +287,29 @@ class OpenKairoCard extends HTMLElement {
     if (!plz || this._fetchingWeather) return;
     this._fetchingWeather = true;
     try {
-      console.log("KAIRO OS: Fetching weather for PLZ", plz);
-      const response = await fetch(`https://api.brightsky.dev/weather?postcode=${plz}&date=now`);
-      const data = await response.json();
-      console.log("KAIRO OS: Weather data received", data);
+      console.log("KAIRO OS: Converting PLZ to coordinates", plz);
+      const geoResp = await fetch(`https://api.zippopotam.us/de/${plz}`);
+      const geoData = await geoResp.json();
       
-      // The /weather endpoint returns an array in 'weather'
-      if (data && data.weather && data.weather.length > 0) {
-        this._directWeather = data.weather[0];
-        this.updateData();
+      if (geoData && geoData.places && geoData.places.length > 0) {
+        const { latitude, longitude } = geoData.places[0];
+        console.log(`KAIRO OS: Coordinates found: ${latitude}, ${longitude}`);
+        
+        const weatherResp = await fetch(`https://api.brightsky.dev/weather?lat=${latitude}&lon=${longitude}&date=now`);
+        const weatherData = await weatherResp.json();
+        console.log("KAIRO OS: Weather data received", weatherData);
+
+        if (weatherData && weatherData.weather && weatherData.weather.length > 0) {
+          this._directWeather = weatherData.weather[0];
+          this.updateData();
+        }
+      } else {
+        console.warn("KAIRO OS: PLZ not found", plz);
       }
     } catch (e) {
       console.error("OpenKairo Weather Fetch Failed", e);
       if (this.shadowRoot.getElementById('weather-text')) {
-        this.shadowRoot.getElementById('weather-text').innerText = "Fehler beim Laden";
+        this.shadowRoot.getElementById('weather-text').innerText = "Fehler (PLZ/API)";
       }
     } finally {
       this._fetchingWeather = false;

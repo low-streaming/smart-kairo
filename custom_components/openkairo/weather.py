@@ -71,19 +71,30 @@ class OpenKairoWeather(WeatherEntity):
     async def async_update(self):
         """Fetch current weather from Bright Sky."""
         try:
-            url = f"{BRIGHT_SKY_URL}?postcode={self._postcode}&date=now"
+            # 1. Resolve PLZ to coordinates
+            geo_url = f"https://api.zippopotam.us/de/{self._postcode}"
             async with async_timeout.timeout(10):
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(url) as response:
-                        if response.status == 200:
-                            data = await response.json()
-                            weather_list = data.get("weather", [])
-                            if weather_list:
-                                weather = weather_list[0]
-                                self._temp = weather.get("temperature")
-                                self._condition = weather.get("condition")
-                                self._humidity = weather.get("relative_humidity")
-                                self._pressure = weather.get("pressure_msl")
-                                self._wind_speed = weather.get("wind_speed")
+                    async with session.get(geo_url) as geo_resp:
+                        if geo_resp.status == 200:
+                            geo_data = await geo_resp.json()
+                            if geo_data.get("places"):
+                                place = geo_data["places"][0]
+                                lat = place["latitude"]
+                                lon = place["longitude"]
+                                
+                                # 2. Fetch weather from Bright Sky using coordinates
+                                weather_url = f"{BRIGHT_SKY_URL}?lat={lat}&lon={lon}&date=now"
+                                async with session.get(weather_url) as weather_resp:
+                                    if weather_resp.status == 200:
+                                        data = await weather_resp.json()
+                                        weather_list = data.get("weather", [])
+                                        if weather_list:
+                                            weather = weather_list[0]
+                                            self._temp = weather.get("temperature")
+                                            self._condition = weather.get("condition")
+                                            self._humidity = weather.get("relative_humidity")
+                                            self._pressure = weather.get("pressure_msl")
+                                            self._wind_speed = weather.get("wind_speed")
         except Exception as e:
             _LOGGER.error("Weather Update failed: %s", e)
