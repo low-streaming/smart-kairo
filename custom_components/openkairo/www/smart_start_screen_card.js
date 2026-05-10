@@ -1,10 +1,27 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.3.5 ---
-console.log("%c 🚀 KAIRO OS V4.3.5 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.3.6 ---
+console.log("%c 🚀 KAIRO OS V4.3.6 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
     capitalize: (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '',
-    formatCond: (s) => s ? s.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : ''
+    formatCond: (s) => {
+      const translations = {
+        'clear-day': 'Sonnig',
+        'clear-night': 'Klar',
+        'partly-cloudy-day': 'Leicht bewölkt',
+        'partly-cloudy-night': 'Leicht bewölkt',
+        'cloudy': 'Bewölkt',
+        'fog': 'Nebelig',
+        'rain': 'Regen',
+        'sleet': 'Schneeregen',
+        'snow': 'Schnee',
+        'wind': 'Windig',
+        'hail': 'Hagel',
+        'thunderstorm': 'Gewitter',
+        'dry': 'Trocken'
+      };
+      return translations[s] || (s ? s.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : '');
+    }
   };
 }
 
@@ -287,17 +304,14 @@ class OpenKairoCard extends HTMLElement {
     if (!plz || this._fetchingWeather) return;
     this._fetchingWeather = true;
     try {
-      console.log("KAIRO OS: Converting PLZ to coordinates", plz);
       const geoResp = await fetch(`https://api.zippopotam.us/de/${plz}`);
       const geoData = await geoResp.json();
       
       if (geoData && geoData.places && geoData.places.length > 0) {
         const { latitude, longitude } = geoData.places[0];
-        console.log(`KAIRO OS: Coordinates found: ${latitude}, ${longitude}`);
         
         const weatherResp = await fetch(`https://api.brightsky.dev/current_weather?lat=${latitude}&lon=${longitude}`);
         const weatherData = await weatherResp.json();
-        console.log("KAIRO OS: Weather data received", weatherData);
 
         if (weatherData && weatherData.weather) {
           this._directWeather = weatherData.weather;
