@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.3.6 ---
-console.log("%c 🚀 KAIRO OS V4.3.6 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V4.4.0 ---
+console.log("%c 🚀 KAIRO OS V4.4.0 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
@@ -270,8 +270,11 @@ class OpenKairoCard extends HTMLElement {
             <div class="stat-val" id="v-dev">0</div>
           </div>
           <div class="bento stat-card">
-            <div class="stat-label"><ha-icon icon="mdi:robot" style="--mdc-icon-size: 16px;"></ha-icon> Routinen</div>
-            <div class="stat-val" id="v-auto">0</div>
+            <div class="stat-label"><ha-icon icon="mdi:water-percent" style="--mdc-icon-size: 16px;"></ha-icon> Luftfeuchte</div>
+            <div class="stat-val" id="v-hum">--</div>
+            <div style="opacity:0.8; font-size:1rem; font-weight: 700; letter-spacing: 2px; margin-top: 5px;">
+              WIND: <span id="v-wind" style="color:var(--primary)">-- km/h</span>
+            </div>
           </div>
 
           <div class="bento btn-main" id="go">
@@ -354,7 +357,9 @@ class OpenKairoCard extends HTMLElement {
     const config = this._config || {};
 
     if(shadow.getElementById('v-dev')) shadow.getElementById('v-dev').innerText = this._hass.devices ? Object.keys(this._hass.devices).length : "-";
-    if(shadow.getElementById('v-auto')) shadow.getElementById('v-auto').innerText = Object.values(this._hass.states).filter(s => s.entity_id.startsWith('automation.')).length;
+    
+    const humEl = shadow.getElementById('v-hum');
+    const windEl = shadow.getElementById('v-wind');
 
     let plz = config.weather_plz;
     if (!plz && config.weather_entity && /^\d{5}$/.test(config.weather_entity)) plz = config.weather_entity;
@@ -370,11 +375,15 @@ class OpenKairoCard extends HTMLElement {
     if (w && weatherText) {
       weatherText.innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
       if (weatherIcon && w.attributes.icon) weatherIcon.setAttribute('icon', w.attributes.icon);
+      if (humEl) humEl.innerText = `${w.attributes.humidity || '--'} %`;
+      if (windEl) windEl.innerText = `${Math.round(w.attributes.wind_speed || 0)} km/h`;
     } else if (this._directWeather && weatherText) {
       const temp = Math.round(this._directWeather.temperature);
       const cond = window.openKairoHelpers.formatCond(this._directWeather.condition);
       weatherText.innerText = `${temp}°C | ${cond}`;
       if (weatherIcon) weatherIcon.setAttribute('icon', this._getWeatherIcon(this._directWeather.condition));
+      if (humEl) humEl.innerText = `${this._directWeather.relative_humidity || '--'} %`;
+      if (windEl) windEl.innerText = `${Math.round(this._directWeather.wind_speed || 0)} km/h`;
     } else if (plz && !this._fetchingWeather && !this._directWeather) {
        this.fetchDirectWeather(plz);
     }
@@ -401,5 +410,5 @@ window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
   editor: "openkairo-card-editor",
-  description: "Redesigned Bento-Grid OS Layer (V4.3.5)."
+  description: "Redesigned Bento-Grid OS Layer (V4.4.0)."
 });
