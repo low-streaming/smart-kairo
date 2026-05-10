@@ -1,6 +1,12 @@
 // --- OPENKAIRO OS LAUNCHPAD V4.3.0 ---
 console.log("%c 🚀 KAIRO OS V4.3.0 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
 
+if (!String.prototype.capitalize) {
+  String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+  }
+}
+
 class OpenKairoCardEditor extends HTMLElement {
   constructor() {
     super();
@@ -217,7 +223,10 @@ class OpenKairoCard extends HTMLElement {
             <div class="clock-area">
               <div class="clock" id="clock">--:--</div>
               <div class="date" id="date">--</div>
-              <div class="weather" id="weather"><ha-icon icon="mdi:weather-cloudy"></ha-icon> Lade Wetter...</div>
+              <div class="weather">
+                <ha-icon id="weather-icon" icon="mdi:weather-cloudy"></ha-icon> 
+                <span id="weather-text">Lade Wetter...</span>
+              </div>
             </div>
           </div>
           <div class="health">
@@ -277,17 +286,40 @@ class OpenKairoCard extends HTMLElement {
     if (!plz || this._fetchingWeather) return;
     this._fetchingWeather = true;
     try {
+      console.log("KAIRO OS: Fetching weather for PLZ", plz);
       const response = await fetch(`https://api.brightsky.dev/current_weather?postcode=${plz}`);
       const data = await response.json();
+      console.log("KAIRO OS: Weather data received", data);
       if (data && data.weather) {
         this._directWeather = data.weather;
         this.updateData();
       }
     } catch (e) {
       console.error("OpenKairo Weather Fetch Failed", e);
+      if (this.shadowRoot.getElementById('weather-text')) {
+        this.shadowRoot.getElementById('weather-text').innerText = "Fehler beim Laden";
+      }
     } finally {
       this._fetchingWeather = false;
     }
+  }
+
+  _getWeatherIcon(condition) {
+    const map = {
+      'clear-day': 'mdi:weather-sunny',
+      'clear-night': 'mdi:weather-night',
+      'partly-cloudy-day': 'mdi:weather-partly-cloudy',
+      'partly-cloudy-night': 'mdi:weather-night-partly-cloudy',
+      'cloudy': 'mdi:weather-cloudy',
+      'fog': 'mdi:weather-fog',
+      'rain': 'mdi:weather-rainy',
+      'sleet': 'mdi:weather-snowy-rainy',
+      'snow': 'mdi:weather-snowy',
+      'wind': 'mdi:weather-windy',
+      'hail': 'mdi:weather-hail',
+      'thunderstorm': 'mdi:weather-lightning-rainy'
+    };
+    return map[condition] || 'mdi:weather-cloudy';
   }
 
   updateData() {
@@ -302,10 +334,15 @@ class OpenKairoCard extends HTMLElement {
     if (!plz && config.weather_entity && /^\d{5}$/.test(config.weather_entity)) plz = config.weather_entity;
 
     const w = config.weather_entity && !/^\d{5}$/.test(config.weather_entity) ? this._hass.states[config.weather_entity] : null;
-    if (w && shadow.getElementById('weather')) {
-      shadow.getElementById('weather').innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
-    } else if (this._directWeather && shadow.getElementById('weather')) {
-      shadow.getElementById('weather').innerText = `${Math.round(this._directWeather.temperature)}°C | ${this._directWeather.condition}`;
+    const weatherText = shadow.getElementById('weather-text');
+    const weatherIcon = shadow.getElementById('weather-icon');
+
+    if (w && weatherText) {
+      weatherText.innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
+      if (weatherIcon && w.attributes.icon) weatherIcon.setAttribute('icon', w.attributes.icon);
+    } else if (this._directWeather && weatherText) {
+      weatherText.innerText = `${Math.round(this._directWeather.temperature)}°C | ${this._directWeather.condition.replace(/-/g, ' ').capitalize()}`;
+      if (weatherIcon) weatherIcon.setAttribute('icon', this._getWeatherIcon(this._directWeather.condition));
     } else if (plz && !this._fetchingWeather && !this._directWeather) {
        this.fetchDirectWeather(plz);
     }
