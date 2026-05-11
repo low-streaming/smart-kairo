@@ -1,24 +1,15 @@
-// --- OPENKAIRO OS LAUNCHPAD V4.4.0 ---
-console.log("%c 🚀 KAIRO OS V4.4.0 LOADING ", "background: #05f0a0; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V5.0.0 "CYBER" ---
+console.log("%c 🚀 KAIRO OS V5.0.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
     capitalize: (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '',
     formatCond: (s) => {
       const translations = {
-        'clear-day': 'Sonnig',
-        'clear-night': 'Klar',
-        'partly-cloudy-day': 'Leicht bewölkt',
-        'partly-cloudy-night': 'Leicht bewölkt',
-        'cloudy': 'Bewölkt',
-        'fog': 'Nebelig',
-        'rain': 'Regen',
-        'sleet': 'Schneeregen',
-        'snow': 'Schnee',
-        'wind': 'Windig',
-        'hail': 'Hagel',
-        'thunderstorm': 'Gewitter',
-        'dry': 'Trocken'
+        'clear-day': 'Sonnig', 'clear-night': 'Klar', 'partly-cloudy-day': 'Leicht bewölkt',
+        'partly-cloudy-night': 'Leicht bewölkt', 'cloudy': 'Bewölkt', 'fog': 'Nebelig',
+        'rain': 'Regen', 'sleet': 'Schneeregen', 'snow': 'Schnee', 'wind': 'Windig',
+        'hail': 'Hagel', 'thunderstorm': 'Gewitter', 'dry': 'Trocken'
       };
       return translations[s] || (s ? s.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : '');
     }
@@ -47,44 +38,40 @@ class OpenKairoCardEditor extends HTMLElement {
     const entities = Object.keys(this._hass.states).sort();
     this.shadowRoot.innerHTML = `
       <style>
-        .config { padding: 20px; font-family: sans-serif; background: #111; color: #eee; border-radius: 12px; }
+        .config { padding: 20px; font-family: 'Outfit', sans-serif; background: #0a0c10; color: #eee; border-radius: 12px; }
         .row { margin-bottom: 24px; }
-        label { display: block; font-size: 11px; font-weight: 800; color: #05f0a0; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1.5px; }
+        label { display: block; font-size: 11px; font-weight: 800; color: #00ff9d; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1.5px; }
         input { 
           width: 100%; padding: 12px; border-radius: 8px; 
-          background: #222; color: #fff; border: 1px solid #333; 
+          background: #151921; color: #fff; border: 1px solid #333; 
           outline: none; font-family: inherit; font-size: 14px; box-sizing: border-box;
         }
-        input:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
-        .success-msg { color: #10b981; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; }
+        input:focus { border-color: #00ff9d; box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.2); }
+        .success-msg { color: #00ff9d; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; }
       </style>
       <div class="config">
-        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px;">OS Konfiguration</h3>
+        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px; font-family: 'Orbitron';">OS Configuration V5</h3>
         
-        <datalist id="all-entities">
-          ${entities.map(e => `<option value="${e}"></option>`).join('')}
-        </datalist>
-        <datalist id="weather-entities">
-          ${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}"></option>`).join('')}
-        </datalist>
+        <datalist id="all-entities">${entities.map(e => `<option value="${e}"></option>`).join('')}</datalist>
+        <datalist id="weather-entities">${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}"></option>`).join('')}</datalist>
 
         <div class="row">
           <label>Netz-Verbrauch (W)</label>
-          <input type="text" id="energy_main_entity" list="all-entities" value="${config.energy_main_entity || ''}" placeholder="-- Sensor suchen oder eingeben --" autocomplete="off">
+          <input type="text" id="energy_main_entity" list="all-entities" value="${config.energy_main_entity || ''}" placeholder="-- Sensor suchen --" autocomplete="off">
         </div>
         <div class="row">
           <label>Solar-Erzeugung (W)</label>
-          <input type="text" id="energy_solar_entity" list="all-entities" value="${config.energy_solar_entity || ''}" placeholder="-- Sensor suchen oder eingeben --" autocomplete="off">
+          <input type="text" id="energy_solar_entity" list="all-entities" value="${config.energy_solar_entity || ''}" placeholder="-- Sensor suchen --" autocomplete="off">
         </div>
         <div class="row">
           <label>Wetter-Entität</label>
-          <input type="text" id="weather_entity" list="weather-entities" value="${config.weather_entity || ''}" placeholder="-- Wetter suchen oder eingeben --" autocomplete="off">
+          <input type="text" id="weather_entity" list="weather-entities" value="${config.weather_entity || ''}" placeholder="-- Wetter suchen --" autocomplete="off">
         </div>
         <div class="row">
-          <label>ODER: Wetter PLZ (Direkt)</label>
+          <label>Wetter PLZ (Fallback)</label>
           <input type="text" id="weather_plz" value="${config.weather_plz || ''}" placeholder="z.B. 10117" autocomplete="off">
         </div>
-        <div id="success" class="success-msg">✓ Gespeichert</div>
+        <div id="success" class="success-msg">✓ Konfiguration Gespeichert</div>
       </div>
     `;
     
@@ -94,22 +81,15 @@ class OpenKairoCardEditor extends HTMLElement {
         el.addEventListener('change', (ev) => {
           const newConfig = { ...this._config, [id]: ev.target.value };
           this._config = newConfig;
-          const event = new CustomEvent("config-changed", { detail: { config: newConfig }, bubbles: true, composed: true });
-          this.dispatchEvent(event);
-          
-          const success = this.shadowRoot.getElementById('success');
-          if(success) {
-            success.style.display = 'block';
-            setTimeout(() => success.style.display = 'none', 2000);
-          }
+          this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: newConfig }, bubbles: true, composed: true }));
+          const s = this.shadowRoot.getElementById('success');
+          if(s) { s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 2000); }
         });
       }
     });
   }
 }
-if (!customElements.get('openkairo-card-editor')) {
-  customElements.define('openkairo-card-editor', OpenKairoCardEditor);
-}
+if (!customElements.get('openkairo-card-editor')) customElements.define('openkairo-card-editor', OpenKairoCardEditor);
 
 class OpenKairoCard extends HTMLElement {
   constructor() {
@@ -129,17 +109,11 @@ class OpenKairoCard extends HTMLElement {
   set editMode(editMode) {
     this._editMode = editMode;
     if (this.shadowRoot) {
-      const osContainer = this.shadowRoot.getElementById('os-container');
-      if (osContainer) {
-        if (editMode) {
-          osContainer.style.position = 'relative';
-          osContainer.style.zIndex = '1';
-          osContainer.style.borderRadius = '16px';
-        } else {
-          osContainer.style.position = 'fixed';
-          osContainer.style.zIndex = '9999';
-          osContainer.style.borderRadius = '0px';
-        }
+      const os = this.shadowRoot.getElementById('os-container');
+      if (os) {
+        os.style.position = editMode ? 'relative' : 'fixed';
+        os.style.zIndex = editMode ? '1' : '9999';
+        os.style.borderRadius = editMode ? '24px' : '0px';
       }
     }
   }
@@ -150,12 +124,9 @@ class OpenKairoCard extends HTMLElement {
       this.initialized = true;
       this.attachShadow({ mode: 'open' });
       this.render();
-      // Auto-detect if inside editor preview
       setTimeout(() => {
-        const parent = this.getRootNode();
-        if (parent && parent.host && parent.host.tagName === 'HUI-CARD-PREVIEW') {
-            this.editMode = true;
-        }
+        const p = this.getRootNode();
+        if (p && p.host && p.host.tagName === 'HUI-CARD-PREVIEW') this.editMode = true;
       }, 100);
     }
     this.updateData();
@@ -164,69 +135,107 @@ class OpenKairoCard extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;600;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Orbitron:wght@400;700;900&display=swap');
         :host { 
-          --primary: #10b981; 
+          --primary: #00ff9d; 
           --accent: #05f0a0; 
           --font-main: 'Outfit', sans-serif;
-          --glass: rgba(15, 20, 25, 0.4);
-          --glass-border: rgba(255, 255, 255, 0.06);
-          --glass-highlight: rgba(255, 255, 255, 0.1);
+          --font-tech: 'Orbitron', sans-serif;
+          --glass: rgba(10, 15, 20, 0.45);
+          --glass-border: rgba(255, 255, 255, 0.08);
+          --glass-heavy: rgba(15, 20, 25, 0.7);
           display: block;
         }
         
         .kairo-os { 
-          position: fixed; inset: 0; background: #010203; 
+          position: fixed; inset: 0; background: #020406; 
           font-family: var(--font-main); display: flex; z-index: 9999; 
-          padding: 60px 80px; gap: 60px; color: white; overflow: hidden;
-          transition: all 0.3s ease;
+          padding: 6vh 6vw; gap: 60px; color: white; overflow: hidden;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .mesh {
-          position: absolute; inset: 0; z-index: 0;
-          background: radial-gradient(at 0% 0%, hsla(161, 84%, 39%, 0.15) 0, transparent 40%), 
-                      radial-gradient(at 100% 100%, hsla(161, 84%, 39%, 0.08) 0, transparent 40%);
-          filter: blur(80px); pointer-events: none;
+          position: absolute; inset: 0; z-index: 0; opacity: 0.6;
+          background: 
+            radial-gradient(at 10% 10%, hsla(161, 100%, 50%, 0.12) 0, transparent 50%), 
+            radial-gradient(at 90% 90%, hsla(161, 100%, 50%, 0.08) 0, transparent 50%),
+            radial-gradient(at 50% 50%, hsla(210, 100%, 10%, 1) 0, transparent 100%);
+          filter: blur(60px); animation: meshMove 20s infinite alternate;
+        }
+        @keyframes meshMove {
+          0% { transform: scale(1) translate(0,0); }
+          100% { transform: scale(1.2) translate(2%, 2%); }
         }
 
-        .left { flex: 4; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; padding-bottom: 20px; }
-        .branding { display: flex; align-items: center; gap: 20px; font-weight: 900; font-size: 1.8rem; letter-spacing: -1px; margin-bottom: 60px; }
+        .left { flex: 4; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; }
+        .branding { display: flex; align-items: center; gap: 20px; font-family: var(--font-tech); font-weight: 900; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 50px; }
         
-        .clock-area { margin-bottom: 60px; }
-        .clock { font-size: 8rem; font-weight: 900; letter-spacing: -4px; margin: 0; line-height: 1; text-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        .date { opacity: 0.6; text-transform: uppercase; letter-spacing: 4px; font-size: 1.1rem; margin-top: 15px; font-weight: 600; color: var(--accent); }
-        .weather { margin-top: 20px; font-weight: 600; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; opacity: 0.8; }
+        .clock-area { margin-bottom: 50px; animation: slideIn 0.8s ease-out; }
+        .clock { font-family: var(--font-tech); font-size: 8.5rem; font-weight: 900; letter-spacing: -2px; margin: 0; line-height: 0.9; text-shadow: 0 0 30px rgba(0,255,157,0.3); }
+        .date { opacity: 0.7; text-transform: uppercase; letter-spacing: 6px; font-size: 1rem; margin-top: 20px; font-weight: 800; color: var(--primary); }
+        .weather { margin-top: 25px; font-weight: 600; font-size: 1.3rem; display: flex; align-items: center; gap: 12px; opacity: 0.9; }
 
-        .health { background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); padding: 12px 25px; border-radius: 100px; width: fit-content; font-size: 0.8rem; font-weight: 800; letter-spacing: 2px; color: var(--accent); display: flex; align-items: center; gap: 12px; box-shadow: 0 0 30px rgba(16, 185, 129, 0.05); }
-        .health-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.5); } }
+        .health { 
+          background: rgba(0, 255, 157, 0.03); border: 1px solid rgba(0, 255, 157, 0.15); 
+          padding: 14px 28px; border-radius: 100px; width: fit-content; font-size: 0.85rem; 
+          font-weight: 900; letter-spacing: 3px; color: var(--primary); font-family: var(--font-tech);
+          display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden;
+        }
+        .health::after {
+          content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(0,255,157,0.1), transparent);
+          animation: scan 3s infinite linear;
+        }
+        @keyframes scan { 0% { left: -100%; } 100% { left: 100%; } }
+        .health-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.6); } }
 
-        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 25px; position: relative; z-index: 10; align-content: center; }
-        .bento { background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-top: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.05); border-radius: 32px; padding: 35px; transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .bento::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 100%); opacity: 0.3; pointer-events: none; }
-        .bento:hover { transform: translateY(-8px); border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
+        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 30px; position: relative; z-index: 10; align-content: center; }
+        .bento { 
+          background: var(--glass); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); 
+          border: 1px solid var(--glass-border); border-top: 1px solid rgba(255,255,255,0.15); 
+          border-radius: 32px; padding: 40px; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
+          cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; 
+          position: relative; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        }
+        .bento:hover { transform: translateY(-10px) scale(1.02); border-color: rgba(0, 255, 157, 0.3); box-shadow: 0 35px 70px rgba(0,0,0,0.5); }
 
-        .energy { grid-column: span 2; flex-direction: row; align-items: center; padding: 40px 50px; background: linear-gradient(145deg, rgba(16,185,129,0.05) 0%, rgba(0,0,0,0) 100%); }
-        .energy-val { font-size: 4.5rem; font-weight: 900; line-height: 1; margin: 15px 0; text-shadow: 0 5px 20px rgba(0,0,0,0.4); letter-spacing: -2px; }
-        .energy-label { font-size: 0.9rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
-        .energy-icon-wrapper { width: 90px; height: 90px; border-radius: 50%; background: rgba(16, 185, 129, 0.08); border: 2px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 30px rgba(16, 185, 129, 0.1), 0 0 40px rgba(16, 185, 129, 0.2); }
+        .energy { grid-column: span 2; flex-direction: row; align-items: center; padding: 45px 55px; background: linear-gradient(145deg, rgba(0,255,157,0.08) 0%, rgba(0,0,0,0) 70%); }
+        .energy-val { font-family: var(--font-tech); font-size: 5rem; font-weight: 900; line-height: 1; margin: 15px 0; letter-spacing: -2px; }
+        .energy-label { font-size: 1rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 4px; font-weight: 900; display: flex; align-items: center; gap: 12px; }
+        
+        .energy-visual { position: absolute; right: 0; bottom: 0; width: 100%; height: 60px; opacity: 0.2; pointer-events: none; }
+        .energy-visual svg { width: 100%; height: 100%; }
 
-        .stat-card { min-height: 180px; }
-        .stat-label { font-size: 0.9rem; opacity: 0.5; text-transform: uppercase; font-weight: 800; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
-        .stat-val { font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -1px; }
+        .stat-card { min-height: 200px; }
+        .stat-label { font-size: 0.95rem; opacity: 0.5; text-transform: uppercase; font-weight: 900; letter-spacing: 3px; display: flex; align-items: center; gap: 12px; }
+        .stat-val { font-family: var(--font-tech); font-size: 4.2rem; font-weight: 900; line-height: 1; letter-spacing: -1px; margin-top: 10px; }
+        .stat-sub { font-size: 0.9rem; font-weight: 700; letter-spacing: 2px; color: var(--primary); margin-top: 8px; opacity: 0.8; }
 
-        .btn-main { grid-column: span 2; background: linear-gradient(135deg, var(--primary) 0%, #0d9467 100%); color: #000; font-weight: 900; display: flex; flex-direction: row; align-items: center; justify-content: center; font-size: 1.4rem; letter-spacing: 3px; border: none; height: 90px; padding: 0; box-shadow: 0 15px 40px rgba(16, 185, 129, 0.25); text-transform: uppercase; }
-        .btn-main::before { display: none; }
-        .btn-main:hover { transform: scale(0.98); box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4); }
+        .btn-main { 
+          grid-column: span 2; background: linear-gradient(135deg, var(--primary) 0%, #009e62 100%); 
+          color: #010408; font-weight: 900; display: flex; align-items: center; justify-content: center; 
+          font-size: 1.5rem; letter-spacing: 5px; border: none; height: 100px; border-radius: 24px;
+          box-shadow: 0 20px 45px rgba(0, 255, 157, 0.25); text-transform: uppercase; font-family: var(--font-tech);
+        }
+        .btn-main:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0, 255, 157, 0.4); filter: brightness(1.1); }
 
-        #kairo-fab { position: fixed; bottom: 40px; right: 40px; width: 65px; height: 65px; background: rgba(15, 20, 25, 0.8); border-radius: 20px; display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; font-weight: 900; font-size: 0.9rem; border: 1px solid var(--glass-border); color: white; backdrop-filter: blur(20px); transition: 0.3s; }
-        #kairo-fab:hover { background: var(--primary); color: #000; transform: rotate(15deg) scale(1.1); }
+        #kairo-fab { 
+          position: fixed; bottom: 40px; right: 40px; width: 70px; height: 70px; 
+          background: var(--glass-heavy); border-radius: 22px; display: flex; align-items: center; 
+          justify-content: center; z-index: 10000; cursor: pointer; font-family: var(--font-tech);
+          font-weight: 900; border: 1px solid var(--glass-border); color: white; 
+          backdrop-filter: blur(25px); transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #kairo-fab:hover { background: var(--primary); color: #000; transform: rotate(90deg); border-radius: 50%; }
 
-        @media (max-width: 800px) {
-           .kairo-os { flex-direction: column; overflow-y: auto; position: absolute; padding: 30px; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+
+        @media (max-width: 1000px) {
+           .kairo-os { flex-direction: column; overflow-y: auto; padding: 40px 30px; gap: 40px; }
+           .clock { font-size: 6rem; }
            .right { grid-template-columns: 1fr; }
-           .energy, .btn-main { grid-column: 1; }
-           .clock { font-size: 5rem; }
+           .energy, .btn-main { grid-column: span 1; }
         }
       </style>
 
@@ -235,71 +244,83 @@ class OpenKairoCard extends HTMLElement {
         <div class="left">
           <div class="top">
             <div class="branding">
-               <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" style="width:60px; filter: drop-shadow(0 0 20px rgba(16,185,129,0.5));">
+               <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" style="width:65px; filter: drop-shadow(0 0 15px rgba(0,255,157,0.4));">
                <div>KAIRO <span style="color:var(--primary)">OS</span></div>
             </div>
             <div class="clock-area">
               <div class="clock" id="clock">--:--</div>
               <div class="date" id="date">--</div>
               <div class="weather">
-                <ha-icon id="weather-icon" icon="mdi:weather-cloudy"></ha-icon> 
-                <span id="weather-text">Lade Wetter...</span>
+                <ha-icon id="weather-icon" icon="mdi:weather-cloudy" style="--mdc-icon-size: 32px; color: var(--primary);"></ha-icon> 
+                <span id="weather-text">SYSTEM LOADING...</span>
               </div>
             </div>
           </div>
           <div class="health">
             <div class="health-dot"></div>
-            SYSTEM OPTIMAL
+            SYSTEM OPTIMAL // READY
           </div>
         </div>
 
         <div class="right">
           <div class="bento energy">
             <div>
-              <div class="energy-label"><ha-icon icon="mdi:flash" style="--mdc-icon-size: 16px;"></ha-icon> Energy Hub</div>
+              <div class="energy-label"><ha-icon icon="mdi:flash-outline" style="--mdc-icon-size: 18px;"></ha-icon> Power Matrix</div>
               <div class="energy-val" id="p-main">0 W</div>
-              <div style="opacity:0.8; font-size:1rem; font-weight: 700; letter-spacing: 2px;">SOLAR: <span id="p-solar" style="color:var(--accent)">0 W</span></div>
+              <div class="stat-sub">SOLAR: <span id="p-solar">0 W</span></div>
             </div>
-            <div class="energy-icon-wrapper">
-              <ha-icon icon="mdi:lightning-bolt" style="color:var(--accent); --mdc-icon-size:42px;"></ha-icon>
+            <div class="energy-visual">
+               <svg viewBox="0 0 400 100" preserveAspectRatio="none">
+                  <path id="energy-wave" d="M0,50 Q100,20 200,50 T400,50" fill="none" stroke="var(--primary)" stroke-width="2" opacity="0.5">
+                    <animate attributeName="d" dur="3s" repeatCount="indefinite" values="M0,50 Q100,20 200,50 T400,50; M0,50 Q100,80 200,50 T400,50; M0,50 Q100,20 200,50 T400,50" />
+                  </path>
+               </svg>
             </div>
+            <ha-icon icon="mdi:lightning-bolt" style="position: absolute; right: 40px; color:var(--primary); --mdc-icon-size:70px; opacity: 0.15; filter: blur(2px);"></ha-icon>
           </div>
 
           <div class="bento stat-card">
-            <div class="stat-label"><ha-icon icon="mdi:devices" style="--mdc-icon-size: 16px;"></ha-icon> Geräte Online</div>
+            <div class="stat-label"><ha-icon icon="mdi:chip" style="--mdc-icon-size: 18px;"></ha-icon> Infrastruktur</div>
             <div class="stat-val" id="v-dev">0</div>
+            <div class="stat-sub">NODES ONLINE</div>
           </div>
+          
           <div class="bento stat-card">
-            <div class="stat-label"><ha-icon icon="mdi:water-percent" style="--mdc-icon-size: 16px;"></ha-icon> Luftfeuchte</div>
+            <div class="stat-label"><ha-icon icon="mdi:gauge" style="--mdc-icon-size: 18px;"></ha-icon> Klima</div>
             <div class="stat-val" id="v-hum">--</div>
-            <div style="opacity:0.8; font-size:1rem; font-weight: 700; letter-spacing: 2px; margin-top: 5px;">
-              WIND: <span id="v-wind" style="color:var(--primary)">-- km/h</span>
-            </div>
+            <div class="stat-sub">WIND: <span id="v-wind">-- km/h</span></div>
           </div>
 
           <div class="bento btn-main" id="go">
-            DASHBOARD AUFRUFEN <ha-icon icon="mdi:arrow-right" style="margin-left: 10px;"></ha-icon>
+            DASHBOARD INITIALISIEREN <ha-icon icon="mdi:arrow-right" style="margin-left: 20px; --mdc-icon-size: 32px;"></ha-icon>
           </div>
         </div>
       </div>
       <div id="kairo-fab">SYS</div>
     `;
 
-    this.shadowRoot.getElementById('go').onclick = () => { this.shadowRoot.getElementById('os-container').style.display = 'none'; };
-    this.shadowRoot.getElementById('kairo-fab').onclick = () => { this.shadowRoot.getElementById('os-container').style.display = 'flex'; };
+    this.shadowRoot.getElementById('go').onclick = () => { 
+      const container = this.shadowRoot.getElementById('os-container');
+      container.style.opacity = '0';
+      container.style.transform = 'scale(1.1)';
+      setTimeout(() => { container.style.display = 'none'; }, 500);
+    };
+    this.shadowRoot.getElementById('kairo-fab').onclick = () => { 
+      const container = this.shadowRoot.getElementById('os-container');
+      container.style.display = 'flex'; 
+      setTimeout(() => { container.style.opacity = '1'; container.style.transform = 'scale(1)'; }, 10);
+    };
     
     setInterval(() => {
       const now = new Date();
-      if(this.shadowRoot.getElementById('clock')) this.shadowRoot.getElementById('clock').innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-      if(this.shadowRoot.getElementById('date')) this.shadowRoot.getElementById('date').innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+      const clock = this.shadowRoot.getElementById('clock');
+      const date = this.shadowRoot.getElementById('date');
+      if(clock) clock.innerText = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+      if(date) date.innerText = now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
       
-      // Refresh direct weather every 15 mins
-      let plz = this._config ? this._config.weather_plz : null;
-      if (!plz && this._config && this._config.weather_entity && /^\d{5}$/.test(this._config.weather_entity)) plz = this._config.weather_entity;
-
-      if (plz && now.getMinutes() % 15 === 0 && now.getSeconds() === 0) {
-        this.fetchDirectWeather(plz);
-      }
+      let plz = this._config?.weather_plz;
+      if (!plz && this._config?.weather_entity && /^\d{5}$/.test(this._config.weather_entity)) plz = this._config.weather_entity;
+      if (plz && now.getMinutes() % 15 === 0 && now.getSeconds() === 0) this.fetchDirectWeather(plz);
     }, 1000);
   }
 
@@ -309,106 +330,77 @@ class OpenKairoCard extends HTMLElement {
     try {
       const geoResp = await fetch(`https://api.zippopotam.us/de/${plz}`);
       const geoData = await geoResp.json();
-      
-      if (geoData && geoData.places && geoData.places.length > 0) {
+      if (geoData?.places?.length > 0) {
         const { latitude, longitude } = geoData.places[0];
-        
         const weatherResp = await fetch(`https://api.brightsky.dev/current_weather?lat=${latitude}&lon=${longitude}`);
         const weatherData = await weatherResp.json();
-
-        if (weatherData && weatherData.weather) {
+        if (weatherData?.weather) {
           this._directWeather = weatherData.weather;
           this.updateData();
         }
-      } else {
-        console.warn("KAIRO OS: PLZ not found", plz);
       }
     } catch (e) {
-      console.error("OpenKairo Weather Fetch Failed", e);
-      if (this.shadowRoot.getElementById('weather-text')) {
-        this.shadowRoot.getElementById('weather-text').innerText = "Fehler (PLZ/API)";
-      }
-    } finally {
-      this._fetchingWeather = false;
-    }
+      console.error("KAIRO Weather Error", e);
+    } finally { this._fetchingWeather = false; }
   }
 
   _getWeatherIcon(condition) {
     const map = {
-      'clear-day': 'mdi:weather-sunny',
-      'clear-night': 'mdi:weather-night',
-      'partly-cloudy-day': 'mdi:weather-partly-cloudy',
-      'partly-cloudy-night': 'mdi:weather-night-partly-cloudy',
-      'cloudy': 'mdi:weather-cloudy',
-      'fog': 'mdi:weather-fog',
-      'rain': 'mdi:weather-rainy',
-      'sleet': 'mdi:weather-snowy-rainy',
-      'snow': 'mdi:weather-snowy',
-      'wind': 'mdi:weather-windy',
-      'hail': 'mdi:weather-hail',
-      'thunderstorm': 'mdi:weather-lightning-rainy'
+      'clear-day': 'mdi:weather-sunny', 'clear-night': 'mdi:weather-night', 'partly-cloudy-day': 'mdi:weather-partly-cloudy',
+      'partly-cloudy-night': 'mdi:weather-night-partly-cloudy', 'cloudy': 'mdi:weather-cloudy', 'fog': 'mdi:weather-fog',
+      'rain': 'mdi:weather-rainy', 'sleet': 'mdi:weather-snowy-rainy', 'snow': 'mdi:weather-snowy', 'wind': 'mdi:weather-windy',
+      'hail': 'mdi:weather-hail', 'thunderstorm': 'mdi:weather-lightning-rainy'
     };
     return map[condition] || 'mdi:weather-cloudy';
   }
 
   updateData() {
     if (!this._hass || !this.shadowRoot) return;
-    const shadow = this.shadowRoot;
+    const s = this.shadowRoot;
     const config = this._config || {};
 
-    if(shadow.getElementById('v-dev')) shadow.getElementById('v-dev').innerText = this._hass.devices ? Object.keys(this._hass.devices).length : "-";
+    if(s.getElementById('v-dev')) s.getElementById('v-dev').innerText = this._hass.devices ? Object.keys(this._hass.devices).length : "-";
     
-    const humEl = shadow.getElementById('v-hum');
-    const windEl = shadow.getElementById('v-wind');
-
-    let plz = config.weather_plz;
-    if (!plz && config.weather_entity && /^\d{5}$/.test(config.weather_entity)) plz = config.weather_entity;
+    const humEl = s.getElementById('v-hum');
+    const windEl = s.getElementById('v-wind');
+    const weatherText = s.getElementById('weather-text');
+    const weatherIcon = s.getElementById('weather-icon');
 
     const w = config.weather_entity && !/^\d{5}$/.test(config.weather_entity) ? this._hass.states[config.weather_entity] : null;
-    const weatherText = shadow.getElementById('weather-text');
-    const weatherIcon = shadow.getElementById('weather-icon');
-
-    if (!weatherText) {
-      console.warn("KAIRO OS: weather-text element not found in shadowRoot");
-    }
 
     if (w && weatherText) {
-      weatherText.innerText = `${Math.round(w.attributes.temperature)}°C | ${w.state}`;
-      if (weatherIcon && w.attributes.icon) weatherIcon.setAttribute('icon', w.attributes.icon);
-      if (humEl) humEl.innerText = `${w.attributes.humidity || '--'} %`;
+      weatherText.innerText = `${Math.round(w.attributes.temperature)}°C | ${window.openKairoHelpers.formatCond(w.state)}`;
+      if (weatherIcon) weatherIcon.setAttribute('icon', w.attributes.icon || 'mdi:weather-cloudy');
+      if (humEl) humEl.innerText = `${w.attributes.humidity || '--'}%`;
       if (windEl) windEl.innerText = `${Math.round(w.attributes.wind_speed || 0)} km/h`;
     } else if (this._directWeather && weatherText) {
-      const temp = Math.round(this._directWeather.temperature);
-      const cond = window.openKairoHelpers.formatCond(this._directWeather.condition);
-      weatherText.innerText = `${temp}°C | ${cond}`;
+      weatherText.innerText = `${Math.round(this._directWeather.temperature)}°C | ${window.openKairoHelpers.formatCond(this._directWeather.condition)}`;
       if (weatherIcon) weatherIcon.setAttribute('icon', this._getWeatherIcon(this._directWeather.condition));
-      if (humEl) humEl.innerText = `${this._directWeather.relative_humidity || '--'} %`;
+      if (humEl) humEl.innerText = `${this._directWeather.relative_humidity || '--'}%`;
       if (windEl) windEl.innerText = `${Math.round(this._directWeather.wind_speed || 0)} km/h`;
-    } else if (plz && !this._fetchingWeather && !this._directWeather) {
-       this.fetchDirectWeather(plz);
     }
 
     const m = config.energy_main_entity ? this._hass.states[config.energy_main_entity] : null;
-    if (m && shadow.getElementById('p-main')) {
+    if (m && s.getElementById('p-main')) {
       const val = Math.round(parseFloat(m.state) || 0);
-      shadow.getElementById('p-main').innerText = `${val} W`;
-      shadow.getElementById('p-main').style.color = val < 0 ? 'var(--accent)' : 'white';
+      s.getElementById('p-main').innerText = `${val} W`;
+      s.getElementById('p-main').style.color = val < 0 ? 'var(--primary)' : 'white';
+      // Adjust wave speed based on power
+      const wave = s.getElementById('energy-wave');
+      if (wave) wave.parentElement.parentElement.style.opacity = Math.min(0.5, 0.1 + Math.abs(val) / 5000);
     }
-    const s = config.energy_solar_entity ? this._hass.states[config.energy_solar_entity] : null;
-    if (s && shadow.getElementById('p-solar')) shadow.getElementById('p-solar').innerText = `${Math.round(parseFloat(s.state) || 0)} W`;
+    const sol = config.energy_solar_entity ? this._hass.states[config.energy_solar_entity] : null;
+    if (sol && s.getElementById('p-solar')) s.getElementById('p-solar').innerText = `${Math.round(parseFloat(sol.state) || 0)} W`;
   }
 }
 
-if (!customElements.get('openkairo-card')) {
-  customElements.define('openkairo-card', OpenKairoCard);
-}
+if (!customElements.get('openkairo-card')) customElements.define('openkairo-card', OpenKairoCard);
 
-// FORCE UPDATE GLOBAL LIST
 window.customCards = window.customCards || [];
 window.customCards = window.customCards.filter(c => c.type !== 'openkairo-card');
 window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
   editor: "openkairo-card-editor",
-  description: "Redesigned Bento-Grid OS Layer (V4.4.0)."
+  description: "Premium Cyber OS Layer (V5.0.0)."
 });
