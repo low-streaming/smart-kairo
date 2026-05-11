@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V5.0.0 "CYBER" ---
-console.log("%c 🚀 KAIRO OS V5.0.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V5.1.0 "CYBER" ---
+console.log("%c 🚀 KAIRO OS V5.1.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
@@ -50,10 +50,11 @@ class OpenKairoCardEditor extends HTMLElement {
         .success-msg { color: #00ff9d; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; }
       </style>
       <div class="config">
-        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px; font-family: 'Orbitron';">OS Configuration V5</h3>
+        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px; font-family: 'Orbitron';">OS Configuration V5.1</h3>
         
         <datalist id="all-entities">${entities.map(e => `<option value="${e}"></option>`).join('')}</datalist>
         <datalist id="weather-entities">${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}"></option>`).join('')}</datalist>
+        <datalist id="update-entities">${entities.filter(e => e.startsWith('update.') || e.includes('status')).map(e => `<option value="${e}"></option>`).join('')}</datalist>
 
         <div class="row">
           <label>Netz-Verbrauch (W)</label>
@@ -68,6 +69,10 @@ class OpenKairoCardEditor extends HTMLElement {
           <input type="text" id="weather_entity" list="weather-entities" value="${config.weather_entity || ''}" placeholder="-- Wetter suchen --" autocomplete="off">
         </div>
         <div class="row">
+          <label>Update-Entität (Opt.)</label>
+          <input type="text" id="update_entity" list="update-entities" value="${config.update_entity || ''}" placeholder="z.B. update.openkairo_os" autocomplete="off">
+        </div>
+        <div class="row">
           <label>Wetter PLZ (Fallback)</label>
           <input type="text" id="weather_plz" value="${config.weather_plz || ''}" placeholder="z.B. 10117" autocomplete="off">
         </div>
@@ -75,7 +80,7 @@ class OpenKairoCardEditor extends HTMLElement {
       </div>
     `;
     
-    ['energy_main_entity', 'energy_solar_entity', 'weather_entity', 'weather_plz'].forEach(id => {
+    ['energy_main_entity', 'energy_solar_entity', 'weather_entity', 'update_entity', 'weather_plz'].forEach(id => {
       const el = this.shadowRoot.getElementById(id);
       if (el) {
         el.addEventListener('change', (ev) => {
@@ -139,6 +144,7 @@ class OpenKairoCard extends HTMLElement {
         :host { 
           --primary: #00ff9d; 
           --accent: #05f0a0; 
+          --warning: #ffb800;
           --font-main: 'Outfit', sans-serif;
           --font-tech: 'Orbitron', sans-serif;
           --glass: rgba(10, 15, 20, 0.45);
@@ -175,6 +181,8 @@ class OpenKairoCard extends HTMLElement {
         .date { opacity: 0.7; text-transform: uppercase; letter-spacing: 6px; font-size: 1rem; margin-top: 20px; font-weight: 800; color: var(--primary); }
         .weather { margin-top: 25px; font-weight: 600; font-size: 1.3rem; display: flex; align-items: center; gap: 12px; opacity: 0.9; }
 
+        .status-row { display: flex; align-items: center; gap: 20px; margin-top: 10px; }
+
         .health { 
           background: rgba(0, 255, 157, 0.03); border: 1px solid rgba(0, 255, 157, 0.15); 
           padding: 14px 28px; border-radius: 100px; width: fit-content; font-size: 0.85rem; 
@@ -189,6 +197,14 @@ class OpenKairoCard extends HTMLElement {
         @keyframes scan { 0% { left: -100%; } 100% { left: 100%; } }
         .health-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.6); } }
+
+        .update-badge {
+          background: rgba(255, 184, 0, 0.1); border: 1px solid rgba(255, 184, 0, 0.4);
+          padding: 14px 28px; border-radius: 100px; color: var(--warning); font-family: var(--font-tech);
+          font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; display: none; align-items: center; gap: 10px;
+          animation: pulseUpdate 2s infinite ease-in-out; cursor: pointer;
+        }
+        @keyframes pulseUpdate { 0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 184, 0, 0.2); } 50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 184, 0, 0.4); } }
 
         .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 30px; position: relative; z-index: 10; align-content: center; }
         .bento { 
@@ -256,9 +272,14 @@ class OpenKairoCard extends HTMLElement {
               </div>
             </div>
           </div>
-          <div class="health">
-            <div class="health-dot"></div>
-            SYSTEM OPTIMAL // READY
+          <div class="status-row">
+            <div class="health">
+              <div class="health-dot"></div>
+              SYSTEM OPTIMAL // READY
+            </div>
+            <div class="update-badge" id="update-indicator">
+              <ha-icon icon="mdi:package-down"></ha-icon> UPDATE AVAILABLE
+            </div>
           </div>
         </div>
 
@@ -385,12 +406,27 @@ class OpenKairoCard extends HTMLElement {
       const val = Math.round(parseFloat(m.state) || 0);
       s.getElementById('p-main').innerText = `${val} W`;
       s.getElementById('p-main').style.color = val < 0 ? 'var(--primary)' : 'white';
-      // Adjust wave speed based on power
       const wave = s.getElementById('energy-wave');
       if (wave) wave.parentElement.parentElement.style.opacity = Math.min(0.5, 0.1 + Math.abs(val) / 5000);
     }
     const sol = config.energy_solar_entity ? this._hass.states[config.energy_solar_entity] : null;
     if (sol && s.getElementById('p-solar')) s.getElementById('p-solar').innerText = `${Math.round(parseFloat(sol.state) || 0)} W`;
+
+    // Update Indicator Logic
+    const upEl = s.getElementById('update-indicator');
+    if (upEl) {
+      let hasUpdate = false;
+      const uEnt = config.update_entity ? this._hass.states[config.update_entity] : null;
+      if (uEnt && (uEnt.state === 'on' || uEnt.state === 'available')) hasUpdate = true;
+      
+      // Also check the status sensor news for "Version" or "Update" keywords if configured
+      const sEnt = this._hass.states['sensor.openkairo_os_status'];
+      if (sEnt && sEnt.attributes.github_news && /version|update/i.test(sEnt.attributes.github_news)) {
+         // This is a soft check, could be more robust
+      }
+
+      upEl.style.display = hasUpdate ? 'flex' : 'none';
+    }
   }
 }
 
@@ -402,5 +438,5 @@ window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
   editor: "openkairo-card-editor",
-  description: "Premium Cyber OS Layer (V5.0.0)."
+  description: "Premium Cyber OS Layer (V5.1.0)."
 });
