@@ -258,6 +258,22 @@ class OpenKairoCard extends HTMLElement {
         .close-panel { cursor: pointer; color: white; opacity: 0.5; transition: 0.3s; }
         .close-panel:hover { opacity: 1; transform: rotate(90deg); }
 
+        .update-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; }
+        .update-list::-webkit-scrollbar { width: 4px; }
+        .update-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .update-item {
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 20px; padding: 15px 20px; display: flex; align-items: center; gap: 20px;
+          transition: 0.3s; cursor: pointer;
+        }
+        .update-item:hover { background: rgba(255,255,255,0.08); border-color: var(--warning); }
+        .update-img { width: 50px; height: 50px; border-radius: 12px; background: rgba(0,0,0,0.2); object-fit: cover; flex-shrink: 0; }
+        .update-icon { --mdc-icon-size: 30px; color: var(--warning); opacity: 0.8; }
+        .update-info { flex: 1; min-width: 0; }
+        .update-name { font-weight: 800; font-size: 1rem; color: white; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .update-ver { font-size: 0.8rem; opacity: 0.5; font-weight: 600; font-family: var(--font-tech); }
+
         .config-row { display: flex; flex-direction: column; gap: 10px; }
         .config-row label { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); opacity: 0.8; }
         .config-row input { 
@@ -403,12 +419,28 @@ class OpenKairoCard extends HTMLElement {
     ['qc-energy', 'qc-solar', 'qc-plz'].forEach(id => {
        const el = this.shadowRoot.getElementById(id);
        const key = id === 'qc-energy' ? 'energy_main_entity' : id === 'qc-solar' ? 'energy_solar_entity' : 'weather_plz';
+       if (!el) return;
        el.value = this._config?.[key] || '';
-       el.onchange = (e) => {
-         const newConfig = { ...this._config, [key]: e.target.value };
+       el.addEventListener('input', (e) => {
+         const newVal = e.target.value;
+         const newConfig = { ...this._config, [key]: newVal };
          this._config = newConfig;
-         this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: newConfig }, bubbles: true, composed: true }));
-       };
+         
+         // Trigger save to Home Assistant
+         this.dispatchEvent(new CustomEvent("config-changed", { 
+           detail: { config: newConfig }, 
+           bubbles: true, 
+           composed: true 
+         }));
+
+         // Immediate local update
+         this.updateData();
+         if (key === 'weather_plz' && newVal.length === 5) this.fetchDirectWeather(newVal);
+         
+         // Visual feedback
+         el.style.borderColor = 'var(--primary)';
+         setTimeout(() => { el.style.borderColor = 'rgba(255,255,255,0.1)'; }, 1000);
+       });
     });
     
     setInterval(() => {
