@@ -1,4 +1,4 @@
-// --- OPENKAIRO OS LAUNCHPAD V5.3.0 "CYBER" ---
+// --- OPENKAIRO OS LAUNCHPAD V5.3.1 "CYBER" ---
 console.log("%c 🚀 KAIRO OS V5.3.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
@@ -395,9 +395,12 @@ class OpenKairoCard extends HTMLElement {
             <label>PLZ (Wetter)</label>
             <input type="text" id="qc-plz" placeholder="10117">
           </div>
-          <div style="margin-top:20px; font-size: 0.8rem; opacity: 0.5; line-height: 1.6;">
-             Änderungen werden sofort übernommen und im Dashboard gespeichert.
+          <div style="margin-top:20px; padding: 15px; background: rgba(255, 184, 0, 0.1); border-radius: 12px; border: 1px solid rgba(255, 184, 0, 0.2); font-size: 0.8rem; line-height: 1.4; color: var(--warning);">
+             <strong>Hinweis:</strong> Dauerhaftes Speichern ist nur im <em>Dashboard-Bearbeitungsmodus</em> möglich.
           </div>
+          <button class="btn-main" id="open-ha-editor" style="margin-top: 15px; height: 60px; font-size: 1rem; background: var(--glass-heavy); border: 1px solid var(--glass-border); color: white;">
+             HA EDITOR ÖFFNEN
+          </button>
         </div>
       </div>
 
@@ -414,6 +417,24 @@ class OpenKairoCard extends HTMLElement {
 
     this.shadowRoot.getElementById('update-indicator').onclick = () => { this.toggleUpdates(true); };
     this.shadowRoot.getElementById('close-updates').onclick = () => { this.toggleUpdates(false); };
+
+    this.shadowRoot.getElementById('open-ha-editor').onclick = () => {
+       this.toggleQuickConfig(false);
+       // Dispatch standard event to open the card editor if in a supporting dashboard
+       this.dispatchEvent(new CustomEvent("show-edit-card", { 
+         detail: { cardConfig: this._config }, 
+         bubbles: true, 
+         composed: true 
+       }));
+       // Fallback: Inform user if event not caught
+       setTimeout(() => {
+         if (this._quickConfigOpen === false) {
+           // We can't easily force the HA modal from here, but we can trigger dashboard edit mode
+           const ev = new CustomEvent("hass-edit-mode", { detail: { editMode: true }, bubbles: true, composed: true });
+           this.dispatchEvent(ev);
+         }
+       }, 100);
+    };
 
     // Setup Quick Config Inputs
     ['qc-energy', 'qc-solar', 'qc-plz'].forEach(id => {
