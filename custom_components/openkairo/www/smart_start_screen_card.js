@@ -254,25 +254,29 @@ class OpenKairoCard extends HTMLElement {
         }
         #update-panel.open, #config-panel.open { right: 0; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-        .panel-title { font-family: var(--font-tech); font-size: 1.5rem; letter-spacing: 3px; font-weight: 900; color: var(--primary); }
+        .panel-title { font-family: var(--font-tech); font-size: 1.5rem; letter-spacing: 3px; font-weight: 900; color: var(--warning); }
         .close-panel { cursor: pointer; color: white; opacity: 0.5; transition: 0.3s; }
         .close-panel:hover { opacity: 1; transform: rotate(90deg); }
 
-        .update-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; }
+        .update-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 5px; }
         .update-list::-webkit-scrollbar { width: 4px; }
         .update-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
         .update-item {
           background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
-          border-radius: 20px; padding: 15px 20px; display: flex; align-items: center; gap: 20px;
-          transition: 0.3s; cursor: pointer;
+          border-radius: 20px; padding: 12px 18px; display: flex !important; flex-direction: row !important; 
+          align-items: center !important; gap: 15px; transition: 0.3s; cursor: pointer; min-width: 0;
         }
         .update-item:hover { background: rgba(255,255,255,0.08); border-color: var(--warning); }
-        .update-img { width: 50px; height: 50px; border-radius: 12px; background: rgba(0,0,0,0.2); object-fit: cover; flex-shrink: 0; }
-        .update-icon { --mdc-icon-size: 30px; color: var(--warning); opacity: 0.8; }
-        .update-info { flex: 1; min-width: 0; }
-        .update-name { font-weight: 800; font-size: 1rem; color: white; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .update-ver { font-size: 0.8rem; opacity: 0.5; font-weight: 600; font-family: var(--font-tech); }
+        .update-img { 
+          width: 50px !important; height: 50px !important; min-width: 50px; min-height: 50px;
+          max-width: 50px; max-height: 50px; border-radius: 12px; background: rgba(0,0,0,0.2); 
+          object-fit: cover; flex-shrink: 0; 
+        }
+        .update-icon { --mdc-icon-size: 28px; color: var(--warning); opacity: 0.8; flex-shrink: 0; }
+        .update-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+        .update-name { font-weight: 800; font-size: 0.95rem; color: white; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .update-ver { font-size: 0.75rem; opacity: 0.5; font-weight: 600; font-family: var(--font-tech); }
 
         .config-row { display: flex; flex-direction: column; gap: 10px; }
         .config-row label { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); opacity: 0.8; }
