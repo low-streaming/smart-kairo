@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V5.2.0 "CYBER" ---
-console.log("%c 🚀 KAIRO OS V5.2.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V5.3.0 "CYBER" ---
+console.log("%c 🚀 KAIRO OS V5.3.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
@@ -50,7 +50,7 @@ class OpenKairoCardEditor extends HTMLElement {
         .success-msg { color: #00ff9d; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; }
       </style>
       <div class="config">
-        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px; font-family: 'Orbitron';">OS Configuration V5.2</h3>
+        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px; font-family: 'Orbitron';">OS Configuration V5.3</h3>
         
         <datalist id="all-entities">${entities.map(e => `<option value="${e}"></option>`).join('')}</datalist>
         <datalist id="weather-entities">${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}"></option>`).join('')}</datalist>
@@ -101,6 +101,8 @@ class OpenKairoCard extends HTMLElement {
     super();
     this.initialized = false;
     this._updatesOpen = false;
+    this._quickConfigOpen = false;
+    this._booting = false;
   }
   static getConfigElement() { return document.createElement("openkairo-card-editor"); }
   static getStubConfig() { return { energy_main_entity: "", energy_solar_entity: "", weather_entity: "" }; }
@@ -237,53 +239,49 @@ class OpenKairoCard extends HTMLElement {
           color: #010408; font-weight: 900; display: flex; align-items: center; justify-content: center; 
           font-size: 1.5rem; letter-spacing: 5px; border: none; height: 100px; border-radius: 24px;
           box-shadow: 0 20px 45px rgba(0, 255, 157, 0.25); text-transform: uppercase; font-family: var(--font-tech);
+          position: relative; overflow: hidden;
         }
         .btn-main:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0, 255, 157, 0.4); filter: brightness(1.1); }
+        .btn-progress { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(255,255,255,0.2); transition: width 0.1s linear; }
 
-        /* Update Panel Styles */
-        #update-panel {
+        /* Update Panel & Quick Config Styles */
+        #update-panel, #config-panel {
           position: absolute; right: -500px; top: 0; bottom: 0; width: 450px;
           background: var(--glass-heavy); backdrop-filter: blur(50px) saturate(200%);
           border-left: 1px solid var(--glass-border); z-index: 100;
           transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 50px;
           display: flex; flex-direction: column; gap: 30px; box-shadow: -20px 0 60px rgba(0,0,0,0.8);
         }
-        #update-panel.open { right: 0; }
+        #update-panel.open, #config-panel.open { right: 0; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-        .panel-title { font-family: var(--font-tech); font-size: 1.5rem; letter-spacing: 3px; font-weight: 900; color: var(--warning); }
+        .panel-title { font-family: var(--font-tech); font-size: 1.5rem; letter-spacing: 3px; font-weight: 900; color: var(--primary); }
         .close-panel { cursor: pointer; color: white; opacity: 0.5; transition: 0.3s; }
         .close-panel:hover { opacity: 1; transform: rotate(90deg); }
 
-        .update-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; }
-        .update-list::-webkit-scrollbar { width: 4px; }
-        .update-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-
-        .update-item {
-          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
-          border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 20px;
-          transition: 0.3s;
+        .config-row { display: flex; flex-direction: column; gap: 10px; }
+        .config-row label { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); opacity: 0.8; }
+        .config-row input { 
+           background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+           padding: 15px; border-radius: 12px; color: white; font-family: var(--font-main);
+           outline: none; transition: 0.3s;
         }
-        .update-item:hover { background: rgba(255,255,255,0.08); border-color: var(--warning); }
-        .update-img { width: 50px; height: 50px; border-radius: 12px; background: rgba(0,0,0,0.2); object-fit: cover; }
-        .update-icon { --mdc-icon-size: 30px; color: var(--warning); opacity: 0.8; }
-        .update-info { flex: 1; }
-        .update-name { font-weight: 800; font-size: 1rem; color: white; margin-bottom: 2px; }
-        .update-ver { font-size: 0.8rem; opacity: 0.5; font-weight: 600; font-family: var(--font-tech); }
+        .config-row input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
 
-        #kairo-fab { 
-          position: fixed; bottom: 40px; right: 40px; width: 70px; height: 70px; 
-          background: var(--glass-heavy); border-radius: 22px; display: flex; align-items: center; 
-          justify-content: center; z-index: 10000; cursor: pointer; font-family: var(--font-tech);
-          font-weight: 900; border: 1px solid var(--glass-border); color: white; 
-          backdrop-filter: blur(25px); transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        #kairo-fab-container { position: fixed; bottom: 40px; right: 40px; display: flex; gap: 15px; z-index: 10000; }
+        .fab-btn { 
+          width: 70px; height: 70px; background: var(--glass-heavy); border-radius: 22px; 
+          display: flex; align-items: center; justify-content: center; cursor: pointer; 
+          font-family: var(--font-tech); font-weight: 900; border: 1px solid var(--glass-border); 
+          color: white; backdrop-filter: blur(25px); transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        #kairo-fab:hover { background: var(--primary); color: #000; transform: rotate(90deg); border-radius: 50%; }
+        .fab-btn:hover { background: var(--primary); color: #000; transform: translateY(-5px); }
+        .fab-settings:hover { background: var(--warning); color: #000; transform: rotate(45deg); }
 
         @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 
         @media (max-width: 1000px) {
            .kairo-os { flex-direction: column; overflow-y: auto; padding: 40px 30px; gap: 40px; }
-           #update-panel { width: 100%; right: -100%; }
+           #update-panel, #config-panel { width: 100%; right: -100%; }
            .clock { font-size: 6rem; }
            .right { grid-template-columns: 1fr; }
            .energy, .btn-main { grid-column: span 1; }
@@ -348,38 +346,70 @@ class OpenKairoCard extends HTMLElement {
           </div>
 
           <div class="bento btn-main" id="go">
-            DASHBOARD INITIALISIEREN <ha-icon icon="mdi:arrow-right" style="margin-left: 20px; --mdc-icon-size: 32px;"></ha-icon>
+            <div class="btn-progress" id="boot-progress"></div>
+            <span id="btn-text">DASHBOARD INITIALISIEREN</span>
+            <ha-icon id="btn-icon" icon="mdi:arrow-right" style="margin-left: 20px; --mdc-icon-size: 32px; z-index: 2;"></ha-icon>
           </div>
         </div>
 
         <!-- Update Center Panel -->
         <div id="update-panel">
           <div class="panel-header">
-            <div class="panel-title">UPDATE CENTER</div>
+            <div class="panel-title" style="color:var(--warning)">UPDATE CENTER</div>
             <ha-icon class="close-panel" id="close-updates" icon="mdi:close" style="--mdc-icon-size: 32px;"></ha-icon>
           </div>
-          <div class="update-list" id="update-list-container">
-            <!-- Items injected by JS -->
+          <div class="update-list" id="update-list-container"></div>
+        </div>
+
+        <!-- Quick Config Panel -->
+        <div id="config-panel">
+          <div class="panel-header">
+            <div class="panel-title">SYSTEM CONFIG</div>
+            <ha-icon class="close-panel" id="close-config" icon="mdi:close" style="--mdc-icon-size: 32px;"></ha-icon>
+          </div>
+          <div class="config-row">
+            <label>Netz-Verbrauch Entity</label>
+            <input type="text" id="qc-energy" placeholder="sensor.grid_power">
+          </div>
+          <div class="config-row">
+            <label>Solar Entity</label>
+            <input type="text" id="qc-solar" placeholder="sensor.solar_power">
+          </div>
+          <div class="config-row">
+            <label>PLZ (Wetter)</label>
+            <input type="text" id="qc-plz" placeholder="10117">
+          </div>
+          <div style="margin-top:20px; font-size: 0.8rem; opacity: 0.5; line-height: 1.6;">
+             Änderungen werden sofort übernommen und im Dashboard gespeichert.
           </div>
         </div>
       </div>
-      <div id="kairo-fab">SYS</div>
+
+      <div id="kairo-fab-container">
+        <div class="fab-btn fab-settings" id="open-config"><ha-icon icon="mdi:cog-outline"></ha-icon></div>
+        <div class="fab-btn" id="kairo-fab">SYS</div>
+      </div>
     `;
 
-    this.shadowRoot.getElementById('go').onclick = () => { 
-      const container = this.shadowRoot.getElementById('os-container');
-      container.style.opacity = '0';
-      container.style.transform = 'scale(1.1)';
-      setTimeout(() => { container.style.display = 'none'; }, 500);
-    };
-    this.shadowRoot.getElementById('kairo-fab').onclick = () => { 
-      const container = this.shadowRoot.getElementById('os-container');
-      container.style.display = 'flex'; 
-      setTimeout(() => { container.style.opacity = '1'; container.style.transform = 'scale(1)'; }, 10);
-    };
+    this.shadowRoot.getElementById('go').onclick = () => { this.startBootSequence(); };
+    this.shadowRoot.getElementById('kairo-fab').onclick = () => { this.toggleOS(true); };
+    this.shadowRoot.getElementById('open-config').onclick = () => { this.toggleQuickConfig(true); };
+    this.shadowRoot.getElementById('close-config').onclick = () => { this.toggleQuickConfig(false); };
 
     this.shadowRoot.getElementById('update-indicator').onclick = () => { this.toggleUpdates(true); };
     this.shadowRoot.getElementById('close-updates').onclick = () => { this.toggleUpdates(false); };
+
+    // Setup Quick Config Inputs
+    ['qc-energy', 'qc-solar', 'qc-plz'].forEach(id => {
+       const el = this.shadowRoot.getElementById(id);
+       const key = id === 'qc-energy' ? 'energy_main_entity' : id === 'qc-solar' ? 'energy_solar_entity' : 'weather_plz';
+       el.value = this._config?.[key] || '';
+       el.onchange = (e) => {
+         const newConfig = { ...this._config, [key]: e.target.value };
+         this._config = newConfig;
+         this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: newConfig }, bubbles: true, composed: true }));
+       };
+    });
     
     setInterval(() => {
       const now = new Date();
@@ -392,6 +422,19 @@ class OpenKairoCard extends HTMLElement {
       if (!plz && this._config?.weather_entity && /^\d{5}$/.test(this._config.weather_entity)) plz = this._config.weather_entity;
       if (plz && now.getMinutes() % 15 === 0 && now.getSeconds() === 0) this.fetchDirectWeather(plz);
     }, 1000);
+  }
+
+  toggleOS(show) {
+    const container = this.shadowRoot.getElementById('os-container');
+    if (show) {
+      container.style.display = 'flex';
+      container.style.zIndex = '9999';
+      setTimeout(() => { container.style.opacity = '1'; container.style.transform = 'scale(1)'; }, 10);
+    } else {
+      container.style.opacity = '0';
+      container.style.transform = 'scale(1.1)';
+      setTimeout(() => { container.style.display = 'none'; }, 500);
+    }
   }
 
   toggleUpdates(open) {
@@ -408,6 +451,67 @@ class OpenKairoCard extends HTMLElement {
       left.classList.remove('blur');
       right.classList.remove('blur');
     }
+  }
+
+  toggleQuickConfig(open) {
+    this._quickConfigOpen = open;
+    const panel = this.shadowRoot.getElementById('config-panel');
+    const left = this.shadowRoot.getElementById('main-left');
+    const right = this.shadowRoot.getElementById('main-right');
+    if (open) {
+      panel.classList.add('open');
+      left.classList.add('blur');
+      right.classList.add('blur');
+    } else {
+      panel.classList.remove('open');
+      left.classList.remove('blur');
+      right.classList.remove('blur');
+    }
+  }
+
+  async startBootSequence() {
+    if (this._booting) return;
+    this._booting = true;
+    const btn = this.shadowRoot.getElementById('go');
+    const text = this.shadowRoot.getElementById('btn-text');
+    const bar = this.shadowRoot.getElementById('boot-progress');
+    const icon = this.shadowRoot.getElementById('btn-icon');
+
+    const steps = ["PRÜFE NODES...", "LADE ENERGIE-HUB...", "SYNCHRONISIERE...", "ZUGRIFF GEWÄHRT"];
+    let step = 0;
+    
+    icon.setAttribute('icon', 'mdi:loading');
+    icon.style.animation = 'spin 1s infinite linear';
+
+    const interval = setInterval(() => {
+      if (step >= steps.length) {
+        clearInterval(interval);
+        this.toggleOS(false);
+        setTimeout(() => {
+           this._booting = false;
+           text.innerText = "DASHBOARD INITIALISIEREN";
+           bar.style.width = '0%';
+           icon.setAttribute('icon', 'mdi:arrow-right');
+           icon.style.animation = '';
+        }, 1000);
+        return;
+      }
+      text.innerText = steps[step];
+      bar.style.width = `${((step + 1) / steps.length) * 100}%`;
+      step++;
+    }, 600);
+  }
+
+  openUpdateDialog(entityId) {
+    const event = new CustomEvent('hass-more-info', {
+      detail: { entityId },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+    this.toggleUpdates(false);
+    const container = this.shadowRoot.getElementById('os-container');
+    container.style.zIndex = '1'; 
   }
 
   async fetchDirectWeather(plz) {
@@ -485,31 +589,29 @@ class OpenKairoCard extends HTMLElement {
     const upCountEl = s.getElementById('update-count');
     const listContainer = s.getElementById('update-list-container');
 
-    if (upEl && upCountEl) {
+    if (upEl && upCountEl && listContainer) {
       if (pendingUpdates.length > 0) {
         upEl.style.display = 'flex';
         upCountEl.innerText = pendingUpdates.length;
-        
-        // Build the update list HTML
-        let listHtml = '';
+        listContainer.innerHTML = '';
         pendingUpdates.forEach(update => {
           const name = update.attributes.friendly_name || update.entity_id;
           const current = update.attributes.installed_version || '??';
           const latest = update.attributes.latest_version || 'NEW';
           const img = update.attributes.entity_picture;
-          
-          listHtml += `
-            <div class="update-item" onclick="event.stopPropagation(); window.open('/config/updates', '_blank')">
-              ${img ? `<img src="${img}" class="update-img">` : `<div class="update-img" style="display:flex;align-items:center;justify-content:center;"><ha-icon icon="mdi:package" class="update-icon"></ha-icon></div>`}
+          const item = document.createElement('div');
+          item.className = 'update-item';
+          item.innerHTML = `
+              ${img ? `<img src="${img}" class="update-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIxIDE2VjhhMiAyIDAgMCAwLTEtMS43NEwxMyAyLjQyYTIgMiAwIDAgMC0yIDBMMCA2LjI2QTIgMiAwIDAgMCAzIDh2OGEyIDIgMCAwIDAgMSAxLjc0bDUuNSA0LjE4YTIgMiAwIDAgMCAyIDBsNS41LTQuMThBMiAyIDAgMCAwIDIxIDE2WiIvPjwvc3ZnPg=='">` : `<div class="update-img" style="display:flex;align-items:center;justify-content:center;"><ha-icon icon="mdi:package" class="update-icon"></ha-icon></div>`}
               <div class="update-info">
                 <div class="update-name">${name}</div>
                 <div class="update-ver">${current} → <span style="color:var(--warning)">${latest}</span></div>
               </div>
               <ha-icon icon="mdi:chevron-right" style="opacity:0.3;"></ha-icon>
-            </div>
           `;
+          item.onclick = (e) => { e.stopPropagation(); this.openUpdateDialog(update.entity_id); };
+          listContainer.appendChild(item);
         });
-        if (listContainer) listContainer.innerHTML = listHtml;
       } else {
         upEl.style.display = 'none';
         if (this._updatesOpen) this.toggleUpdates(false);
@@ -526,5 +628,5 @@ window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
   editor: "openkairo-card-editor",
-  description: "Premium Cyber OS Layer (V5.2.0)."
+  description: "Premium Cyber OS Layer (V5.3.0)."
 });
