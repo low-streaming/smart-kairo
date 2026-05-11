@@ -403,7 +403,7 @@ class OpenKairoCard extends HTMLElement {
              <strong>Hinweis:</strong> Dauerhaftes Speichern ist nur im <em>Dashboard-Bearbeitungsmodus</em> möglich.
           </div>
           <button class="btn-main" id="open-ha-editor" style="margin-top: 15px; height: 60px; font-size: 1rem; background: var(--glass-heavy); border: 1px solid var(--glass-border); color: white;">
-             HA EDITOR ÖFFNEN
+             SPEICHER-HILFE
           </button>
         </div>
       </div>
@@ -423,21 +423,26 @@ class OpenKairoCard extends HTMLElement {
     this.shadowRoot.getElementById('close-updates').onclick = () => { this.toggleUpdates(false); };
 
     this.shadowRoot.getElementById('open-ha-editor').onclick = () => {
-       this.toggleQuickConfig(false);
-       // Dispatch standard event to open the card editor if in a supporting dashboard
-       this.dispatchEvent(new CustomEvent("show-edit-card", { 
-         detail: { cardConfig: this._config }, 
-         bubbles: true, 
-         composed: true 
-       }));
-       // Fallback: Inform user if event not caught
-       setTimeout(() => {
-         if (this._quickConfigOpen === false) {
-           // We can't easily force the HA modal from here, but we can trigger dashboard edit mode
-           const ev = new CustomEvent("hass-edit-mode", { detail: { editMode: true }, bubbles: true, composed: true });
-           this.dispatchEvent(ev);
-         }
-       }, 100);
+       const guide = document.createElement('div');
+       guide.style.cssText = `
+         position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:10001; 
+         display:flex; align-items:center; justify-content:center; padding:40px;
+         backdrop-filter:blur(20px); font-family:var(--font-main); text-align:center;
+       `;
+       guide.innerHTML = `
+         <div style="max-width:400px;">
+           <ha-icon icon="mdi:content-save-alert" style="--mdc-icon-size:60px; color:var(--warning); margin-bottom:20px;"></ha-icon>
+           <h2 style="font-family:var(--font-tech); color:white;">DAUERHAFT SPEICHERN</h2>
+           <p style="opacity:0.8; line-height:1.6; margin-bottom:30px;">
+             1. Oben rechts <strong>(⋮) Menü</strong> öffnen.<br>
+             2. <strong>Dashboard bearbeiten</strong> wählen.<br>
+             3. Bei dieser Karte auf <strong>Bearbeiten</strong> & <strong>Speichern</strong> klicken.
+           </p>
+           <button class="btn-main" id="close-guide" style="height:60px; font-size:1rem; width:100%;">VERSTANDEN</button>
+         </div>
+       `;
+       this.shadowRoot.appendChild(guide);
+       guide.querySelector('#close-guide').onclick = () => guide.remove();
     };
 
     // Setup Quick Config Inputs
