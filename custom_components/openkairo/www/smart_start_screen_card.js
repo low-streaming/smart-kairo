@@ -1,5 +1,5 @@
-// --- OPENKAIRO OS LAUNCHPAD V5.1.0 "CYBER" ---
-console.log("%c 🚀 KAIRO OS V5.1.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
+// --- OPENKAIRO OS LAUNCHPAD V5.2.0 "CYBER" ---
+console.log("%c 🚀 KAIRO OS V5.2.0 CYBER LOADING ", "background: #00ff9d; color: #000; font-weight: bold; padding: 5px;");
 
 if (!window.openKairoHelpers) {
   window.openKairoHelpers = {
@@ -50,7 +50,7 @@ class OpenKairoCardEditor extends HTMLElement {
         .success-msg { color: #00ff9d; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; }
       </style>
       <div class="config">
-        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px; font-family: 'Orbitron';">OS Configuration V5.1</h3>
+        <h3 style="margin-top:0; color: white; border-bottom: 1px solid #333; padding-bottom: 10px; font-family: 'Orbitron';">OS Configuration V5.2</h3>
         
         <datalist id="all-entities">${entities.map(e => `<option value="${e}"></option>`).join('')}</datalist>
         <datalist id="weather-entities">${entities.filter(e => e.startsWith('weather.')).map(e => `<option value="${e}"></option>`).join('')}</datalist>
@@ -69,7 +69,7 @@ class OpenKairoCardEditor extends HTMLElement {
           <input type="text" id="weather_entity" list="weather-entities" value="${config.weather_entity || ''}" placeholder="-- Wetter suchen --" autocomplete="off">
         </div>
         <div class="row">
-          <label>Update-Entität (Opt.)</label>
+          <label>Primäre Update-Entität (Opt.)</label>
           <input type="text" id="update_entity" list="update-entities" value="${config.update_entity || ''}" placeholder="z.B. update.openkairo_os" autocomplete="off">
         </div>
         <div class="row">
@@ -100,6 +100,7 @@ class OpenKairoCard extends HTMLElement {
   constructor() {
     super();
     this.initialized = false;
+    this._updatesOpen = false;
   }
   static getConfigElement() { return document.createElement("openkairo-card-editor"); }
   static getStubConfig() { return { energy_main_entity: "", energy_solar_entity: "", weather_entity: "" }; }
@@ -173,7 +174,9 @@ class OpenKairoCard extends HTMLElement {
           100% { transform: scale(1.2) translate(2%, 2%); }
         }
 
-        .left { flex: 4; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; }
+        .left { flex: 4; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; transition: 0.5s; }
+        .left.blur { filter: blur(10px); transform: scale(0.95); opacity: 0.5; pointer-events: none; }
+
         .branding { display: flex; align-items: center; gap: 20px; font-family: var(--font-tech); font-weight: 900; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 50px; }
         
         .clock-area { margin-bottom: 50px; animation: slideIn 0.8s ease-out; }
@@ -196,17 +199,19 @@ class OpenKairoCard extends HTMLElement {
         }
         @keyframes scan { 0% { left: -100%; } 100% { left: 100%; } }
         .health-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.6); } }
 
         .update-badge {
           background: rgba(255, 184, 0, 0.1); border: 1px solid rgba(255, 184, 0, 0.4);
           padding: 14px 28px; border-radius: 100px; color: var(--warning); font-family: var(--font-tech);
           font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; display: none; align-items: center; gap: 10px;
-          animation: pulseUpdate 2s infinite ease-in-out; cursor: pointer;
+          animation: pulseUpdate 2s infinite ease-in-out; cursor: pointer; transition: 0.3s;
         }
-        @keyframes pulseUpdate { 0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 184, 0, 0.2); } 50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 184, 0, 0.4); } }
+        .update-badge:hover { background: rgba(255, 184, 0, 0.2); transform: scale(1.05); }
+        @keyframes pulseUpdate { 0%, 100% { box-shadow: 0 0 10px rgba(255, 184, 0, 0.2); } 50% { box-shadow: 0 0 20px rgba(255, 184, 0, 0.4); } }
 
-        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 30px; position: relative; z-index: 10; align-content: center; }
+        .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 30px; position: relative; z-index: 10; align-content: center; transition: 0.5s; }
+        .right.blur { filter: blur(10px); transform: scale(0.95); opacity: 0.5; pointer-events: none; }
+
         .bento { 
           background: var(--glass); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); 
           border: 1px solid var(--glass-border); border-top: 1px solid rgba(255,255,255,0.15); 
@@ -219,7 +224,6 @@ class OpenKairoCard extends HTMLElement {
         .energy { grid-column: span 2; flex-direction: row; align-items: center; padding: 45px 55px; background: linear-gradient(145deg, rgba(0,255,157,0.08) 0%, rgba(0,0,0,0) 70%); }
         .energy-val { font-family: var(--font-tech); font-size: 5rem; font-weight: 900; line-height: 1; margin: 15px 0; letter-spacing: -2px; }
         .energy-label { font-size: 1rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 4px; font-weight: 900; display: flex; align-items: center; gap: 12px; }
-        
         .energy-visual { position: absolute; right: 0; bottom: 0; width: 100%; height: 60px; opacity: 0.2; pointer-events: none; }
         .energy-visual svg { width: 100%; height: 100%; }
 
@@ -236,6 +240,36 @@ class OpenKairoCard extends HTMLElement {
         }
         .btn-main:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0, 255, 157, 0.4); filter: brightness(1.1); }
 
+        /* Update Panel Styles */
+        #update-panel {
+          position: absolute; right: -500px; top: 0; bottom: 0; width: 450px;
+          background: var(--glass-heavy); backdrop-filter: blur(50px) saturate(200%);
+          border-left: 1px solid var(--glass-border); z-index: 100;
+          transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 50px;
+          display: flex; flex-direction: column; gap: 30px; box-shadow: -20px 0 60px rgba(0,0,0,0.8);
+        }
+        #update-panel.open { right: 0; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .panel-title { font-family: var(--font-tech); font-size: 1.5rem; letter-spacing: 3px; font-weight: 900; color: var(--warning); }
+        .close-panel { cursor: pointer; color: white; opacity: 0.5; transition: 0.3s; }
+        .close-panel:hover { opacity: 1; transform: rotate(90deg); }
+
+        .update-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; }
+        .update-list::-webkit-scrollbar { width: 4px; }
+        .update-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .update-item {
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 20px;
+          transition: 0.3s;
+        }
+        .update-item:hover { background: rgba(255,255,255,0.08); border-color: var(--warning); }
+        .update-img { width: 50px; height: 50px; border-radius: 12px; background: rgba(0,0,0,0.2); object-fit: cover; }
+        .update-icon { --mdc-icon-size: 30px; color: var(--warning); opacity: 0.8; }
+        .update-info { flex: 1; }
+        .update-name { font-weight: 800; font-size: 1rem; color: white; margin-bottom: 2px; }
+        .update-ver { font-size: 0.8rem; opacity: 0.5; font-weight: 600; font-family: var(--font-tech); }
+
         #kairo-fab { 
           position: fixed; bottom: 40px; right: 40px; width: 70px; height: 70px; 
           background: var(--glass-heavy); border-radius: 22px; display: flex; align-items: center; 
@@ -249,6 +283,7 @@ class OpenKairoCard extends HTMLElement {
 
         @media (max-width: 1000px) {
            .kairo-os { flex-direction: column; overflow-y: auto; padding: 40px 30px; gap: 40px; }
+           #update-panel { width: 100%; right: -100%; }
            .clock { font-size: 6rem; }
            .right { grid-template-columns: 1fr; }
            .energy, .btn-main { grid-column: span 1; }
@@ -257,7 +292,7 @@ class OpenKairoCard extends HTMLElement {
 
       <div class="kairo-os" id="os-container">
         <div class="mesh"></div>
-        <div class="left">
+        <div class="left" id="main-left">
           <div class="top">
             <div class="branding">
                <img src="https://openkairo.de/assets/openkairo-logo-D19s90KS.png" style="width:65px; filter: drop-shadow(0 0 15px rgba(0,255,157,0.4));">
@@ -278,12 +313,12 @@ class OpenKairoCard extends HTMLElement {
               SYSTEM OPTIMAL // READY
             </div>
             <div class="update-badge" id="update-indicator">
-              <ha-icon icon="mdi:package-down"></ha-icon> UPDATE AVAILABLE
+              <ha-icon icon="mdi:package-down"></ha-icon> <span id="update-count">0</span> UPDATES
             </div>
           </div>
         </div>
 
-        <div class="right">
+        <div class="right" id="main-right">
           <div class="bento energy">
             <div>
               <div class="energy-label"><ha-icon icon="mdi:flash-outline" style="--mdc-icon-size: 18px;"></ha-icon> Power Matrix</div>
@@ -316,6 +351,17 @@ class OpenKairoCard extends HTMLElement {
             DASHBOARD INITIALISIEREN <ha-icon icon="mdi:arrow-right" style="margin-left: 20px; --mdc-icon-size: 32px;"></ha-icon>
           </div>
         </div>
+
+        <!-- Update Center Panel -->
+        <div id="update-panel">
+          <div class="panel-header">
+            <div class="panel-title">UPDATE CENTER</div>
+            <ha-icon class="close-panel" id="close-updates" icon="mdi:close" style="--mdc-icon-size: 32px;"></ha-icon>
+          </div>
+          <div class="update-list" id="update-list-container">
+            <!-- Items injected by JS -->
+          </div>
+        </div>
       </div>
       <div id="kairo-fab">SYS</div>
     `;
@@ -331,6 +377,9 @@ class OpenKairoCard extends HTMLElement {
       container.style.display = 'flex'; 
       setTimeout(() => { container.style.opacity = '1'; container.style.transform = 'scale(1)'; }, 10);
     };
+
+    this.shadowRoot.getElementById('update-indicator').onclick = () => { this.toggleUpdates(true); };
+    this.shadowRoot.getElementById('close-updates').onclick = () => { this.toggleUpdates(false); };
     
     setInterval(() => {
       const now = new Date();
@@ -343,6 +392,22 @@ class OpenKairoCard extends HTMLElement {
       if (!plz && this._config?.weather_entity && /^\d{5}$/.test(this._config.weather_entity)) plz = this._config.weather_entity;
       if (plz && now.getMinutes() % 15 === 0 && now.getSeconds() === 0) this.fetchDirectWeather(plz);
     }, 1000);
+  }
+
+  toggleUpdates(open) {
+    this._updatesOpen = open;
+    const panel = this.shadowRoot.getElementById('update-panel');
+    const left = this.shadowRoot.getElementById('main-left');
+    const right = this.shadowRoot.getElementById('main-right');
+    if (open) {
+      panel.classList.add('open');
+      left.classList.add('blur');
+      right.classList.add('blur');
+    } else {
+      panel.classList.remove('open');
+      left.classList.remove('blur');
+      right.classList.remove('blur');
+    }
   }
 
   async fetchDirectWeather(plz) {
@@ -360,9 +425,8 @@ class OpenKairoCard extends HTMLElement {
           this.updateData();
         }
       }
-    } catch (e) {
-      console.error("KAIRO Weather Error", e);
-    } finally { this._fetchingWeather = false; }
+    } catch (e) { console.error("KAIRO Weather Error", e); }
+    finally { this._fetchingWeather = false; }
   }
 
   _getWeatherIcon(condition) {
@@ -412,20 +476,44 @@ class OpenKairoCard extends HTMLElement {
     const sol = config.energy_solar_entity ? this._hass.states[config.energy_solar_entity] : null;
     if (sol && s.getElementById('p-solar')) s.getElementById('p-solar').innerText = `${Math.round(parseFloat(sol.state) || 0)} W`;
 
-    // Update Indicator Logic
-    const upEl = s.getElementById('update-indicator');
-    if (upEl) {
-      let hasUpdate = false;
-      const uEnt = config.update_entity ? this._hass.states[config.update_entity] : null;
-      if (uEnt && (uEnt.state === 'on' || uEnt.state === 'available')) hasUpdate = true;
-      
-      // Also check the status sensor news for "Version" or "Update" keywords if configured
-      const sEnt = this._hass.states['sensor.openkairo_os_status'];
-      if (sEnt && sEnt.attributes.github_news && /version|update/i.test(sEnt.attributes.github_news)) {
-         // This is a soft check, could be more robust
-      }
+    // UPDATE DISCOVERY LOGIC
+    const pendingUpdates = Object.values(this._hass.states).filter(state => 
+      state.entity_id.startsWith('update.') && (state.state === 'on' || state.attributes.update_available === true)
+    );
 
-      upEl.style.display = hasUpdate ? 'flex' : 'none';
+    const upEl = s.getElementById('update-indicator');
+    const upCountEl = s.getElementById('update-count');
+    const listContainer = s.getElementById('update-list-container');
+
+    if (upEl && upCountEl) {
+      if (pendingUpdates.length > 0) {
+        upEl.style.display = 'flex';
+        upCountEl.innerText = pendingUpdates.length;
+        
+        // Build the update list HTML
+        let listHtml = '';
+        pendingUpdates.forEach(update => {
+          const name = update.attributes.friendly_name || update.entity_id;
+          const current = update.attributes.installed_version || '??';
+          const latest = update.attributes.latest_version || 'NEW';
+          const img = update.attributes.entity_picture;
+          
+          listHtml += `
+            <div class="update-item" onclick="event.stopPropagation(); window.open('/config/updates', '_blank')">
+              ${img ? `<img src="${img}" class="update-img">` : `<div class="update-img" style="display:flex;align-items:center;justify-content:center;"><ha-icon icon="mdi:package" class="update-icon"></ha-icon></div>`}
+              <div class="update-info">
+                <div class="update-name">${name}</div>
+                <div class="update-ver">${current} → <span style="color:var(--warning)">${latest}</span></div>
+              </div>
+              <ha-icon icon="mdi:chevron-right" style="opacity:0.3;"></ha-icon>
+            </div>
+          `;
+        });
+        if (listContainer) listContainer.innerHTML = listHtml;
+      } else {
+        upEl.style.display = 'none';
+        if (this._updatesOpen) this.toggleUpdates(false);
+      }
     }
   }
 }
@@ -438,5 +526,5 @@ window.customCards.push({
   type: "openkairo-card",
   name: "OpenKairo OS Launchpad",
   editor: "openkairo-card-editor",
-  description: "Premium Cyber OS Layer (V5.1.0)."
+  description: "Premium Cyber OS Layer (V5.2.0)."
 });
