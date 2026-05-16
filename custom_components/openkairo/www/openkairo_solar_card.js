@@ -434,6 +434,51 @@ class OpenKairoSolarCard extends HTMLElement {
         }
         .footer ha-icon { --mdc-icon-size: 14px; color: #10b981; opacity: 0.5; }
         .footer .br-name { font-weight: 800; color: rgba(16, 185, 129, 0.6); margin-left: 2px;}
+
+        /* Mobile Optimization Styling */
+        @media (max-width: 600px) {
+           ha-card { padding: 15px; border-radius: 20px; }
+           .header { font-size: 0.95rem; margin-bottom: 15px; letter-spacing: 3px; }
+           .main-container { min-height: auto; gap: 15px; }
+           .sidebar-stats {
+              flex: 1 1 100%;
+              flex-direction: row;
+              flex-wrap: wrap;
+              gap: 8px;
+              justify-content: center;
+              padding-top: 0;
+           }
+           .stat-box {
+              flex: 1 1 calc(50% - 8px);
+              width: auto;
+              padding: 8px;
+              border-radius: 12px;
+           }
+           .flow-container {
+              flex: 1 1 100%;
+              height: 440px;
+           }
+           .node {
+              width: 68px;
+              height: 68px;
+           }
+           .node-icon {
+              --mdc-icon-size: 20px;
+              margin-bottom: 2px;
+           }
+           .node-value {
+              font-size: 0.68rem;
+           }
+           .node-label {
+              font-size: 0.48rem;
+              letter-spacing: 0.8px;
+           }
+           .footer {
+              margin-top: 5px;
+              padding-top: 10px;
+              letter-spacing: 2px;
+           }
+        }
       </style>
       <ha-card>
         <div class="header">ENERGY OS</div>
