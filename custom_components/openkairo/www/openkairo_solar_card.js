@@ -23,47 +23,24 @@ class OpenKairoSolarCardEditor extends HTMLElement {
   renderForm() {
     this._initialized = true;
     this.innerHTML = `
-      <style>
-        .group { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        h3 { margin: 0 0 15px 0; color: #00ffff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-        .row { margin-bottom: 12px; display: flex; gap: 10px; align-items: center; }
-        .row-col { display: flex; flex-direction: column; flex: 1; }
-        label { display: block; font-size: 10px; margin-bottom: 4px; color: rgba(255,255,255,0.5); font-weight: bold; text-transform: uppercase; }
-        select, input { background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        .item-box { background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-      </style>
-      <div class="card-config">
-        <div class="group">
-          <h3>Design & Flow</h3>
-          <div class="row">
-            <div class="row-col">
-              <label>Flow Typ</label>
-              <select id="animation_type">
-                <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Cyber Beads (Sharp)</option>
-                <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Luxury Flow (Soft)</option>
-              </select>
-            </div>
-            <div class="row-col">
-              <label>Speed (1-10)</label>
-              <input type="range" id="animation_speed" min="1" max="10" step="1" value="${this.getVal('animation_speed', '5')}">
-            </div>
-          </div>
-        </div>
-        <div class="group">
-          <h3>Sensoren</h3>
-          <div class="item-box"><label>Solar (W)</label><div id="solar_entity_picker"></div></div>
-          <div class="item-box"><label>Netz Import (W)</label><div id="grid_import_entity_picker"></div></div>
-          <div class="item-box"><label>Netz Export (W)</label><div id="grid_export_entity_picker"></div></div>
-          <div class="item-box"><label>Batterie (W)</label><div id="battery_power_entity_picker"></div></div>
-          <div class="item-box"><label>Batterie (%)</label><div id="battery_level_entity_picker"></div></div>
-        </div>
-        <div class="group">
-          <h3>Optionale Verbraucher</h3>
-          <div class="item-box"><label>Miner</label><div id="miner_entity_picker"></div></div>
-          <div class="item-box"><label>Heizung</label><div id="heatpump_entity_picker"></div></div>
-          <div class="item-box"><label>E-Auto</label><div id="ev_entity_picker"></div></div>
-          <div class="item-box"><label>Klima</label><div id="ac_entity_picker"></div></div>
-        </div>
+      <div style="padding: 10px; color: #fff;">
+        <h3 style="color: #10b981;">Flow Einstellungen</h3>
+        <label>Animation Typ</label>
+        <select id="animation_type" style="width:100%; padding:8px; background:#111; color:white; border:1px solid #333; border-radius:5px;">
+          <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Cyber Particles (Sharp)</option>
+          <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Luxury Comet</option>
+          <option value="dash" ${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Digital Stream</option>
+        </select>
+        <br><br>
+        <label>Geschwindigkeit (1-10)</label>
+        <input type="range" id="animation_speed" min="1" max="10" step="1" value="${this.getVal('animation_speed', '5')}" style="width:100%;">
+        <br><br>
+        <h3 style="color: #10b981;">Sensoren</h3>
+        <div id="solar_entity_picker"></div><br>
+        <div id="grid_import_entity_picker"></div><br>
+        <div id="grid_export_entity_picker"></div><br>
+        <div id="battery_power_entity_picker"></div><br>
+        <div id="battery_level_entity_picker"></div>
       </div>
     `;
 
@@ -76,9 +53,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
         container.appendChild(sel);
     };
 
-    ['solar_entity', 'grid_import_entity', 'grid_export_entity', 'battery_power_entity', 'battery_level_entity', 
-     'miner_entity', 'heatpump_entity', 'ev_entity', 'ac_entity'].forEach(mount);
-    
+    ['solar_entity', 'grid_import_entity', 'grid_export_entity', 'battery_power_entity', 'battery_level_entity'].forEach(mount);
     this.querySelectorAll('input, select').forEach(el => {
         el.addEventListener('change', () => this.updateConfig(el.id, el.value));
     });
@@ -94,7 +69,6 @@ class OpenKairoSolarCard extends HTMLElement {
 
   setConfig(config) {
     this._config = Object.assign({}, config);
-    this._layoutBuilt = false;
     this.setupDOM();
   }
 
@@ -103,109 +77,100 @@ class OpenKairoSolarCard extends HTMLElement {
   setupDOM() {
     this.innerHTML = `
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
-        
-        :host { 
-          --c-solar: #ff9900; --c-grid: #ff007f; --c-home: #00ffff; --c-batt: #00ff00;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;700&display=swap');
         
         ha-card {
-           background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-           border-radius: 24px; padding: 25px; min-height: 540px;
-           position: relative; overflow: hidden !important; border: 1px solid rgba(255,255,255,0.08);
-           color: #fff; font-family: 'Inter', sans-serif;
-           box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 20px 40px rgba(0,0,0,0.4);
+           background: rgba(10, 20, 28, 0.45); border-radius: 28px; padding: 25px;
+           backdrop-filter: blur(15px) saturate(180%); position: relative;
+           border: 1px solid rgba(255,255,255,0.1); color: #fff; font-family: 'Inter', sans-serif;
         }
 
-        .header-title {
-           font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: #00ffff; 
-           text-align: center; font-weight: 900; margin-bottom: 20px; letter-spacing: 5px; 
-           text-transform: uppercase; opacity: 0.8;
+        .header { 
+           font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #10b981; 
+           text-align: center; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; 
+           text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); text-transform: uppercase;
         }
-
-        .main-layout { display: flex; gap: 20px; align-items: stretch; }
-
-        .sidebar { flex: 0 0 140px; display: flex; flex-direction: column; gap: 12px; }
-
-        .gauge-match-card {
-          background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 18px; padding: 12px; display: flex; flex-direction: column;
-          align-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-        .gauge-match-card ha-icon { --mdc-icon-size: 18px; color: #00ffff; margin-bottom: 4px; }
-        .stat-lab { font-size: 8px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
-        .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 800; }
-
-        .flow-area { flex: 1; position: relative; height: 480px; overflow: hidden; }
-
-        .svg-canvas { position: absolute; inset: 0; pointer-events:none; z-index: 1; }
-
-        .path-wire { fill: none; stroke-width: 1.2; stroke: rgba(255,255,255,0.04); stroke-linecap: round; }
-        .path-glow { fill: none; stroke-width: 2.2; stroke-linecap: round; filter: url(#neon-glow); opacity: 0; }
         
-        .anim-dots { stroke-dasharray: 2 28; animation: flowMove linear infinite; opacity: 1 !important; }
-        .anim-comet { stroke-dasharray: 60 200; animation: flowMove linear infinite; opacity: 1 !important; }
+        .main-container { display: flex; gap: 20px; align-items: stretch; position: relative; }
+
+        .sidebar { flex: 0 0 150px; display: flex; flex-direction: column; gap: 12px; }
+
+        .stat-box {
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center;
+        }
+        .stat-box ha-icon { --mdc-icon-size: 20px; color: #10b981; margin-bottom: 4px; }
+        .stat-label { font-size: 9px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+        .stat-value { font-size: 0.75rem; font-weight: 800; color: #fff; }
+
+        .flow-container { flex: 1; position: relative; height: 500px; overflow: hidden; }
+
+        .svg-layer { position: absolute; inset: 0; pointer-events:none; z-index: 1; }
+
+        .path-base { fill: none; stroke-width: 1.5; stroke: rgba(255,255,255,0.05); stroke-linecap: round; }
+        .path-anim { fill: none; stroke-width: 3; stroke-linecap: round; filter: url(#neon-glow); }
+        
+        /* SHARP NEON FLOW */
+        .anim-dots { stroke-dasharray: 2 24; animation: flowMove linear infinite; }
+        .anim-comet { stroke-dasharray: 50 180; animation: flowMove linear infinite; }
+        .anim-dash { stroke-dasharray: 15 30; animation: flowMove linear infinite; }
         
         @keyframes flowMove { to { stroke-dashoffset: -300; } }
 
         .node {
            position: absolute; display: flex; flex-direction: column; align-items: center;
-           transform: translate(-50%, -50%); z-index: 10; transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+           transform: translate(-50%, -50%); z-index: 10; transition: 0.5s;
         }
         
-        .node-inner {
-           width: 68px; height: 68px; border-radius: 50%; background: #0f172a;
+        .node-circle {
+           width: 75px; height: 75px; border-radius: 50%; background: #000;
            border: 2px solid currentColor; display: flex; align-items: center; justify-content: center;
-           box-shadow: 0 0 15px rgba(0,0,0,0.5); position: relative;
+           box-shadow: 0 0 15px rgba(0,0,0,0.5);
         }
-        .node-inner.active { box-shadow: 0 0 25px currentColor; }
         
-        .node-icon { --mdc-icon-size: 26px; color: currentColor; }
-        .node-val { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 800; margin-top: 6px; }
-        .node-lab { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.4; }
+        .node-icon { --mdc-icon-size: 28px; color: currentColor; }
+        .node-val { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 800; margin-top: 8px; }
+        .node-lab { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.5; }
 
-        .home-center {
-           width: 100px; height: 100px; border: 3px solid #00ffff; 
-           box-shadow: 0 0 35px rgba(0,255,255,0.15);
-        }
-        .home-center .node-icon { --mdc-icon-size: 36px; }
+        .center-node { width: 95px; height: 95px; border: 3px solid #10b981; box-shadow: 0 0 25px rgba(16, 185, 129, 0.2); }
 
         .footer {
           text-align: center; font-family: 'Orbitron', sans-serif; font-size: 9px; 
-          color: rgba(255,255,255,0.2); letter-spacing: 4px; margin-top: 15px;
+          color: rgba(255,255,255,0.2); letter-spacing: 4px; margin-top: 20px;
         }
       </style>
       <ha-card>
-        <div class="header-title">ELITE FLOW :: V5.6-GAUGE</div>
-        <div class="main-layout">
+        <div class="header">ENERGY OS :: CLASSIC FLOW</div>
+        <div class="main-container">
           <div class="sidebar">
-            <div class="gauge-match-card"><ha-icon icon="mdi:calendar-today"></ha-icon><span class="stat-lab">Heute</span><span class="stat-val" id="s-today">-- kWh</span></div>
-            <div class="gauge-match-card"><ha-icon icon="mdi:calendar-week"></ha-icon><span class="stat-lab">Woche</span><span class="stat-val" id="s-week">-- kWh</span></div>
+            <div class="stat-box"><ha-icon icon="mdi:calendar-today"></ha-icon><span class="stat-label">Heute</span><span class="stat-value" id="s-today">-- kWh</span></div>
+            <div class="stat-box"><ha-icon icon="mdi:calendar-week"></ha-icon><span class="stat-label">Woche</span><span class="stat-value" id="s-week">-- kWh</span></div>
+            <div class="stat-box"><ha-icon icon="mdi:calendar-month"></ha-icon><span class="stat-label">Monat</span><span class="stat-value" id="s-month">-- kWh</span></div>
           </div>
           
-          <div class="flow-area" id="flow-area">
-            <svg class="svg-canvas" viewBox="0 0 100 100">
+          <div class="flow-container" id="flow-container">
+            <svg class="svg-layer">
               <defs>
                 <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="1.2" result="blur"/>
+                  <feGaussianBlur stdDeviation="1.5" result="blur"/>
                   <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
               </defs>
-              <g id="p-layer"></g>
+              <g id="path-layer"></g>
             </svg>
-            <div id="n-layer"></div>
+            <div id="node-layer"></div>
           </div>
         </div>
         <div class="footer">POWERED BY OPENKAIRO</div>
       </ha-card>
     `;
-    this.content = true;
+    this._initialized = true;
   }
 
-  drawNode(id, icon, label, color, x, y, isHome = false) {
+  drawNode(id, icon, label, color, x, y, isCenter = false) {
     return `
       <div class="node" style="left:${x}%; top:${y}%; color:${color};">
-        <div class="node-inner ${isHome ? 'home-center' : ''}" id="node-${id}">
+        <div class="node-circle ${isCenter ? 'center-node' : ''}" id="node-${id}">
           <ha-icon class="node-icon" icon="${icon}"></ha-icon>
         </div>
         <div class="node-val" id="val-${id}">0W</div>
@@ -216,45 +181,42 @@ class OpenKairoSolarCard extends HTMLElement {
   drawPath(id, color, x1, y1, x2, y2) {
     const dx = x2 - x1, dy = y2 - y1;
     const cy = y1 + dy*0.5;
-    // Stronger S-Curve to prevent overlapping with horizontal lines
-    const cpX = dx * 0.45;
-    const d = `M ${x1} ${y1} C ${x1 + cpX} ${y1}, ${x2 - cpX} ${y2}, ${x2} ${y2}`;
+    const d = `M ${x1} ${y1} C ${x1 + dx*0.3} ${cy}, ${x2 - dx*0.3} ${cy}, ${x2} ${y2}`;
     return `
-      <path class="path-wire" d="${d}"></path>
-      <path id="path-${id}" class="path-glow" d="${d}" stroke="${color}"></path>
+      <path class="path-base" d="${d}"></path>
+      <path id="path-${id}" class="path-anim" d="${d}" stroke="${color}"></path>
     `;
   }
 
   updateLayout() {
-    const pLayer = this.querySelector('#p-layer');
-    const nLayer = this.querySelector('#n-layer');
+    const pLayer = this.querySelector('#path-layer');
+    const nLayer = this.querySelector('#node-layer');
     if (!pLayer || !nLayer) return;
 
     const paths = [], nodes = [];
     const cX = 50, cY = 40;
 
-    nodes.push(this.drawNode('home', 'mdi:home-lightning-bolt', 'SYSTEM', '#00ffff', cX, cY, true));
+    nodes.push(this.drawNode('home', 'mdi:home', 'SYSTEM', '#10b981', cX, cY, true));
     
-    // SOURCES: Farther out to leave room
     if (this.getVal('solar_entity')) {
-      nodes.push(this.drawNode('solar', 'mdi:solar-power', 'SOLAR', '#ff9900', cX, 10));
-      paths.push(this.drawPath('solar-home', '#ff9900', cX, 10, cX, cY));
+      nodes.push(this.drawNode('solar', 'mdi:solar-power', 'SOLAR', '#ff9900', cX, 12));
+      paths.push(this.drawPath('solar-home', '#ff9900', cX, 12, cX, cY));
     }
     if (this.getVal('grid_import_entity') || this.getVal('grid_export_entity')) {
-      nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'NETZ', '#ff007f', 8, cY));
-      paths.push(this.drawPath('grid-home', '#ff007f', 8, cY, cX, cY));
+      nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'NETZ', '#ff007f', 12, cY));
+      paths.push(this.drawPath('grid-home', '#ff007f', 12, cY, cX, cY));
     }
     if (this.getVal('battery_power_entity')) {
-      nodes.push(this.drawNode('batt', 'mdi:battery-high', 'AKKU', '#00ff00', 92, cY));
-      paths.push(this.drawPath('batt-home', '#00ff00', 92, cY, cX, cY));
+      nodes.push(this.drawNode('batt', 'mdi:battery-high', 'AKKU', '#00ff00', 88, cY));
+      paths.push(this.drawPath('batt-home', '#00ff00', 88, cY, cX, cY));
     }
 
-    // CONSUMER ARC: Lower and wider
+    // Classic Consumers
     const consumers = [
-      { key: 'miner_entity', label: 'MINER', icon: 'mdi:bitcoin', color: '#a855f7', x: 20, y: 78 },
+      { key: 'miner_entity', label: 'MINER', icon: 'mdi:bitcoin', color: '#a855f7', x: 22, y: 78 },
       { key: 'heatpump_entity', label: 'HEIZUNG', icon: 'mdi:heat-pump', color: '#3b82f6', x: 40, y: 88 },
       { key: 'ev_entity', label: 'AUTO', icon: 'mdi:car-electric', color: '#eab308', x: 60, y: 88 },
-      { key: 'ac_entity', label: 'KLIMA', icon: 'mdi:air-conditioner', color: '#00d1ff', x: 80, y: 78 }
+      { key: 'ac_entity', label: 'KLIMA', icon: 'mdi:air-conditioner', color: '#00d1ff', x: 78, y: 78 }
     ];
 
     consumers.forEach(c => {
@@ -290,20 +252,15 @@ class OpenKairoSolarCard extends HTMLElement {
       if (Math.abs(val) < 5) { p.style.opacity = '0'; return; }
       p.style.opacity = '1';
       const speed = parseFloat(this.getVal('animation_speed', '5'));
-      const duration = (8500 / Math.max(40, Math.abs(val))) * (10/speed);
+      const duration = (9000 / Math.max(50, Math.abs(val))) * (10/speed);
       p.style.animationDuration = Math.min(15, Math.max(0.4, duration)) + 's';
       p.style.animationDirection = rev ? 'reverse' : 'normal';
-      p.setAttribute('class', `path-glow anim-${this.getVal('animation_type', 'dots')}`);
+      p.setAttribute('class', `path-anim anim-${this.getVal('animation_type', 'dots')}`);
     };
 
     const updN = (id, v) => {
       const el = this.querySelector(`#val-${id}`);
-      const circle = this.querySelector(`#node-${id}`);
       if (el) el.innerText = format(v);
-      if (circle) {
-        if (Math.abs(v) > 15) circle.classList.add('active');
-        else circle.classList.remove('active');
-      }
     };
 
     updN('solar', solarW); updN('grid', netzW); updN('batt', battW);
@@ -320,10 +277,12 @@ class OpenKairoSolarCard extends HTMLElement {
         }
     });
 
-    const sToday = this.querySelector('#s-today');
-    if (sToday) sToday.innerText = getP(this._config.solar_yield_today_entity).toFixed(1) + ' kWh';
-    const sWeek = this.querySelector('#s-week');
-    if (sWeek) sWeek.innerText = getP(this._config.solar_yield_week_entity).toFixed(1) + ' kWh';
+    const sT = this.querySelector('#s-today');
+    if (sT) sT.innerText = getP(this._config.solar_yield_today_entity).toFixed(1) + ' kWh';
+    const sW = this.querySelector('#s-week');
+    if (sW) sW.innerText = getP(this._config.solar_yield_week_entity).toFixed(1) + ' kWh';
+    const sM = this.querySelector('#s-month');
+    if (sM) sM.innerText = getP(this._config.solar_yield_month_entity).toFixed(1) + ' kWh';
   }
 }
 
