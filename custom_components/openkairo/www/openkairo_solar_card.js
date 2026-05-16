@@ -65,12 +65,13 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="row-col">
               <label>Animations-Typ</label>
               <select id="animation_type">
-                <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Energie-Kugeln (Dots)</option>
-                <option value="dash" ${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Strichel-Linien (Dash)</option>
-                <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
-                <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Energy Comet (Slow Tail)</option>
-                <option value="stream" ${this.getVal('animation_type') === 'stream' ? 'selected' : ''}>Particle Stream (Fast)</option>
-                <option value="plasma" ${this.getVal('animation_type') === 'plasma' ? 'selected' : ''}>Cyber Plasma (Glowing Stream)</option>
+                <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Klassische Punkte (Dots)</option>
+                <option value="dash" ${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Dynamische Striche (Dash)</option>
+                <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Puls (Neon)</option>
+                <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Energie Komet (Luxury)</option>
+                <option value="stream" ${this.getVal('animation_type') === 'stream' ? 'selected' : ''}>Partikel Strom (Fast)</option>
+                <option value="plasma" ${this.getVal('animation_type') === 'plasma' ? 'selected' : ''}>Cyber Plasma (Organic)</option>
+                <option value="glory" ${this.getVal('animation_type') === 'glory' ? 'selected' : ''}>Aura Glühen (Atmospheric)</option>
               </select>
             </div>
             <div class="row-col">
@@ -402,51 +403,77 @@ class OpenKairoSolarCard extends HTMLElement {
           overflow: hidden !important;
         }
         .svg-path { 
-          fill: none; stroke-width: 2.5; stroke-linecap: round; transition: 0.5; 
-          opacity: 0; filter: drop-shadow(0 0 5px currentColor);
+          fill: none; stroke-width: 2.2; stroke-linecap: round; transition: 0.5s; 
+          opacity: 0; filter: drop-shadow(0 0 3px currentColor);
         }
         .svg-path-conduit { 
-          fill: none; stroke-width: 5; stroke-linecap: round; opacity: 0.1; 
-          stroke: rgba(255,255,255,0.1);
+          fill: none; stroke-width: 5; stroke-linecap: round; opacity: 0.08; 
+          stroke: rgba(255,255,255,0.15);
         }
         
-        /* Premium Particle Stream */
-        .anim-dots { 
-          stroke-dasharray: 1 12; 
-          animation: dashAnim linear infinite; 
-          stroke-width: 3.5;
-          opacity: 0.9 !important;
+        /* 1. Classic Dots */
+        .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; opacity: 0.8 !important; }
+        
+        /* 2. Dynamic Dash */
+        .anim-dash { stroke-dasharray: 12 25; animation: dashAnim linear infinite; stroke-width: 2.5; opacity: 0.7 !important; }
+        
+        /* 3. Neon Pulse */
+        .anim-neon { stroke-dasharray: 4 40; animation: dashAnim linear infinite; stroke-width: 3; filter: drop-shadow(0 0 8px currentColor); opacity: 0.9 !important; }
+        
+        /* 4. Luxury Energy Comet */
+        .anim-comet { 
+          stroke-dasharray: 40 200; 
+          animation: cometAnim linear infinite; 
+          filter: drop-shadow(0 0 12px currentColor); 
+          stroke-width: 3.5; 
         }
         
-        /* Glowing Plasma Stream - More Fluid */
-        .anim-plasma {
-          stroke-dasharray: 40 160;
-          animation: dashAnim 2s infinite linear;
-          stroke-width: 3.5;
-          filter: drop-shadow(0 0 10px currentColor);
-          opacity: 0.8 !important;
-        }
-
-        /* NEW: Energy Stream (Hyper Particles) */
+        /* 5. Particle Stream */
         .anim-stream {
-          stroke-dasharray: 2 30;
-          animation: streamAnim 1.5s infinite linear;
+          stroke-dasharray: 2 40;
+          animation: streamAnim infinite linear;
           stroke-width: 4;
-          filter: drop-shadow(0 0 8px currentColor);
+          filter: drop-shadow(0 0 6px currentColor);
           opacity: 1 !important;
         }
-        
-        @keyframes dashAnim { to { stroke-dashoffset: -200; } }
-        @keyframes streamAnim { 
-          0% { stroke-dashoffset: 400; stroke-width: 2.5; opacity: 0.5; }
-          50% { stroke-width: 4.5; opacity: 1; }
-          100% { stroke-dashoffset: 0; stroke-width: 2.5; opacity: 0.5; }
+
+        /* 6. Organic Cyber Plasma */
+        .anim-plasma {
+          stroke-dasharray: 100 150;
+          animation: plasmaAnim infinite linear;
+          stroke-width: 4;
+          filter: drop-shadow(0 0 15px currentColor);
+          opacity: 0.7 !important;
         }
 
+        /* 7. Atmospheric Aura Glow */
+        .anim-glory {
+          stroke-dasharray: 200 10;
+          animation: gloryAnim 4s infinite ease-in-out;
+          stroke-width: 6;
+          filter: blur(4px) drop-shadow(0 0 20px currentColor);
+          opacity: 0.4 !important;
+        }
+        
+        @keyframes dashAnim { to { stroke-dashoffset: -100; } }
+        @keyframes streamAnim { 
+          0% { stroke-dashoffset: 200; stroke-width: 2.5; opacity: 0.4; }
+          50% { stroke-width: 5; opacity: 1; }
+          100% { stroke-dashoffset: 0; stroke-width: 2.5; opacity: 0.4; }
+        }
         @keyframes cometAnim { 
-          0% { stroke-dashoffset: 400; stroke-opacity: 0.4; }
+          0% { stroke-dashoffset: 480; stroke-opacity: 0.3; }
           40%, 60% { stroke-opacity: 1; }
-          100% { stroke-dashoffset: 0; stroke-opacity: 0.4; }
+          100% { stroke-dashoffset: 0; stroke-opacity: 0.3; }
+        }
+        @keyframes plasmaAnim {
+          0% { stroke-dashoffset: 500; stroke-width: 3; opacity: 0.5; }
+          50% { stroke-width: 6; opacity: 1; }
+          100% { stroke-dashoffset: 0; stroke-width: 3; opacity: 0.5; }
+        }
+        @keyframes gloryAnim {
+          0%, 100% { opacity: 0.2; stroke-width: 4; }
+          50% { opacity: 0.6; stroke-width: 8; }
         }
 
         .node {
@@ -534,17 +561,20 @@ class OpenKairoSolarCard extends HTMLElement {
   // Draw smooth S-Curves and background conduits
   drawPath(id, color, x1, y1, x2, y2, type = 'auto') {
       let d = "";
-      // Force a slight curve even for "straight" lines to make it look more organic
-      const offset = (x1 === x2 || y1 === y2) ? 2 : 0;
-      
       if (type === 'straight') {
           d = `M ${x1} ${y1} L ${x2} ${y2}`;
       } else {
           // Organic S-Curve using Cubic Bezier
-          const cy = (y1 + y2) / 2;
-          const cx1 = x1 + offset;
-          const cx2 = x2 - offset;
-          d = `M ${x1} ${y1} C ${cx1} ${cy}, ${cx2} ${cy}, ${x2} ${y2}`;
+          // We add a slight vertical offset to the control points to prevent perfectly straight lines
+          const dy = y2 - y1;
+          const dx = x2 - x1;
+          const cy1 = y1 + (dy * 0.5);
+          const cy2 = y1 + (dy * 0.5);
+          
+          // If it's a horizontal line, add a slight "sag" or "arc"
+          const curveOffset = (Math.abs(dy) < 2) ? 4 : 0;
+          
+          d = `M ${x1} ${y1} C ${x1 + (dx*0.2)} ${cy1 + curveOffset}, ${x2 - (dx*0.2)} ${cy2 + curveOffset}, ${x2} ${y2}`;
       }
       
       return `
@@ -568,57 +598,61 @@ class OpenKairoSolarCard extends HTMLElement {
       const nodes = [];
       const paths = [];
 
-      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 32));
+      // Balanced Center Layout
+      const centerX = 50;
+      const centerY = 42; // Move House closer to vertical center
+
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, centerX, centerY));
       
       if (this.getValStr('solar_entity')) {
-          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 8));
-          paths.push(this.drawPath('solar-home', cSolar, 50, 8, 50, 32));
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, centerX, 12));
+          paths.push(this.drawPath('solar-home', cSolar, centerX, 12, centerX, centerY));
       }
       if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
-          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 18, 32));
-          paths.push(this.drawPath('grid-home', cGrid, 18, 32, 50, 32));
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 16, centerY));
+          paths.push(this.drawPath('grid-home', cGrid, 16, centerY, centerX, centerY));
       }
       if (this.getValStr('battery_power_entity')) {
-          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 82, 32));
-          paths.push(this.drawPath('batt-home', cBatt, 82, 32, 50, 32));
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 84, centerY));
+          paths.push(this.drawPath('batt-home', cBatt, 84, centerY, centerX, centerY));
       }
       
-      // Consumers in a wide arc below
+      // Consumers in a tighter, more symmetrical arc
       if (this.getValStr('pool_entity')) {
           const name = this.getValStr('pool_name', 'Pool');
           const icon = this.getValStr('pool_icon', 'mdi:pool');
-          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 15, 58));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 32, 15, 58));
+          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 18, 68));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), centerX, centerY, 18, 68));
       }
       if (this.getValStr('miner_entity')) {
           const name = this.getValStr('miner_name', 'Miner');
           const icon = this.getValStr('miner_icon', 'mdi:bitcoin');
-          nodes.push(this.drawNode('miner', icon, name, cMiner, 30, 72));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 32, 30, 72));
+          nodes.push(this.drawNode('miner', icon, name, cMiner, 32, 80));
+          paths.push(this.drawPath('home-miner', cMiner, centerX, centerY, 32, 80));
       }
       if (this.getValStr('heatpump_entity')) {
           const name = this.getValStr('heatpump_name', 'Heizung');
           const icon = this.getValStr('heatpump_icon', 'mdi:heat-pump');
-          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 45, 80));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 32, 45, 80));
+          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 45, 85));
+          paths.push(this.drawPath('home-heatpump', cHeat, centerX, centerY, 45, 85));
       }
       if (this.getValStr('ev_entity')) {
           const name = this.getValStr('ev_name', 'Auto');
           const icon = this.getValStr('ev_icon', 'mdi:car-electric');
-          nodes.push(this.drawNode('ev', icon, name, cEv, 55, 80));
-          paths.push(this.drawPath('home-ev', cEv, 50, 32, 55, 80));
+          nodes.push(this.drawNode('ev', icon, name, cEv, 55, 85));
+          paths.push(this.drawPath('home-ev', cEv, centerX, centerY, 55, 85));
       }
       if (this.getValStr('ac_entity')) {
           const name = this.getValStr('ac_name', 'Klima');
           const icon = this.getValStr('ac_icon', 'mdi:air-conditioner');
-          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 70, 72));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 32, 70, 72));
+          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 68, 80));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), centerX, centerY, 68, 80));
       }
       if (this.getValStr('washer_entity')) {
           const name = this.getValStr('washer_name', 'Waschm.');
           const icon = this.getValStr('washer_icon', 'mdi:washing-machine');
-          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 85, 58));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 32, 85, 58));
+          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 82, 68));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), centerX, centerY, 82, 68));
       }
 
       const svgHtml = `
@@ -690,11 +724,11 @@ class OpenKairoSolarCard extends HTMLElement {
             }
             if (c) c.style.opacity = '0.12';
 
-            // Optimized Speed Mapping
-            // Lower values = faster duration
-            let duration = (3000 / Math.max(100, Math.abs(flowW))) * speedMult;
-            if (duration > 4) duration = 4; 
-            if (duration < 0.25) duration = 0.25; 
+            // Optimized Speed Mapping - Significantly slowed down
+            // Lower values = faster duration. We increase the base to 6000 for calmer flows.
+            let duration = (6000 / Math.max(50, Math.abs(flowW))) * speedMult;
+            if (duration > 12) duration = 12; 
+            if (duration < 0.3) duration = 0.3; 
             
             p.style.animationDuration = duration + 's';
             p.style.animationDirection = reverse ? 'reverse' : 'normal';
