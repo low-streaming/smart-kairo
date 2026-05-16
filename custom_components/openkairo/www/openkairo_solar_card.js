@@ -69,7 +69,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
                 <option value="dash" ${this.getVal('animation_type') === 'dash' ? 'selected' : ''}>Strichel-Linien (Dash)</option>
                 <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
                 <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Energy Comet (Slow Tail)</option>
-                <option value="pulse" ${this.getVal('animation_type') === 'pulse' ? 'selected' : ''}>Power Pulse (Thick)</option>
+                <option value="stream" ${this.getVal('animation_type') === 'stream' ? 'selected' : ''}>Particle Stream (Fast)</option>
                 <option value="plasma" ${this.getVal('animation_type') === 'plasma' ? 'selected' : ''}>Cyber Plasma (Glowing Stream)</option>
               </select>
             </div>
@@ -401,43 +401,48 @@ class OpenKairoSolarCard extends HTMLElement {
           pointer-events:none; z-index: 1; display: block;
           overflow: hidden !important;
         }
-        .svg-path { fill: none; stroke-width: 1.8; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
-        .svg-path-conduit { fill: none; stroke-width: 4; stroke-linecap: round; opacity: 0.03; }
-        
-        /* Animation Types - Premium Particles */
-        .anim-dots { stroke-dasharray: 3 18; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
-        .anim-dash { stroke-dasharray: 10 25; animation: dashAnim linear infinite; }
-        .anim-neon { stroke-dasharray: 8 40; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 2;}
-        
-        /* EXCLUSIVE: Faster, sharp comet with flicker */
-        .anim-comet { 
-          stroke-dasharray: 35 165; 
-          animation: cometAnim 1.5s linear infinite; 
-          filter: drop-shadow(0 0 10px currentColor) brightness(1.2); 
-          stroke-width: 2.8; 
+        .svg-path { 
+          fill: none; stroke-width: 2.5; stroke-linecap: round; transition: 0.5; 
+          opacity: 0; filter: drop-shadow(0 0 5px currentColor);
+        }
+        .svg-path-conduit { 
+          fill: none; stroke-width: 5; stroke-linecap: round; opacity: 0.1; 
+          stroke: rgba(255,255,255,0.1);
         }
         
-        /* EXCLUSIVE: Heavy, slow energy blocks */
-        .anim-pulse { 
-          filter: drop-shadow(0 0 15px currentColor);
+        /* Premium Particle Stream */
+        .anim-dots { 
+          stroke-dasharray: 1 12; 
+          animation: dashAnim linear infinite; 
+          stroke-width: 3.5;
+          opacity: 0.9 !important;
+        }
+        
+        /* Glowing Plasma Stream - More Fluid */
+        .anim-plasma {
+          stroke-dasharray: 40 160;
+          animation: dashAnim 2s infinite linear;
+          stroke-width: 3.5;
+          filter: drop-shadow(0 0 10px currentColor);
           opacity: 0.8 !important;
         }
 
-        /* NEW: Cyber Plasma Stream */
-        .anim-plasma {
-          stroke-dasharray: 100 100;
-          animation: plasmaAnim 3s infinite linear;
-          stroke-width: 3;
-          filter: drop-shadow(0 0 12px currentColor);
-          stroke-linecap: round;
+        /* NEW: Energy Stream (Hyper Particles) */
+        .anim-stream {
+          stroke-dasharray: 2 30;
+          animation: streamAnim 1.5s infinite linear;
+          stroke-width: 4;
+          filter: drop-shadow(0 0 8px currentColor);
+          opacity: 1 !important;
         }
         
         @keyframes dashAnim { to { stroke-dashoffset: -200; } }
-        @keyframes plasmaAnim {
-          0% { stroke-dashoffset: 400; stroke-width: 2.5; opacity: 0.6; }
-          50% { stroke-width: 4; opacity: 1; }
-          100% { stroke-dashoffset: 0; stroke-width: 2.5; opacity: 0.6; }
+        @keyframes streamAnim { 
+          0% { stroke-dashoffset: 400; stroke-width: 2.5; opacity: 0.5; }
+          50% { stroke-width: 4.5; opacity: 1; }
+          100% { stroke-dashoffset: 0; stroke-width: 2.5; opacity: 0.5; }
         }
+
         @keyframes cometAnim { 
           0% { stroke-dashoffset: 400; stroke-opacity: 0.4; }
           40%, 60% { stroke-opacity: 1; }
@@ -445,13 +450,17 @@ class OpenKairoSolarCard extends HTMLElement {
         }
 
         .node {
-           position: absolute; width: 82px; height: 82px; border-radius: 50%;
-           background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5)); 
-           border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column;
+           position: absolute; width: 85px; height: 85px; border-radius: 50%;
+           background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), rgba(0,0,0,0.7)); 
+           border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;
            justify-content: center; align-items: center; transform: translate(-50%, -50%); z-index: 10;
-           box-shadow: 0 12px 30px rgba(0,0,0,0.65), inset 0 0 15px rgba(255,255,255,0.05); 
-           backdrop-filter: blur(12px) saturate(180%);
-           transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+           box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+           backdrop-filter: blur(15px) saturate(180%);
+           transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .node.active { 
+          border-color: currentColor; 
+          box-shadow: 0 0 30px currentColor;
         }
         .node * { z-index: 12; }
         .node::after {
@@ -525,17 +534,21 @@ class OpenKairoSolarCard extends HTMLElement {
   // Draw smooth S-Curves and background conduits
   drawPath(id, color, x1, y1, x2, y2, type = 'auto') {
       let d = "";
-      if (type === 'straight' || (x1 === x2 || y1 === y2)) {
+      // Force a slight curve even for "straight" lines to make it look more organic
+      const offset = (x1 === x2 || y1 === y2) ? 2 : 0;
+      
+      if (type === 'straight') {
           d = `M ${x1} ${y1} L ${x2} ${y2}`;
       } else {
           // Organic S-Curve using Cubic Bezier
-          // Control points halfway between y1 and y2
           const cy = (y1 + y2) / 2;
-          d = `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
+          const cx1 = x1 + offset;
+          const cx2 = x2 - offset;
+          d = `M ${x1} ${y1} C ${cx1} ${cy}, ${cx2} ${cy}, ${x2} ${y2}`;
       }
       
       return `
-        <path id="conduit-${id}" class="svg-path-conduit" d="${d}" stroke="${color}"></path>
+        <path id="conduit-${id}" class="svg-path-conduit" d="${d}"></path>
         <path id="path-${id}" class="svg-path" d="${d}" stroke="${color}"></path>
       `;
   }
@@ -700,10 +713,15 @@ class OpenKairoSolarCard extends HTMLElement {
         }
         
         // Pulse effects for Home and Solar/Battery when active
-        if (id === 'home') {
+        if (n) {
             const absVal = Math.abs(val);
-            if (absVal > 500) n.classList.add('pulse-active');
-            else n.classList.remove('pulse-active');
+            if (absVal > 20) {
+              n.classList.add('active');
+              n.style.filter = `drop-shadow(0 0 ${Math.min(20, absVal/100)}px ${colorOverride || 'currentColor'})`;
+            } else {
+              n.classList.remove('active');
+              n.style.filter = '';
+            }
         }
     };
     
