@@ -209,6 +209,8 @@ class OpenKairoAlertCard extends HTMLElement {
       <style>
         :host {
           display: block;
+          /* Important: Outer wrapper transitions height smoothly so other cards shift gracefully down */
+          transition: height 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), margin-bottom 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease;
           overflow: hidden;
           height: 0px;
           opacity: 0;
@@ -229,7 +231,8 @@ class OpenKairoAlertCard extends HTMLElement {
            border-radius: 45px;
            border: 1px solid rgba(255, 255, 255, 0.15);
            box-shadow: 0 15px 40px ${this.hexToRgba(cStr, 0.25)}, inset 0 0 20px rgba(255,255,255,0.05);
-           --gauge-color: var(--dynamic-color) !important;
+           padding: 15px 25px;
+           position: relative;
            display: flex;
            flex-direction: row;
            align-items: center;
@@ -237,6 +240,7 @@ class OpenKairoAlertCard extends HTMLElement {
            box-sizing: border-box;
            height: 90px;
            transform: translateY(-30px) scale(0.95);
+           transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         :host(.is-active) ha-card {
@@ -273,6 +277,8 @@ class OpenKairoAlertCard extends HTMLElement {
             margin-right: 20px;
             box-shadow: 0 5px 25px ${this.hexToRgba(cStr, 0.5)}, inset 0 0 15px ${this.hexToRgba(cStr, 0.2)};
             flex-shrink: 0;
+            /* Constant slight pulse for the alert ring */
+            animation: ringPulse 2.5s infinite ease-in-out;
         }
 
         .icon-container::after {
@@ -280,6 +286,11 @@ class OpenKairoAlertCard extends HTMLElement {
             border: 1px solid ${cStr}; opacity: 0.7; pointer-events: none;
         }
 
+        @keyframes ringPulse {
+            0% { box-shadow: 0 5px 25px ${this.hexToRgba(cStr, 0.3)}, inset 0 0 15px ${this.hexToRgba(cStr, 0.2)}; transform: scale(1); }
+            50% { box-shadow: 0 5px 40px ${this.hexToRgba(cStr, 0.8)}, inset 0 0 20px ${this.hexToRgba(cStr, 0.3)}; transform: scale(1.03); }
+            100% { box-shadow: 0 5px 25px ${this.hexToRgba(cStr, 0.3)}, inset 0 0 15px ${this.hexToRgba(cStr, 0.2)}; transform: scale(1); }
+        }
 
         ha-icon {
             --mdc-icon-size: 26px;

@@ -79,9 +79,9 @@ const BlockRegistry = {
         const isOn = b.state === 'on';
         const color = b.color || '#00f6ff';
         return `
-            <div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.08)'}; border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow: ${isOn ? '0 0 30px ' + color + '40, inset 0 0 10px ' + color + '20' : 'none'};">
+            <div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.08)'}; border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow: ${isOn ? '0 0 30px ' + color + '40, inset 0 0 10px ' + color + '20' : 'none'}; transition:0.4s ease;">
                 <ha-icon icon="${isOn ? 'mdi:lightbulb-on' : 'mdi:lightbulb-outline'}" 
-                         style="color:${isOn ? color : '#fff'}; filter:${isOn ? 'drop-shadow(0 0 10px ' + color + ')' : 'none'}; transform:${isOn ? 'scale(1.1)' : 'scale(1)'};"></ha-icon>
+                         style="color:${isOn ? color : '#fff'}; filter:${isOn ? 'drop-shadow(0 0 10px ' + color + ')' : 'none'}; transform:${isOn ? 'scale(1.1)' : 'scale(1)'}; transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></ha-icon>
             </div>`;
     },
     renderFan: (b) => {
@@ -128,7 +128,7 @@ const BlockRegistry = {
                     <span style="font-size:9px; color:#fff; font-weight:900; background:${color}30; padding:2px 6px; border-radius:10px; border:1px solid ${color}40;">85%</span>
                 </div>
                 <div style="flex:1; display:flex; align-items:flex-end; gap:3px; padding-bottom:4px;">
-                    ${Array(12).fill(0).map((_,i) => `<div style="flex:1; background:linear-gradient(to top, ${color}20, ${color}); height:${[30,40,20,60,45,70,30,85,40,95,65,80][i]}%; border-radius:10px; opacity:${i === 9 ? 1 : 0.4}; box-shadow:${i === 9 ? '0 0 15px ' + color : 'none'};"></div>`).join('')}
+                    ${Array(12).fill(0).map((_,i) => `<div style="flex:1; background:linear-gradient(to top, ${color}20, ${color}); height:${[30,40,20,60,45,70,30,85,40,95,65,80][i]}%; border-radius:10px; opacity:${i === 9 ? 1 : 0.4}; box-shadow:${i === 9 ? '0 0 15px ' + color : 'none'}; transition:0.3s;"></div>`).join('')}
                 </div>
             </div>`;
     },
@@ -155,11 +155,11 @@ const BlockRegistry = {
         const color = b.color || '#a1ff10';
         const isOn = b.state === 'on';
         return `
-          <div style="width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:20px; display:flex; flex-direction:column; justify-content:space-between; padding:12px; box-shadow: ${isOn ? '0 0 25px ' + color + '30, inset 0 0 10px ' + color + '15' : '0 10px 30px rgba(0,0,0,0.3)'};">
+          <div style="width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:20px; display:flex; flex-direction:column; justify-content:space-between; padding:12px; box-shadow: ${isOn ? '0 0 25px ' + color + '30, inset 0 0 10px ' + color + '15' : '0 10px 30px rgba(0,0,0,0.3)'}; transition:0.4s ease;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <ha-icon icon="mdi:flash-circle" style="--mdc-icon-size:20px; color:${isOn ? color : 'rgba(255,255,255,0.2)'}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'};"></ha-icon>
+              <ha-icon icon="mdi:flash-circle" style="--mdc-icon-size:20px; color:${isOn ? color : 'rgba(255,255,255,0.2)'}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'}; transition:0.4s;"></ha-icon>
               <div style="width:34px; height:20px; background:${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:12px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
-                <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:2px; left:${isOn ? '18px' : '2px'}; box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>
+                <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:2px; left:${isOn ? '18px' : '2px'}; box-shadow:0 0 5px rgba(0,0,0,0.5); transition:0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);"></div>
               </div>
             </div>
             <div style="font-size:10px; font-weight:900; color:${isOn ? '#fff' : 'rgba(255,255,255,0.4)'}; text-transform:uppercase; letter-spacing:1px;">${b.text || 'Toggle'}</div>
@@ -170,7 +170,7 @@ const BlockRegistry = {
         return `
           <div style="width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.08); border-radius:25px; display:flex; align-items:center; justify-content:center; gap:8px; padding:0 15px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
             <div style="width:8px; height:8px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 12px ${color};">
-                <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.4;"></div>
+                <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.4; animation:anim-pulse 2s infinite;"></div>
             </div>
             <div style="font-size:10px; font-weight:900; color:#fff; letter-spacing:2px;">ONLINE</div>
           </div>`;
@@ -185,7 +185,7 @@ const BlockRegistry = {
             </div>
             <div style="height:10px; background:rgba(0,0,0,0.5); border-radius:5px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
                 <div style="width:65%; height:100%; background:linear-gradient(to right, ${color}40, ${color}); border-radius:5px; box-shadow:0 0 15px ${color}80; position:relative;">
-                    <div style="position:absolute; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); opacity:0.3;"></div>
+                    <div style="position:absolute; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation:anim-glow-slide 2s infinite; opacity:0.3;"></div>
                 </div>
             </div>
           </div>`;
@@ -405,9 +405,6 @@ class OpenKairoBuilder extends HTMLElement {
     }
     set hass(hass) {
         this._hass = hass;
-        if (this._hass && this._hass.states) {
-            // Stability check
-        }
     }
     setupDOM() {
         if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
@@ -455,7 +452,7 @@ class OpenKairoBuilder extends HTMLElement {
                 }
                 .header-branding { display: flex; align-items: center; gap: 12px; font-weight: 900; letter-spacing: 2px; font-size: 14px; text-transform: uppercase; color: #fff; }
                 .header-center { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-                .header-breadcrumb { color: #fff; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px;  border: 1px solid transparent; }
+                .header-breadcrumb { color: #fff; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: 0.2s; border: 1px solid transparent; }
                 .header-breadcrumb:hover { background: rgba(255,255,255,0.05); border-color: var(--border-color); }
                 .header-breadcrumb ha-icon { --mdc-icon-size: 14px; opacity: 0.6; }
                 .main-layout { 
@@ -473,7 +470,7 @@ class OpenKairoBuilder extends HTMLElement {
                 .sidebar-tabs { display: flex; background: rgba(0,0,0,0.5); border-radius: 14px; margin: 20px; padding: 5px; gap: 5px; border: 1px solid var(--border-color); }
                 .s-tab { 
                     flex: 1; text-align: center; font-size: 10px; font-weight: 900; text-transform: uppercase; color: var(--text-secondary); 
-                    cursor: pointer; padding: 10px 4px; border-radius: 10px;  letter-spacing: 1.5px; border: none;
+                    cursor: pointer; padding: 10px 4px; border-radius: 10px; transition: 0.3s; letter-spacing: 1.5px; border: none;
                 }
                 .s-tab.active { background: var(--kairo-cyan); color: #000; box-shadow: 0 4px 15px rgba(0, 246, 255, 0.4); }
                 .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: stretch; }
@@ -499,11 +496,11 @@ class OpenKairoBuilder extends HTMLElement {
                     transform: rotateX(8deg);
                     transform-origin: center center;
                     overflow: hidden;
-                    
+                    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s;
                 }
                 .btn-primary { 
                     background: var(--kairo-cyan); color: #000; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; font-size: 11px; text-transform: uppercase;
-                    cursor: pointer; display: flex; align-items: center; gap: 10px;  letter-spacing: 1px;
+                    cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; letter-spacing: 1px;
                 }
                 .btn-primary:hover { box-shadow: 0 0 25px rgba(0,246,255,0.5); transform: translateY(-2px); }
                 .btn-primary.secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
@@ -511,9 +508,9 @@ class OpenKairoBuilder extends HTMLElement {
                 .prop-header { font-size: 10px; font-weight: 900; color: #fff; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 2px; }
                 .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
                 .prop-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 800; }
-                .tab-btn { background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); color: #fff; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-weight: 700; letter-spacing: 2px; }
+                .prop-input { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 8px 10px; border-radius: 8px; font-size: 11px; width: 140px; }
                 .canvas-element { 
-                    position: absolute; cursor: grab; user-select: none; border: 1px solid transparent; 
+                    position: absolute; cursor: grab; user-select: none; border: 1px solid transparent; transition: box-shadow 0.3s, border 0.3s;
                 }
                 .canvas-element:active { cursor: grabbing; }
                 .canvas-element.selected { border: 1.5px solid #fff !important; z-index: 100; box-shadow: 0 0 40px rgba(0,246,255,0.4); }
@@ -526,10 +523,14 @@ class OpenKairoBuilder extends HTMLElement {
                 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); display: none; justify-content: center; align-items: center; z-index: 1000; }
                 .modal-content { background: #111; padding: 40px; border-radius: 32px; border: 1px solid var(--border-color); width: 600px; color: #fff; }
                 .modal-header { font-size: 20px; font-weight: 900; letter-spacing: 2px; margin-bottom: 24px; user-select: none; }
-                .modal-code { background: #000; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.5; white-space: pre; overflow-x: auto; user-select: all; color: #00f6ff; }
+                                 .modal-code { background: #000; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.5; white-space: pre; overflow-x: auto; user-select: all; color: #00f6ff; }
                 .modal-actions { display: flex; justify-content: flex-end; gap: 12px; user-select: none; }
-                .block-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: grab; }
-                .tab-btn:hover { background: rgba(255,255,255,0.05); border-color: var(--kairo-cyan); }
+                .block-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: grab; transition: 0.3s; }
+                .block-item:hover { background: rgba(255,255,255,0.06); border-color: var(--kairo-cyan); transform: scale(1.05); }
+                @keyframes fan-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                @keyframes anim-pulse { 0% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.5); opacity: 0.1; } 100% { transform: scale(1); opacity: 0.4; } }
+                @keyframes anim-glow-slide { 0% { left: -100%; } 100% { left: 100%; } }
+                .anim-fan { animation: fan-spin var(--fan-dur, 2s) infinite linear; }
                 .studio-pro-arc { 
                     position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; 
                 }
@@ -690,7 +691,7 @@ class OpenKairoBuilder extends HTMLElement {
                 <div class="block-category-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; padding-left: 5px;">Standard Bibliothek</div>
                 <div class="block-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     ${blocks.map(b => `
-                        <div class="block-item b-item" data-type="${b.type}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: grab; ">
+                        <div class="block-item b-item" data-type="${b.type}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: grab; transition: 0.3s;">
                             <div class="block-preview" style="--mdc-icon-size: 24px;">${b.preview}</div>
                             <span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6);">${b.type}</span>
                         </div>
@@ -711,7 +712,7 @@ class OpenKairoBuilder extends HTMLElement {
             left.innerHTML = `
                 <div class="sidebar-section-title" style="font-size: 10px; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Werks-Vorlagen</div>
                 ${Object.keys(presets).map(name => `
-                    <div class="preset-item" data-name="${name}" style="background:rgba(255,255,255,0.04); border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer; ">
+                    <div class="preset-item" data-name="${name}" style="background:rgba(255,255,255,0.04); border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer; transition:0.3s;">
                         <div style="font-weight:800; font-size:12px; margin-bottom:4px; color:var(--kairo-cyan);">${name}</div>
                         <div style="font-size:9px; opacity:0.6;">Hochwertiges Raum-Layout</div>
                     </div>
