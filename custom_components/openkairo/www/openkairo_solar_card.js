@@ -698,7 +698,7 @@ class OpenKairoSolarCard extends HTMLElement {
             pAnim.style.animation = '';
             
             if (pAnim2) {
-                pAnim2.style.opacity = (animType === 'dots' || animType === 'warp') ? '0.6' : '0';
+                pAnim2.style.opacity = (['dots', 'warp', 'liquid', 'neon'].includes(animType)) ? '0.6' : '0';
                 pAnim2.setAttribute('class', `svg-path anim-${animType}`);
                 pAnim2.style.animation = '';
             }
