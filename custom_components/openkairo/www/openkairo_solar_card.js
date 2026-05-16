@@ -500,58 +500,59 @@ class OpenKairoSolarCard extends HTMLElement {
       const nodes = [];
       const wires = [];
 
-      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 45));
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 42));
 
       if (this.getValStr('solar_entity')) {
-          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 10));
-          wires.push(this.drawPath('solar-home', cSolar, 50, 10, 50, 45));
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 8));
+          wires.push(this.drawPath('solar-home', cSolar, 50, 8, 50, 42));
       }
       if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
-          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 12, 45));
-          wires.push(this.drawPath('grid-home', cGrid, 12, 45, 50, 45));
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 12, 42));
+          wires.push(this.drawPath('grid-home', cGrid, 12, 42, 50, 42));
       }
       if (this.getValStr('battery_power_entity')) {
-          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 88, 45));
-          wires.push(this.drawPath('batt-home', cBatt, 88, 45, 50, 45));
+          // Battery upper-right: far from consumer cluster
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 86, 18));
+          wires.push(this.drawPath('batt-home', cBatt, 86, 18, 50, 42));
       }
       if (this.getValStr('pool_entity')) {
           const name = this.getValStr('pool_name', 'Pool');
           const icon = this.getValStr('pool_icon', 'mdi:pool');
           const cc = this.getValStr('pool_color', '#00d1ff');
-          nodes.push(this.drawNode('pool', icon, name, cc, 15, 75));
-          wires.push(this.drawPath('home-pool', cc, 50, 45, 15, 75));
+          nodes.push(this.drawNode('pool', icon, name, cc, 14, 72));
+          wires.push(this.drawPath('home-pool', cc, 50, 42, 14, 72));
       }
       if (this.getValStr('miner_entity')) {
           const name = this.getValStr('miner_name', 'Miner');
           const icon = this.getValStr('miner_icon', 'mdi:bitcoin');
-          nodes.push(this.drawNode('miner', icon, name, cMiner, 32, 82));
-          wires.push(this.drawPath('home-miner', cMiner, 50, 45, 32, 82));
+          nodes.push(this.drawNode('miner', icon, name, cMiner, 30, 84));
+          wires.push(this.drawPath('home-miner', cMiner, 50, 42, 30, 84));
       }
       if (this.getValStr('heatpump_entity')) {
           const name = this.getValStr('heatpump_name', 'Heizung');
           const icon = this.getValStr('heatpump_icon', 'mdi:heat-pump');
-          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 50, 88));
-          wires.push(this.drawPath('home-heatpump', cHeat, 50, 45, 50, 88));
+          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 50, 90));
+          wires.push(this.drawPath('home-heatpump', cHeat, 50, 42, 50, 90));
       }
       if (this.getValStr('ev_entity')) {
           const name = this.getValStr('ev_name', 'Auto');
           const icon = this.getValStr('ev_icon', 'mdi:car-electric');
-          nodes.push(this.drawNode('ev', icon, name, cEv, 68, 82));
-          wires.push(this.drawPath('home-ev', cEv, 50, 45, 68, 82));
+          nodes.push(this.drawNode('ev', icon, name, cEv, 68, 84));
+          wires.push(this.drawPath('home-ev', cEv, 50, 42, 68, 84));
       }
       if (this.getValStr('ac_entity')) {
           const name = this.getValStr('ac_name', 'Klima');
           const icon = this.getValStr('ac_icon', 'mdi:air-conditioner');
           const cc = this.getValStr('ac_color', '#3b82f6');
-          nodes.push(this.drawNode('ac', icon, name, cc, 85, 75));
-          wires.push(this.drawPath('home-ac', cc, 50, 45, 85, 75));
+          nodes.push(this.drawNode('ac', icon, name, cc, 82, 72));
+          wires.push(this.drawPath('home-ac', cc, 50, 42, 82, 72));
       }
       if (this.getValStr('washer_entity')) {
           const name = this.getValStr('washer_name', 'Waschm.');
           const icon = this.getValStr('washer_icon', 'mdi:washing-machine');
           const cc = this.getValStr('washer_color', '#f43f5e');
-          nodes.push(this.drawNode('washer', icon, name, cc, 88, 62));
-          wires.push(this.drawPath('home-washer', cc, 50, 45, 88, 62));
+          nodes.push(this.drawNode('washer', icon, name, cc, 88, 54));
+          wires.push(this.drawPath('home-washer', cc, 50, 42, 88, 54));
       }
 
       const svg = this.querySelector('#svg-layer');
@@ -570,13 +571,12 @@ class OpenKairoSolarCard extends HTMLElement {
       const fc = this.querySelector('#flow-container');
       canvas.width = fc.offsetWidth || 600;
       canvas.height = fc.offsetHeight || 500;
-      this._particles = {}; // pathId -> [{t, speed, color}]
+      this._particles = {}; 
       if (this._rafId) cancelAnimationFrame(this._rafId);
       this._rafId = null;
       this._drawCanvas();
   }
 
-  // Evaluate cubic bezier at t in [0,1], returns {x,y} in canvas pixels
   _bezier(def, t, W, H) {
       const mt = 1 - t;
       const x = mt*mt*mt*(def.x1/100*W) + 3*mt*mt*t*(def.cx1/100*W) + 3*mt*t*t*(def.cx2/100*W) + t*t*t*(def.x2/100*W);
@@ -587,6 +587,17 @@ class OpenKairoSolarCard extends HTMLElement {
   _drawCanvas() {
       const canvas = this.querySelector('#particle-canvas');
       if (!canvas) return;
+      
+      const fc = this.querySelector('#flow-container');
+      if (fc) {
+          const w = fc.offsetWidth;
+          const h = fc.offsetHeight;
+          if (w > 0 && h > 0 && (canvas.width !== w || canvas.height !== h)) {
+              canvas.width = w;
+              canvas.height = h;
+          }
+      }
+      
       const ctx = canvas.getContext('2d');
       const W = canvas.width, H = canvas.height;
       ctx.clearRect(0, 0, W, H);
@@ -598,6 +609,7 @@ class OpenKairoSolarCard extends HTMLElement {
           const def = defs[pathId];
           if (!def) return;
           const list = parts[pathId];
+
           list.forEach(p => {
               // Advance position
               if (p.reverse) {
