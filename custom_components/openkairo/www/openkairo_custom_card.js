@@ -90,7 +90,7 @@ const BlockRegistry = {
         const color = b.color || '#10b981';
         return `<div style="width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.08); border-radius:25px; display:flex; align-items:center; justify-content:center; gap:8px; padding:0 15px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
             <div style="width:8px; height:8px; background:${color}; border-radius:50%; position:relative; box-shadow:0 0 12px ${color};">
-                <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.4; animation:anim-pulse 2s infinite;"></div>
+                <div style="position:absolute; inset:-4px; background:${color}; border-radius:50%; opacity:0.4;"></div>
             </div>
             <div style="font-size:10px; font-weight:900; color:#fff; letter-spacing:2px;">${(b.text || 'ONLINE').toUpperCase()}</div>
         </div>`;
@@ -106,7 +106,7 @@ const BlockRegistry = {
             </div>
             <div style="height:10px; background:rgba(0,0,0,0.5); border-radius:5px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
                 <div style="width:${pct}%; height:100%; background:linear-gradient(to right, ${color}40, ${color}); border-radius:5px; box-shadow:0 0 15px ${color}80; position:relative;">
-                    <div style="position:absolute; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation:anim-glow-slide 2s infinite; opacity:0.3;"></div>
+                    <div style="position:absolute; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); opacity:0.3;"></div>
                 </div>
             </div>
         </div>`;
@@ -195,7 +195,6 @@ class OpenKairoCustomCard extends HTMLElement {
            opacity: 0.7;
            pointer-events: none;
            z-index: 0;
-           animation: anim-bg-move 60s linear infinite;
         }
 
         ha-card::after {
@@ -205,7 +204,6 @@ class OpenKairoCustomCard extends HTMLElement {
            background: radial-gradient(circle at 50% 0%, ${c.color || '#00f6ff'}10, transparent 70%);
            pointer-events: none;
            z-index: 1;
-           animation: anim-card-glow 10s infinite ease-in-out;
         }
 
         .card-header-text { 
@@ -230,14 +228,7 @@ class OpenKairoCustomCard extends HTMLElement {
         .block-element:hover { transform: scale(1.06); z-index: 100; }
         .block-element:active { transform: scale(0.94); }
 
-        @keyframes fan-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes anim-pulse { 0% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.5); opacity: 0.1; } 100% { transform: scale(1); opacity: 0.5; } }
-        @keyframes anim-glow-slide { 0% { left: -100%; } 100% { left: 100%; } }
-        @keyframes anim-equalizer { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.4); } }
-        @keyframes anim-bg-move { 0% { background-position: 0 0; } 100% { background-position: 1000px 1000px; } }
-        @keyframes anim-card-glow { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        .anim-fan { animation: fan-spin var(--fan-dur, 2s) infinite linear; }
+        .anim-fan { }
         .val { font-family: 'Outfit', sans-serif; }
       </style>
       <ha-card>
@@ -248,7 +239,7 @@ class OpenKairoCustomCard extends HTMLElement {
   }
 
   updateLiveStates() {
-    if (!this._hass || !this._config.layout || !this.shadowRoot) return;
+    if (!this._hass || !this._hass.states || !this._config.layout || !this.shadowRoot) return;
     const container = this.shadowRoot.querySelector('#blocks-container');
     
     this._config.layout.forEach(b => {

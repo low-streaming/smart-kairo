@@ -277,8 +277,6 @@ class OpenKairoAlertCard extends HTMLElement {
             margin-right: 20px;
             box-shadow: 0 5px 25px ${this.hexToRgba(cStr, 0.5)}, inset 0 0 15px ${this.hexToRgba(cStr, 0.2)};
             flex-shrink: 0;
-            /* Constant slight pulse for the alert ring */
-            animation: ringPulse 2.5s infinite ease-in-out;
         }
 
         .icon-container::after {
@@ -286,11 +284,6 @@ class OpenKairoAlertCard extends HTMLElement {
             border: 1px solid ${cStr}; opacity: 0.7; pointer-events: none;
         }
 
-        @keyframes ringPulse {
-            0% { box-shadow: 0 5px 25px ${this.hexToRgba(cStr, 0.3)}, inset 0 0 15px ${this.hexToRgba(cStr, 0.2)}; transform: scale(1); }
-            50% { box-shadow: 0 5px 40px ${this.hexToRgba(cStr, 0.8)}, inset 0 0 20px ${this.hexToRgba(cStr, 0.3)}; transform: scale(1.03); }
-            100% { box-shadow: 0 5px 25px ${this.hexToRgba(cStr, 0.3)}, inset 0 0 15px ${this.hexToRgba(cStr, 0.2)}; transform: scale(1); }
-        }
 
         ha-icon {
             --mdc-icon-size: 26px;

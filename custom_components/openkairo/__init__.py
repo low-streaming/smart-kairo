@@ -32,7 +32,7 @@ async def _setup_internal(hass: HomeAssistant, config: dict = None):
         StaticPathConfig(url_path="/smart_start_screen", path=static_path, cache_headers=False)
     ])
 
-    version = get_version(hass)
+    version = await hass.async_add_executor_job(get_version, hass)
     files = await hass.async_add_executor_job(os.listdir, static_path)
     
     # 1. Add as extra JS URLs (for global OS features)

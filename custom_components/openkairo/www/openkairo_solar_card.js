@@ -403,14 +403,13 @@ class OpenKairoSolarCard extends HTMLElement {
         .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
         
         /* Animation Types - Premium Particles */
-        .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
-        .anim-dash { stroke-dasharray: 6 22; animation: dashAnim linear infinite; }
-        .anim-neon { stroke-dasharray: 5 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.4;}
+        .anim-dots { stroke-dasharray: 2 15; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
+        .anim-dash { stroke-dasharray: 6 22; }
+        .anim-neon { stroke-dasharray: 5 30; filter: url(#neon-glow); stroke-width: 1.4;}
         
         /* EXCLUSIVE: Faster, sharp comet with flicker */
         .anim-comet { 
           stroke-dasharray: 20 180; 
-          animation: cometAnim 1.5s linear infinite; 
           filter: drop-shadow(0 0 8px currentColor); 
           stroke-width: 2.2; 
         }
@@ -418,18 +417,10 @@ class OpenKairoSolarCard extends HTMLElement {
         /* EXCLUSIVE: Heavy, slow energy blocks */
         .anim-pulse { 
           stroke-dasharray: 50 50; 
-          animation: dashAnim 4s linear infinite; 
           stroke-width: 4.5; 
           stroke-linecap: square; 
           filter: drop-shadow(0 0 12px currentColor);
           opacity: 0.9 !important;
-        }
-        
-        @keyframes dashAnim { to { stroke-dashoffset: -100; } }
-        @keyframes cometAnim { 
-          0% { stroke-dashoffset: 200; stroke-opacity: 0.5; }
-          40%, 60% { stroke-opacity: 1; }
-          100% { stroke-dashoffset: 0; stroke-opacity: 0.5; }
         }
 
         .node {
@@ -451,12 +442,7 @@ class OpenKairoSolarCard extends HTMLElement {
         .node-value { font-family: 'Orbitron', sans-serif; font-size: 0.82rem; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
         .node-label { font-size: 0.58rem; text-transform: uppercase; color: rgba(255,255,255,0.5); letter-spacing: 1.2px; font-weight: 300; margin-top:1px;}
 
-        @keyframes pulseHome {
-            0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { transform: translate(-50%, -50%) scale(1.03); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
-            100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .pulse-active { animation: pulseHome 2.5s infinite ease-in-out; }
+        .pulse-active { }
 
         .footer {
           display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -640,18 +626,10 @@ class OpenKairoSolarCard extends HTMLElement {
         if (!p) return;
         if (Math.abs(flowW) < 5) {
             p.style.opacity = '0.1';
-            p.style.animation = 'none';
         } else {
             p.style.opacity = '0.8';
             p.setAttribute('class', `svg-path anim-${animType}`);
-            p.style.animation = '';
             if (colorOverride) p.setAttribute('stroke', colorOverride);
-            let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
-            if (duration > 3) duration = 3; 
-            if (duration < 0.2) duration = 0.2; 
-            
-            p.style.animationDuration = duration + 's';
-            p.style.animationDirection = reverse ? 'reverse' : 'normal';
         }
     };
 

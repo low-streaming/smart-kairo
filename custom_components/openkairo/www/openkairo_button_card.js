@@ -306,9 +306,8 @@ class OpenKairoButtonCard extends HTMLElement {
             transition: opacity 0.3s; z-index: 5;
         }
         .unlocking .unlock-ring {
-            opacity: 1; animation: spinUnlock 1.5s linear forwards;
+            opacity: 1;
         }
-        @keyframes spinUnlock { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         ha-card::after {
             content: ''; position: absolute; inset: -1px; border-radius: ${cardRadius};
@@ -344,13 +343,9 @@ class OpenKairoButtonCard extends HTMLElement {
         }
 
         /* LIVE ANIMATIONS */
-        @keyframes animFan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes animShake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
-        @keyframes animPulse { 0% { transform: scale(1); opacity:1;} 50% { transform: scale(1.1); opacity:0.8;} 100% { transform: scale(1); opacity:1;} }
-        
-        .live-anim-fan { animation: animFan 1.5s linear infinite; }
-        .live-anim-shake { animation: animShake 0.4s ease-in-out infinite; }
-        .live-anim-pulse { animation: animPulse 2s ease-in-out infinite; }
+        .live-anim-fan { }
+        .live-anim-shake { }
+        .live-anim-pulse { }
 
         .text-wrapper { display: flex; flex-direction: column; margin: ${nameMargin}; flex: ${wrapperFlex}; z-index: 2; justify-content: center; min-width: 0; }
         .name { font-family: 'Orbitron', 'Inter', sans-serif; font-size: 0.8rem; color: #fff; letter-spacing: 1px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }

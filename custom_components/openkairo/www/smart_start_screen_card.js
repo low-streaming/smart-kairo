@@ -169,11 +169,7 @@ class OpenKairoCard extends HTMLElement {
             radial-gradient(at 10% 10%, hsla(161, 100%, 50%, 0.12) 0, transparent 50%), 
             radial-gradient(at 90% 90%, hsla(161, 100%, 50%, 0.08) 0, transparent 50%),
             radial-gradient(at 50% 50%, hsla(210, 100%, 10%, 1) 0, transparent 100%);
-          filter: blur(60px); animation: meshMove 20s infinite alternate;
-        }
-        @keyframes meshMove {
-          0% { transform: scale(1) translate(0,0); }
-          100% { transform: scale(1.2) translate(2%, 2%); }
+          filter: blur(60px); 
         }
 
         .left { flex: 4; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; transition: 0.5s; }
@@ -181,7 +177,7 @@ class OpenKairoCard extends HTMLElement {
 
         .branding { display: flex; align-items: center; gap: 20px; font-family: var(--font-tech); font-weight: 900; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 50px; }
         
-        .clock-area { margin-bottom: 50px; animation: slideIn 0.8s ease-out; }
+        .clock-area { margin-bottom: 50px; }
         .clock { font-family: var(--font-tech); font-size: 8.5rem; font-weight: 900; letter-spacing: -2px; margin: 0; line-height: 0.9; text-shadow: 0 0 30px rgba(0,255,157,0.3); }
         .date { opacity: 0.7; text-transform: uppercase; letter-spacing: 6px; font-size: 1rem; margin-top: 20px; font-weight: 800; color: var(--primary); }
         .weather { margin-top: 25px; font-weight: 600; font-size: 1.3rem; display: flex; align-items: center; gap: 12px; opacity: 0.9; }
@@ -197,19 +193,15 @@ class OpenKairoCard extends HTMLElement {
         .health::after {
           content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
           background: linear-gradient(90deg, transparent, rgba(0,255,157,0.1), transparent);
-          animation: scan 3s infinite linear;
         }
-        @keyframes scan { 0% { left: -100%; } 100% { left: 100%; } }
-        .health-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); animation: pulse 2s infinite; }
+        .health-dot { width: 10px; height: 10px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); }
 
         .update-badge {
           background: rgba(255, 184, 0, 0.1); border: 1px solid rgba(255, 184, 0, 0.4);
           padding: 14px 28px; border-radius: 100px; color: var(--warning); font-family: var(--font-tech);
           font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; display: none; align-items: center; gap: 10px;
-          animation: pulseUpdate 2s infinite ease-in-out; cursor: pointer; transition: 0.3s;
+          cursor: pointer; transition: 0.3s;
         }
-        .update-badge:hover { background: rgba(255, 184, 0, 0.2); transform: scale(1.05); }
-        @keyframes pulseUpdate { 0%, 100% { box-shadow: 0 0 10px rgba(255, 184, 0, 0.2); } 50% { box-shadow: 0 0 20px rgba(255, 184, 0, 0.4); } }
 
         .right { flex: 6; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 30px; position: relative; z-index: 10; align-content: center; transition: 0.5s; }
         .right.blur { filter: blur(10px); transform: scale(0.95); opacity: 0.5; pointer-events: none; }
@@ -297,7 +289,6 @@ class OpenKairoCard extends HTMLElement {
         .fab-btn:hover { background: var(--primary); color: #000; transform: translateY(-5px); }
         .fab-settings:hover { background: var(--warning); color: #000; transform: rotate(45deg); }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 
         @media (max-width: 1000px) {
            .kairo-os { flex-direction: column; overflow-y: auto; padding: 40px 30px; gap: 40px; }
@@ -346,7 +337,6 @@ class OpenKairoCard extends HTMLElement {
             <div class="energy-visual">
                <svg viewBox="0 0 400 100" preserveAspectRatio="none">
                   <path id="energy-wave" d="M0,50 Q100,20 200,50 T400,50" fill="none" stroke="var(--primary)" stroke-width="2" opacity="0.5">
-                    <animate attributeName="d" dur="3s" repeatCount="indefinite" values="M0,50 Q100,20 200,50 T400,50; M0,50 Q100,80 200,50 T400,50; M0,50 Q100,20 200,50 T400,50" />
                   </path>
                </svg>
             </div>
@@ -543,7 +533,6 @@ class OpenKairoCard extends HTMLElement {
     let step = 0;
     
     icon.setAttribute('icon', 'mdi:loading');
-    icon.style.animation = 'spin 1s infinite linear';
 
     const interval = setInterval(() => {
       if (step >= steps.length) {
@@ -554,7 +543,6 @@ class OpenKairoCard extends HTMLElement {
            text.innerText = "DASHBOARD INITIALISIEREN";
            bar.style.width = '0%';
            icon.setAttribute('icon', 'mdi:arrow-right');
-           icon.style.animation = '';
         }, 1000);
         return;
       }
@@ -606,7 +594,7 @@ class OpenKairoCard extends HTMLElement {
   }
 
   updateData() {
-    if (!this._hass || !this.shadowRoot) return;
+    if (!this._hass || !this._hass.states || !this.shadowRoot) return;
     const s = this.shadowRoot;
     const config = this._config || {};
 
