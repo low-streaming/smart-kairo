@@ -74,14 +74,6 @@ class OpenKairoSolarCardEditor extends HTMLElement {
                 <option value="warp" ${this.getVal('animation_type') === 'warp' ? 'selected' : ''}>Cyber Warp (Fast)</option>
               </select>
             </div>
-            <div class="row-col">
-              <label>Geschwindigkeit (${this.getVal('animation_speed', '5')})</label>
-              <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Langsam</span>
-                <input type="range" id="animation_speed" min="1" max="10" step="1" value="${isNaN(this.getVal('animation_speed')) ? (this.getVal('animation_speed')==='fast'?8:this.getVal('animation_speed')==='slow'?2:5) : this.getVal('animation_speed')}">
-                <span style="font-size:9px; color:rgba(255,255,255,0.4);">Schnell</span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -95,6 +87,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
             <div class="item-options">
               <div class="opt"><label>Farbe</label><input type="color" id="solar_color" value="${this.getVal('solar_color', '#ffb800')}"></div>
               <div class="opt"><label>kW?</label><input type="checkbox" id="solar_entity_kw" ${this.getVal('solar_entity_kw') ? 'checked' : ''}></div>
+
             </div>
           </div>
 
@@ -678,24 +671,42 @@ class OpenKairoSolarCard extends HTMLElement {
       }
 
       // Read user settings
-      const cfgSpeed = parseFloat(this.getValStr('animation_speed', '5'));
-      const speedMult = isNaN(cfgSpeed) ? 0.5 : Math.max(0.05, cfgSpeed / 10);
       const animType = this.getValStr('animation_type', 'dots');
 
-      // Base speed: scales with watts, then multiplied by user slider
-      const speedBase = (0.0003 + (absW / 8000) * 0.003) * speedMult;
+      // Dynamic Speed formula: non-linear, beautiful fluidity across all wattages
+      const speedBase = 0.0018 + Math.min(0.015, Math.pow(absW / 5000, 0.5) * 0.013);
+
+      // Base dynamic particle count
+      let count = Math.max(1, Math.min(6, Math.ceil(Math.pow(absW / 200, 0.6))));
 
       // Ball appearance per animation type
       let radius = 4, glowMult = 2.5, trailLen = 0;
-      let count = Math.max(1, Math.min(5, Math.round(absW / 400)));
       switch (animType) {
-          case 'dots':   radius = 4.5; glowMult = 2.5; trailLen = 0; break;
-          case 'dash':   radius = 3.5; glowMult = 1.8; trailLen = 0; count = Math.max(2, count + 1); break;
-          case 'neon':   radius = 4;   glowMult = 5;   trailLen = 4; break;
-          case 'comet':  radius = 5.5; glowMult = 2;   trailLen = 14; count = Math.max(1, Math.round(absW / 800)); break;
-          case 'pulse':  radius = 7;   glowMult = 3.5; trailLen = 0; count = Math.max(1, Math.round(absW / 700)); break;
-          case 'liquid': radius = 5.5; glowMult = 2.8; trailLen = 6; break;
-          case 'warp':   radius = 3;   glowMult = 2;   trailLen = 18; count = Math.max(2, count); break;
+          case 'dots':   
+              radius = 4.5; glowMult = 2.5; trailLen = 0; 
+              break;
+          case 'dash':   
+              radius = 3.5; glowMult = 1.8; trailLen = 0; 
+              count = Math.max(2, count + 1); 
+              break;
+          case 'neon':   
+              radius = 4;   glowMult = 5;   trailLen = 4; 
+              break;
+          case 'comet':  
+              radius = 5.5; glowMult = 2;   trailLen = 14; 
+              count = Math.max(1, Math.min(4, Math.ceil(Math.pow(absW / 600, 0.6)))); 
+              break;
+          case 'pulse':  
+              radius = 7;   glowMult = 3.5; trailLen = 0; 
+              count = Math.max(1, Math.min(3, Math.ceil(absW / 1200))); 
+              break;
+          case 'liquid': 
+              radius = 5.5; glowMult = 2.8; trailLen = 6; 
+              break;
+          case 'warp':   
+              radius = 3;   glowMult = 2;   trailLen = 18; 
+              count = Math.max(2, count); 
+              break;
       }
 
       const existing = this._particles[pathId] || [];
