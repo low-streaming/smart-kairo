@@ -70,6 +70,8 @@ class OpenKairoSolarCardEditor extends HTMLElement {
                 <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
                 <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Energy Comet (Slow Tail)</option>
                 <option value="pulse" ${this.getVal('animation_type') === 'pulse' ? 'selected' : ''}>Power Pulse (Thick)</option>
+                <option value="liquid" ${this.getVal('animation_type') === 'liquid' ? 'selected' : ''}>Hyper Liquid (Organic)</option>
+                <option value="warp" ${this.getVal('animation_type') === 'warp' ? 'selected' : ''}>Cyber Warp (Fast)</option>
               </select>
             </div>
             <div class="row-col">
@@ -403,33 +405,50 @@ class OpenKairoSolarCard extends HTMLElement {
         .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
         
         /* Animation Types - Premium Particles */
-        .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
-        .anim-dash { stroke-dasharray: 6 22; animation: dashAnim linear infinite; }
-        .anim-neon { stroke-dasharray: 5 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.4;}
+        .anim-dots { 
+          stroke-dasharray: 4 20; 
+          animation: dashAnim linear infinite; 
+          stroke-linecap: round; 
+          filter: drop-shadow(0 0 4px currentColor);
+          stroke-width: 2.5;
+        }
+        .anim-dash { 
+          stroke-dasharray: 10 25; 
+          animation: dashAnim linear infinite; 
+          stroke-width: 1.8;
+          filter: drop-shadow(0 0 2px currentColor);
+        }
+        .anim-neon { 
+          stroke-dasharray: 15 50; 
+          animation: dashAnim linear infinite; 
+          filter: url(#neon-glow); 
+          stroke-width: 2.5;
+        }
         
         /* EXCLUSIVE: Faster, sharp comet with flicker */
         .anim-comet { 
-          stroke-dasharray: 20 180; 
+          stroke-dasharray: 40 200; 
           animation: cometAnim 1.5s linear infinite; 
-          filter: drop-shadow(0 0 8px currentColor); 
-          stroke-width: 2.2; 
+          filter: drop-shadow(0 0 10px currentColor); 
+          stroke-width: 3.5; 
+          stroke-linecap: round;
         }
         
         /* EXCLUSIVE: Heavy, slow energy blocks */
         .anim-pulse { 
-          stroke-dasharray: 50 50; 
+          stroke-dasharray: 60 60; 
           animation: dashAnim 4s linear infinite; 
-          stroke-width: 4.5; 
-          stroke-linecap: square; 
-          filter: drop-shadow(0 0 12px currentColor);
-          opacity: 0.9 !important;
+          stroke-width: 6; 
+          stroke-linecap: round; 
+          filter: drop-shadow(0 0 15px currentColor);
+          opacity: 0.7 !important;
         }
         
-        @keyframes dashAnim { to { stroke-dashoffset: -100; } }
+        @keyframes dashAnim { to { stroke-dashoffset: -120; } }
         @keyframes cometAnim { 
-          0% { stroke-dashoffset: 200; stroke-opacity: 0.5; }
-          40%, 60% { stroke-opacity: 1; }
-          100% { stroke-dashoffset: 0; stroke-opacity: 0.5; }
+          0% { stroke-dashoffset: 400; stroke-opacity: 0.2; }
+          20%, 80% { stroke-opacity: 1; }
+          100% { stroke-dashoffset: 0; stroke-opacity: 0.2; }
         }
 
         .node {
@@ -482,9 +501,13 @@ class OpenKairoSolarCard extends HTMLElement {
              <svg class="svg-layer" id="svg-layer">
                 <defs>
                   <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                    <feGaussianBlur stdDeviation="1.2" result="blur1"/>
+                    <feGaussianBlur stdDeviation="3.5" result="blur2"/>
+                    <feGaussianBlur stdDeviation="6" result="blur3"/>
                     <feMerge>
-                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="blur3"/>
+                      <feMergeNode in="blur2"/>
+                      <feMergeNode in="blur1"/>
                       <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                   </filter>
@@ -512,8 +535,11 @@ class OpenKairoSolarCard extends HTMLElement {
 
   // Generate SVG Path relative to percentages (rough bounding box math)
   drawPath(id, color, x1, y1, x2, y2, curved = true) {
-      if (!curved) return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} L ${x2} ${y2}" stroke="${color}"></path>`;
-      return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}" stroke="${color}"></path>`;
+      const d = curved ? `M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}` : `M ${x1} ${y1} L ${x2} ${y2}`;
+      return `
+        <path id="path-base-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0.1;"></path>
+        <path id="path-anim-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0;"></path>
+      `;
   }
 
   updateLayout() {
@@ -636,22 +662,29 @@ class OpenKairoSolarCard extends HTMLElement {
     }
 
     const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
-        const p = this.querySelector(`#path-${pathId}`);
-        if (!p) return;
+        const pAnim = this.querySelector(`#path-anim-${pathId}`);
+        const pBase = this.querySelector(`#path-base-${pathId}`);
+        if (!pAnim || !pBase) return;
+
         if (Math.abs(flowW) < 5) {
-            p.style.opacity = '0.1';
-            p.style.animation = 'none';
+            pAnim.style.opacity = '0';
+            pAnim.style.animation = 'none';
+            pBase.style.opacity = '0.05';
         } else {
-            p.style.opacity = '0.8';
-            p.setAttribute('class', `svg-path anim-${animType}`);
-            p.style.animation = '';
-            if (colorOverride) p.setAttribute('stroke', colorOverride);
+            pAnim.style.opacity = '1';
+            pAnim.setAttribute('class', `svg-path anim-${animType}`);
+            pAnim.style.animation = '';
+            if (colorOverride) {
+                pAnim.setAttribute('stroke', colorOverride);
+                pBase.setAttribute('stroke', colorOverride);
+            }
             let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
             if (duration > 3) duration = 3; 
             if (duration < 0.2) duration = 0.2; 
             
-            p.style.animationDuration = duration + 's';
-            p.style.animationDirection = reverse ? 'reverse' : 'normal';
+            pAnim.style.animationDuration = duration + 's';
+            pAnim.style.animationDirection = reverse ? 'reverse' : 'normal';
+            pBase.style.opacity = '0.15';
         }
     };
 
