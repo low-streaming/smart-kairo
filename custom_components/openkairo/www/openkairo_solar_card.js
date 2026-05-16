@@ -443,6 +443,25 @@ class OpenKairoSolarCard extends HTMLElement {
           filter: drop-shadow(0 0 15px currentColor);
           opacity: 0.7 !important;
         }
+
+        /* NEW: Organic liquid flow */
+        .anim-liquid {
+          stroke-dasharray: 100 100;
+          animation: dashAnim 3s ease-in-out infinite alternate;
+          stroke-width: 5;
+          stroke-linecap: round;
+          filter: blur(2px) drop-shadow(0 0 8px currentColor);
+          opacity: 0.6;
+        }
+
+        /* NEW: Fast cyber warp */
+        .anim-warp {
+          stroke-dasharray: 2 40;
+          animation: dashAnim 0.8s linear infinite;
+          stroke-width: 3;
+          stroke-linecap: round;
+          filter: drop-shadow(0 0 12px currentColor);
+        }
         
         @keyframes dashAnim { to { stroke-dashoffset: -120; } }
         @keyframes cometAnim { 
@@ -537,8 +556,9 @@ class OpenKairoSolarCard extends HTMLElement {
   drawPath(id, color, x1, y1, x2, y2, curved = true) {
       const d = curved ? `M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}` : `M ${x1} ${y1} L ${x2} ${y2}`;
       return `
-        <path id="path-base-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0.1;"></path>
+        <path id="path-base-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0.08;"></path>
         <path id="path-anim-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0;"></path>
+        <path id="path-anim2-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0;"></path>
       `;
   }
 
@@ -663,19 +683,29 @@ class OpenKairoSolarCard extends HTMLElement {
 
     const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
         const pAnim = this.querySelector(`#path-anim-${pathId}`);
+        const pAnim2 = this.querySelector(`#path-anim2-${pathId}`);
         const pBase = this.querySelector(`#path-base-${pathId}`);
         if (!pAnim || !pBase) return;
 
         if (Math.abs(flowW) < 5) {
             pAnim.style.opacity = '0';
+            if (pAnim2) pAnim2.style.opacity = '0';
             pAnim.style.animation = 'none';
             pBase.style.opacity = '0.05';
         } else {
             pAnim.style.opacity = '1';
             pAnim.setAttribute('class', `svg-path anim-${animType}`);
             pAnim.style.animation = '';
+            
+            if (pAnim2) {
+                pAnim2.style.opacity = (animType === 'dots' || animType === 'warp') ? '0.6' : '0';
+                pAnim2.setAttribute('class', `svg-path anim-${animType}`);
+                pAnim2.style.animation = '';
+            }
+
             if (colorOverride) {
                 pAnim.setAttribute('stroke', colorOverride);
+                if (pAnim2) pAnim2.setAttribute('stroke', colorOverride);
                 pBase.setAttribute('stroke', colorOverride);
             }
             let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
@@ -684,7 +714,13 @@ class OpenKairoSolarCard extends HTMLElement {
             
             pAnim.style.animationDuration = duration + 's';
             pAnim.style.animationDirection = reverse ? 'reverse' : 'normal';
-            pBase.style.opacity = '0.15';
+            
+            if (pAnim2) {
+                pAnim2.style.animationDuration = (duration * 1.5) + 's';
+                pAnim2.style.animationDirection = reverse ? 'reverse' : 'normal';
+            }
+
+            pBase.style.opacity = '0.12';
         }
     };
 
