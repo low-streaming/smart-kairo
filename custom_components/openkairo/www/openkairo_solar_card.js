@@ -402,73 +402,8 @@ class OpenKairoSolarCard extends HTMLElement {
           pointer-events:none; z-index: 1; display: block;
           overflow: hidden !important;
         }
-        .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
-        
-        /* Animation Types - Premium Particles */
-        .anim-dots { 
-          stroke-dasharray: 8 25; 
-          animation: dashAnim linear infinite; 
-          stroke-linecap: square; 
-          filter: drop-shadow(0 0 2px currentColor);
-          stroke-width: 3;
-        }
-        .anim-dash { 
-          stroke-dasharray: 12 30; 
-          animation: dashAnim linear infinite; 
-          stroke-width: 2.2;
-          stroke-linecap: butt;
-        }
-        .anim-neon { 
-          stroke-dasharray: 20 60; 
-          animation: dashAnim linear infinite; 
-          filter: url(#neon-glow); 
-          stroke-width: 3;
-        }
-        
-        /* EXCLUSIVE: Faster, sharp comet with flicker */
-        .anim-comet { 
-          stroke-dasharray: 60 240; 
-          animation: cometAnim 1.2s linear infinite; 
-          filter: drop-shadow(0 0 5px currentColor); 
-          stroke-width: 4.5; 
-          stroke-linecap: butt;
-        }
-        
-        /* EXCLUSIVE: Heavy, slow energy blocks */
-        .anim-pulse { 
-          stroke-dasharray: 80 80; 
-          animation: dashAnim 4s linear infinite; 
-          stroke-width: 8; 
-          stroke-linecap: butt; 
-          filter: drop-shadow(0 0 10px currentColor);
-          opacity: 0.8 !important;
-        }
-
-        /* NEW: Organic liquid flow */
-        .anim-liquid {
-          stroke-dasharray: 120 120;
-          animation: dashAnim 3s ease-in-out infinite alternate;
-          stroke-width: 6;
-          stroke-linecap: butt;
-          filter: drop-shadow(0 0 12px currentColor);
-          opacity: 0.8;
-        }
-
-        /* NEW: Fast cyber warp */
-        .anim-warp {
-          stroke-dasharray: 5 50;
-          animation: dashAnim 0.6s linear infinite;
-          stroke-width: 4;
-          stroke-linecap: square;
-          filter: drop-shadow(0 0 8px currentColor);
-        }
-        
-        @keyframes dashAnim { to { stroke-dashoffset: -200; } }
-        @keyframes cometAnim { 
-          0% { stroke-dashoffset: 600; stroke-opacity: 0.3; }
-          20%, 80% { stroke-opacity: 1; }
-          100% { stroke-dashoffset: 0; stroke-opacity: 0.3; }
-        }
+        .svg-wire { fill: none; stroke-width: 1.5; stroke-linecap: round; opacity: 0.15; }
+        #particle-canvas { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 2; }
 
         .node {
            position: absolute; width: 82px; height: 82px; border-radius: 50%;
@@ -517,19 +452,8 @@ class OpenKairoSolarCard extends HTMLElement {
             <div class="stat-box" id="stat-weather"><ha-icon icon="mdi:weather-sunny"></ha-icon><span class="stat-label">Wetter</span><span class="stat-value">--</span></div>
           </div>
           <div class="flow-container" id="flow-container">
-             <svg class="svg-layer" id="svg-layer">
-                <defs>
-                  <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="0.8" result="blur1"/>
-                    <feComponentTransfer in="blur1">
-                       <feFuncA type="linear" slope="3" />
-                    </feComponentTransfer>
-                    <feMerge>
-                      <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                  </filter>
-                </defs>
-             </svg>
+             <svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+             <canvas id="particle-canvas"></canvas>
           </div>
         </div>
         <div class="footer">
@@ -550,105 +474,194 @@ class OpenKairoSolarCard extends HTMLElement {
       </div>`;
   }
 
-  // Generate SVG Path with Cubic Bezier for high-end look
-  drawPath(id, color, x1, y1, x2, y2, type = 'curve') {
-      let d = "";
-      if (type === 'curve') {
-          const midX = (x1 + x2) / 2;
-          d = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
-      } else {
-          d = `M ${x1} ${y1} L ${x2} ${y2}`;
-      }
-      return `
-        <path id="path-base-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0.1; stroke-width: 1.5;"></path>
-        <path id="path-anim-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0;"></path>
-        <path id="path-anim2-${id}" class="svg-path" d="${d}" stroke="${color}" style="opacity: 0;"></path>
-      `;
+  // Draw wire (static guide line) and store bezier data for canvas
+  drawPath(id, color, x1, y1, x2, y2) {
+      const midX = (x1 + x2) / 2;
+      const d = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+      // Store bezier control points for canvas particle system
+      this._pathDefs = this._pathDefs || {};
+      this._pathDefs[id] = { x1, y1, cx1: midX, cy1: y1, cx2: midX, cy2: y2, x2, y2, color };
+      return `<path id="wire-${id}" class="svg-wire" d="${d}" stroke="${color}"></path>`;
   }
 
   updateLayout() {
       const container = this.querySelector('#flow-container');
       if (!container) return;
+      this._pathDefs = {};
 
       const cSolar = this.getValStr('solar_color', '#ffce00');
-      const cGrid = this.getValStr('grid_color', '#ff1a1a');
-      const cHome = this.getValStr('home_color', '#00ff9d');
-      const cBatt = this.getValStr('battery_color', '#00ffd1');
+      const cGrid  = this.getValStr('grid_color', '#ff2222');
+      const cHome  = this.getValStr('home_color', '#00ff9d');
+      const cBatt  = this.getValStr('battery_color', '#00ffd1');
       const cMiner = this.getValStr('miner_color', '#bf40ff');
-      const cHeat = this.getValStr('heatpump_color', '#1a8cff');
-      const cEv = this.getValStr('ev_color', '#ffea00');
+      const cHeat  = this.getValStr('heatpump_color', '#1a8cff');
+      const cEv    = this.getValStr('ev_color', '#ffe600');
 
       const nodes = [];
-      const paths = [];
+      const wires = [];
 
-      // HOME NODE - CENTERED LOWER
-      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 42));
-      
+      nodes.push(this.drawNode('home', 'mdi:home', 'Haus', cHome, 50, 45));
+
       if (this.getValStr('solar_entity')) {
-          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 12));
-          paths.push(this.drawPath('solar-home', cSolar, 50, 12, 50, 42, 'curve'));
+          nodes.push(this.drawNode('solar', 'mdi:white-balance-sunny', 'Solar', cSolar, 50, 10));
+          wires.push(this.drawPath('solar-home', cSolar, 50, 10, 50, 45));
       }
       if (this.getValStr('grid_import_entity') || this.getValStr('grid_export_entity')) {
-          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 15, 42));
-          paths.push(this.drawPath('grid-home', cGrid, 15, 42, 50, 42, 'curve'));
+          nodes.push(this.drawNode('grid', 'mdi:transmission-tower', 'Netz', cGrid, 12, 45));
+          wires.push(this.drawPath('grid-home', cGrid, 12, 45, 50, 45));
       }
       if (this.getValStr('battery_power_entity')) {
-          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 85, 42));
-          paths.push(this.drawPath('batt-home', cBatt, 85, 42, 50, 42, 'curve'));
+          nodes.push(this.drawNode('batt', 'mdi:battery-high', 'Akku', cBatt, 88, 45));
+          wires.push(this.drawPath('batt-home', cBatt, 88, 45, 50, 45));
       }
-      
-      // Consumers in a wide arc below
       if (this.getValStr('pool_entity')) {
           const name = this.getValStr('pool_name', 'Pool');
           const icon = this.getValStr('pool_icon', 'mdi:pool');
-          nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 18, 70));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 42, 18, 70, 'curve'));
+          const cc = this.getValStr('pool_color', '#00d1ff');
+          nodes.push(this.drawNode('pool', icon, name, cc, 15, 75));
+          wires.push(this.drawPath('home-pool', cc, 50, 45, 15, 75));
       }
       if (this.getValStr('miner_entity')) {
           const name = this.getValStr('miner_name', 'Miner');
           const icon = this.getValStr('miner_icon', 'mdi:bitcoin');
-          nodes.push(this.drawNode('miner', icon, name, cMiner, 34, 85));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 42, 34, 85, 'curve'));
+          nodes.push(this.drawNode('miner', icon, name, cMiner, 32, 82));
+          wires.push(this.drawPath('home-miner', cMiner, 50, 45, 32, 82));
       }
       if (this.getValStr('heatpump_entity')) {
           const name = this.getValStr('heatpump_name', 'Heizung');
           const icon = this.getValStr('heatpump_icon', 'mdi:heat-pump');
-          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 50, 90));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 42, 50, 90, 'curve'));
+          nodes.push(this.drawNode('heatpump', icon, name, cHeat, 50, 88));
+          wires.push(this.drawPath('home-heatpump', cHeat, 50, 45, 50, 88));
       }
       if (this.getValStr('ev_entity')) {
           const name = this.getValStr('ev_name', 'Auto');
           const icon = this.getValStr('ev_icon', 'mdi:car-electric');
-          nodes.push(this.drawNode('ev', icon, name, cEv, 66, 85));
-          paths.push(this.drawPath('home-ev', cEv, 50, 42, 66, 85, 'curve'));
+          nodes.push(this.drawNode('ev', icon, name, cEv, 68, 82));
+          wires.push(this.drawPath('home-ev', cEv, 50, 45, 68, 82));
       }
       if (this.getValStr('ac_entity')) {
           const name = this.getValStr('ac_name', 'Klima');
           const icon = this.getValStr('ac_icon', 'mdi:air-conditioner');
-          nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 82, 70));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 42, 82, 70, 'curve'));
+          const cc = this.getValStr('ac_color', '#3b82f6');
+          nodes.push(this.drawNode('ac', icon, name, cc, 85, 75));
+          wires.push(this.drawPath('home-ac', cc, 50, 45, 85, 75));
       }
       if (this.getValStr('washer_entity')) {
           const name = this.getValStr('washer_name', 'Waschm.');
           const icon = this.getValStr('washer_icon', 'mdi:washing-machine');
-          nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 85, 58));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 32, 85, 58, false));
+          const cc = this.getValStr('washer_color', '#f43f5e');
+          nodes.push(this.drawNode('washer', icon, name, cc, 88, 62));
+          wires.push(this.drawPath('home-washer', cc, 50, 45, 88, 62));
       }
 
-      const svgHtml = `
-      <svg class="svg-layer" id="svg-layer" viewBox="0 0 100 100" preserveAspectRatio="none">
-         <defs>
-            <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-         </defs>
-         ${paths.join('')}
-      </svg>`;
-      container.innerHTML = svgHtml + nodes.join('');
+      const svg = this.querySelector('#svg-layer');
+      if (svg) svg.innerHTML = wires.join('');
+      // Remove old nodes, keep canvas
+      this.querySelectorAll('.node').forEach(n => n.remove());
+      const fc = this.querySelector('#flow-container');
+      if (fc) nodes.forEach(h => { const t = document.createElement('div'); t.innerHTML = h; fc.appendChild(t.firstElementChild); });
+
+      this._initCanvas();
+  }
+
+  _initCanvas() {
+      const canvas = this.querySelector('#particle-canvas');
+      if (!canvas) return;
+      const fc = this.querySelector('#flow-container');
+      canvas.width = fc.offsetWidth || 600;
+      canvas.height = fc.offsetHeight || 500;
+      this._particles = {}; // pathId -> [{t, speed, color}]
+      if (this._rafId) cancelAnimationFrame(this._rafId);
+      this._rafId = null;
+      this._drawCanvas();
+  }
+
+  // Evaluate cubic bezier at t in [0,1], returns {x,y} in canvas pixels
+  _bezier(def, t, W, H) {
+      const mt = 1 - t;
+      const x = mt*mt*mt*(def.x1/100*W) + 3*mt*mt*t*(def.cx1/100*W) + 3*mt*t*t*(def.cx2/100*W) + t*t*t*(def.x2/100*W);
+      const y = mt*mt*mt*(def.y1/100*H) + 3*mt*mt*t*(def.cy1/100*H) + 3*mt*t*t*(def.cy2/100*H) + t*t*t*(def.y2/100*H);
+      return { x, y };
+  }
+
+  _drawCanvas() {
+      const canvas = this.querySelector('#particle-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const defs = this._pathDefs || {};
+      const parts = this._particles || {};
+
+      Object.keys(parts).forEach(pathId => {
+          const def = defs[pathId];
+          if (!def) return;
+          const list = parts[pathId];
+          list.forEach(p => {
+              p.t += p.speed;
+              if (p.reverse) {
+                  p.t -= p.speed * 2;
+                  if (p.t < 0) p.t = 1;
+              } else {
+                  if (p.t > 1) p.t = 0;
+              }
+              const pos = this._bezier(def, Math.max(0, Math.min(1, p.t)), W, H);
+              // Draw glowing ball
+              const r = p.radius || 5;
+              const grd = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, r * 2.5);
+              grd.addColorStop(0, p.color);
+              grd.addColorStop(0.4, p.color + 'bb');
+              grd.addColorStop(1, p.color + '00');
+              ctx.beginPath();
+              ctx.arc(pos.x, pos.y, r * 2.5, 0, Math.PI * 2);
+              ctx.fillStyle = grd;
+              ctx.fill();
+              // Solid core
+              ctx.beginPath();
+              ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+              ctx.fillStyle = '#ffffff';
+              ctx.globalAlpha = 0.9;
+              ctx.fill();
+              ctx.globalAlpha = 1.0;
+          });
+      });
+
+      this._rafId = requestAnimationFrame(() => this._drawCanvas());
+  }
+
+  _setFlow(pathId, watts, reverse = false, colorOverride = null) {
+      if (!this._pathDefs || !this._pathDefs[pathId]) return;
+      const def = this._pathDefs[pathId];
+      const color = colorOverride || def.color;
+      const absW = Math.abs(watts);
+
+      this._particles = this._particles || {};
+
+      if (absW < 5) {
+          this._particles[pathId] = [];
+          return;
+      }
+
+      // Speed: 100W = 0.0008/frame, 5000W = 0.004/frame (60fps)
+      const speedBase = 0.0008 + (absW / 5000) * 0.0035;
+      // Ball count: 1 per 200W, max 6
+      const count = Math.max(1, Math.min(6, Math.round(absW / 300)));
+
+      const existing = this._particles[pathId] || [];
+      // Rebuild with correct count/speed, preserving t positions
+      const newList = [];
+      for (let i = 0; i < count; i++) {
+          const ex = existing[i];
+          newList.push({
+              t: ex ? ex.t : i / count,
+              speed: speedBase,
+              reverse,
+              color,
+              radius: 4 + (absW / 5000) * 3
+          });
+      }
+      this._particles[pathId] = newList;
   }
 
   set hass(hass) {
@@ -671,62 +684,6 @@ class OpenKairoSolarCard extends HTMLElement {
         const abs = Math.abs(val);
         if (abs >= 1000) return (val / 1000).toFixed(1) + ' kW';
         return Math.round(val) + ' W';
-    };
-
-    const animType = this.getValStr('animation_type', 'dots');
-    const animSpeed = this.getValStr('animation_speed', '5');
-    
-    // Support both numeric slider (1-10) and legacy strings (slow/normal/fast)
-    let speedMult = 1;
-    if (!isNaN(animSpeed)) {
-        // Redesigned: 1 is very slow (10x), 5 is normal (2x), 10 is fast (1x)
-        // More intuitive mapping: speedMult = 10 / parseFloat(animSpeed)
-        speedMult = 10 / parseFloat(animSpeed);
-    } else {
-        speedMult = animSpeed === 'fast' ? 0.5 : animSpeed === 'slow' ? 2 : 1;
-    }
-
-    const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
-        const pAnim = this.querySelector(`#path-anim-${pathId}`);
-        const pAnim2 = this.querySelector(`#path-anim2-${pathId}`);
-        const pBase = this.querySelector(`#path-base-${pathId}`);
-        if (!pAnim || !pBase) return;
-
-        if (Math.abs(flowW) < 5) {
-            pAnim.style.opacity = '0';
-            if (pAnim2) pAnim2.style.opacity = '0';
-            pAnim.style.animation = 'none';
-            pBase.style.opacity = '0.05';
-        } else {
-            pAnim.style.opacity = '1';
-            pAnim.setAttribute('class', `svg-path anim-${animType}`);
-            pAnim.style.animation = '';
-            
-            if (pAnim2) {
-                pAnim2.style.opacity = (['dots', 'warp', 'liquid', 'neon'].includes(animType)) ? '0.6' : '0';
-                pAnim2.setAttribute('class', `svg-path anim-${animType}`);
-                pAnim2.style.animation = '';
-            }
-
-            if (colorOverride) {
-                pAnim.setAttribute('stroke', colorOverride);
-                if (pAnim2) pAnim2.setAttribute('stroke', colorOverride);
-                pBase.setAttribute('stroke', colorOverride);
-            }
-            let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
-            if (duration > 3) duration = 3; 
-            if (duration < 0.2) duration = 0.2; 
-            
-            pAnim.style.animationDuration = duration + 's';
-            pAnim.style.animationDirection = reverse ? 'reverse' : 'normal';
-            
-            if (pAnim2) {
-                pAnim2.style.animationDuration = (duration * 1.5) + 's';
-                pAnim2.style.animationDirection = reverse ? 'reverse' : 'normal';
-            }
-
-            pBase.style.opacity = '0.12';
-        }
     };
 
     const upd = (id, val, colorOverride = null) => {
@@ -794,10 +751,10 @@ class OpenKairoSolarCard extends HTMLElement {
     if (gridOutW > 0 || gridInW < 0) {
         const exportVal = gridOutW > 0 ? gridOutW : Math.abs(gridInW);
         upd('grid', -exportVal, cEx);
-        animatePath('grid-home', exportVal, 5000, true, cEx);
+        this._setFlow('grid-home', exportVal, true, cEx);
     } else {
         upd('grid', gridInW, cGr);
-        animatePath('grid-home', gridInW, 5000, false, cGr);
+        this._setFlow('grid-home', gridInW, false, cGr);
     }
     
     // Custom label for Battery to include SOC
@@ -814,15 +771,14 @@ class OpenKairoSolarCard extends HTMLElement {
     upd('pool', poolW);
     upd('washer', washerW);
 
-    animatePath('solar-home', solarW, 5000, false);
-    // Grid animation handled above in color logic
-    animatePath('batt-home', battW, 3000, battW < 0); 
-    animatePath('home-miner', minerW, 2000, false);
-    animatePath('home-heatpump', heatW, 3000, false);
-    animatePath('home-ev', evW, 11000, false);
-    animatePath('home-ac', acW, 3000, false);
-    animatePath('home-pool', poolW, 5000, false);
-    animatePath('home-washer', washerW, 3000, false);
+    this._setFlow('solar-home', solarW, false);
+    this._setFlow('batt-home', battW, battW < 0);
+    this._setFlow('home-miner', minerW, false);
+    this._setFlow('home-heatpump', heatW, false);
+    this._setFlow('home-ev', evW, false);
+    this._setFlow('home-ac', acW, false);
+    this._setFlow('home-pool', poolW, false);
+    this._setFlow('home-washer', washerW, false);
     
     // Stats & Weather (Auto-Scaling & Unit-Aware)
     const updateStat = (id, entityId, isKw = false) => {
