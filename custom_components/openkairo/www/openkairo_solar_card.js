@@ -70,6 +70,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
                 <option value="neon" ${this.getVal('animation_type') === 'neon' ? 'selected' : ''}>Neon Blitz (Flash)</option>
                 <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Energy Comet (Slow Tail)</option>
                 <option value="pulse" ${this.getVal('animation_type') === 'pulse' ? 'selected' : ''}>Power Pulse (Thick)</option>
+                <option value="plasma" ${this.getVal('animation_type') === 'plasma' ? 'selected' : ''}>Cyber Plasma (Glowing Stream)</option>
               </select>
             </div>
             <div class="row-col">
@@ -400,36 +401,47 @@ class OpenKairoSolarCard extends HTMLElement {
           pointer-events:none; z-index: 1; display: block;
           overflow: hidden !important;
         }
-        .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
+        .svg-path { fill: none; stroke-width: 1.8; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
+        .svg-path-conduit { fill: none; stroke-width: 4; stroke-linecap: round; opacity: 0.03; }
         
         /* Animation Types - Premium Particles */
-        .anim-dots { stroke-dasharray: 2 15; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
-        .anim-dash { stroke-dasharray: 6 22; animation: dashAnim linear infinite; }
-        .anim-neon { stroke-dasharray: 5 30; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 1.4;}
+        .anim-dots { stroke-dasharray: 3 18; animation: dashAnim linear infinite; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
+        .anim-dash { stroke-dasharray: 10 25; animation: dashAnim linear infinite; }
+        .anim-neon { stroke-dasharray: 8 40; animation: dashAnim linear infinite; filter: url(#neon-glow); stroke-width: 2;}
         
         /* EXCLUSIVE: Faster, sharp comet with flicker */
         .anim-comet { 
-          stroke-dasharray: 20 180; 
+          stroke-dasharray: 35 165; 
           animation: cometAnim 1.5s linear infinite; 
-          filter: drop-shadow(0 0 8px currentColor); 
-          stroke-width: 2.2; 
+          filter: drop-shadow(0 0 10px currentColor) brightness(1.2); 
+          stroke-width: 2.8; 
         }
         
         /* EXCLUSIVE: Heavy, slow energy blocks */
         .anim-pulse { 
-          stroke-dasharray: 50 50; 
-          animation: dashAnim 4s linear infinite; 
-          stroke-width: 4.5; 
-          stroke-linecap: square; 
+          filter: drop-shadow(0 0 15px currentColor);
+          opacity: 0.8 !important;
+        }
+
+        /* NEW: Cyber Plasma Stream */
+        .anim-plasma {
+          stroke-dasharray: 100 100;
+          animation: plasmaAnim 3s infinite linear;
+          stroke-width: 3;
           filter: drop-shadow(0 0 12px currentColor);
-          opacity: 0.9 !important;
+          stroke-linecap: round;
         }
         
-        @keyframes dashAnim { to { stroke-dashoffset: -100; } }
+        @keyframes dashAnim { to { stroke-dashoffset: -200; } }
+        @keyframes plasmaAnim {
+          0% { stroke-dashoffset: 400; stroke-width: 2.5; opacity: 0.6; }
+          50% { stroke-width: 4; opacity: 1; }
+          100% { stroke-dashoffset: 0; stroke-width: 2.5; opacity: 0.6; }
+        }
         @keyframes cometAnim { 
-          0% { stroke-dashoffset: 200; stroke-opacity: 0.5; }
+          0% { stroke-dashoffset: 400; stroke-opacity: 0.4; }
           40%, 60% { stroke-opacity: 1; }
-          100% { stroke-dashoffset: 0; stroke-opacity: 0.5; }
+          100% { stroke-dashoffset: 0; stroke-opacity: 0.4; }
         }
 
         .node {
@@ -510,10 +522,22 @@ class OpenKairoSolarCard extends HTMLElement {
       </div>`;
   }
 
-  // Generate SVG Path relative to percentages (rough bounding box math)
-  drawPath(id, color, x1, y1, x2, y2, curved = true) {
-      if (!curved) return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} L ${x2} ${y2}" stroke="${color}"></path>`;
-      return `<path id="path-${id}" class="svg-path" d="M ${x1} ${y1} Q ${x1} ${y2}, ${x2} ${y2}" stroke="${color}"></path>`;
+  // Draw smooth S-Curves and background conduits
+  drawPath(id, color, x1, y1, x2, y2, type = 'auto') {
+      let d = "";
+      if (type === 'straight' || (x1 === x2 || y1 === y2)) {
+          d = `M ${x1} ${y1} L ${x2} ${y2}`;
+      } else {
+          // Organic S-Curve using Cubic Bezier
+          // Control points halfway between y1 and y2
+          const cy = (y1 + y2) / 2;
+          d = `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
+      }
+      
+      return `
+        <path id="conduit-${id}" class="svg-path-conduit" d="${d}" stroke="${color}"></path>
+        <path id="path-${id}" class="svg-path" d="${d}" stroke="${color}"></path>
+      `;
   }
 
   updateLayout() {
@@ -551,37 +575,37 @@ class OpenKairoSolarCard extends HTMLElement {
           const name = this.getValStr('pool_name', 'Pool');
           const icon = this.getValStr('pool_icon', 'mdi:pool');
           nodes.push(this.drawNode('pool', icon, name, this.getValStr('pool_color', '#00d1ff'), 15, 58));
-          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 32, 15, 58, false));
+          paths.push(this.drawPath('home-pool', this.getValStr('pool_color', '#00d1ff'), 50, 32, 15, 58));
       }
       if (this.getValStr('miner_entity')) {
           const name = this.getValStr('miner_name', 'Miner');
           const icon = this.getValStr('miner_icon', 'mdi:bitcoin');
           nodes.push(this.drawNode('miner', icon, name, cMiner, 30, 72));
-          paths.push(this.drawPath('home-miner', cMiner, 50, 32, 30, 72, false));
+          paths.push(this.drawPath('home-miner', cMiner, 50, 32, 30, 72));
       }
       if (this.getValStr('heatpump_entity')) {
           const name = this.getValStr('heatpump_name', 'Heizung');
           const icon = this.getValStr('heatpump_icon', 'mdi:heat-pump');
           nodes.push(this.drawNode('heatpump', icon, name, cHeat, 45, 80));
-          paths.push(this.drawPath('home-heatpump', cHeat, 50, 32, 45, 80, false));
+          paths.push(this.drawPath('home-heatpump', cHeat, 50, 32, 45, 80));
       }
       if (this.getValStr('ev_entity')) {
           const name = this.getValStr('ev_name', 'Auto');
           const icon = this.getValStr('ev_icon', 'mdi:car-electric');
           nodes.push(this.drawNode('ev', icon, name, cEv, 55, 80));
-          paths.push(this.drawPath('home-ev', cEv, 50, 32, 55, 80, false));
+          paths.push(this.drawPath('home-ev', cEv, 50, 32, 55, 80));
       }
       if (this.getValStr('ac_entity')) {
           const name = this.getValStr('ac_name', 'Klima');
           const icon = this.getValStr('ac_icon', 'mdi:air-conditioner');
           nodes.push(this.drawNode('ac', icon, name, this.getValStr('ac_color', '#3b82f6'), 70, 72));
-          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 32, 70, 72, false));
+          paths.push(this.drawPath('home-ac', this.getValStr('ac_color', '#3b82f6'), 50, 32, 70, 72));
       }
       if (this.getValStr('washer_entity')) {
           const name = this.getValStr('washer_name', 'Waschm.');
           const icon = this.getValStr('washer_icon', 'mdi:washing-machine');
           nodes.push(this.drawNode('washer', icon, name, this.getValStr('washer_color', '#f43f5e'), 85, 58));
-          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 32, 85, 58, false));
+          paths.push(this.drawPath('home-washer', this.getValStr('washer_color', '#f43f5e'), 50, 32, 85, 58));
       }
 
       const svgHtml = `
@@ -637,18 +661,27 @@ class OpenKairoSolarCard extends HTMLElement {
 
     const animatePath = (pathId, flowW, maxExpected, reverse = false, colorOverride = null) => {
         const p = this.querySelector(`#path-${pathId}`);
+        const c = this.querySelector(`#conduit-${pathId}`);
         if (!p) return;
         if (Math.abs(flowW) < 5) {
             p.style.opacity = '0.1';
             p.style.animation = 'none';
+            if (c) c.style.opacity = '0.03';
         } else {
             p.style.opacity = '0.8';
             p.setAttribute('class', `svg-path anim-${animType}`);
             p.style.animation = '';
-            if (colorOverride) p.setAttribute('stroke', colorOverride);
-            let duration = (2000 / Math.max(100, Math.abs(flowW))) * speedMult;
-            if (duration > 3) duration = 3; 
-            if (duration < 0.2) duration = 0.2; 
+            if (colorOverride) {
+                p.setAttribute('stroke', colorOverride);
+                if (c) c.setAttribute('stroke', colorOverride);
+            }
+            if (c) c.style.opacity = '0.12';
+
+            // Optimized Speed Mapping
+            // Lower values = faster duration
+            let duration = (3000 / Math.max(100, Math.abs(flowW))) * speedMult;
+            if (duration > 4) duration = 4; 
+            if (duration < 0.25) duration = 0.25; 
             
             p.style.animationDuration = duration + 's';
             p.style.animationDirection = reverse ? 'reverse' : 'normal';
