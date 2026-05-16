@@ -216,7 +216,7 @@ class OpenKairoButtonCard extends HTMLElement {
       double_tap_action: "none",
       hold_action: "more-info",
       hold_to_unlock: false,
-      live_
+      live_animation: true,
       slide_to_dim: false,
       badge_entity: ""
     };

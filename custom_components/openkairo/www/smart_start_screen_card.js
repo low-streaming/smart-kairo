@@ -636,10 +636,11 @@ class OpenKairoCard extends HTMLElement {
         upEl.style.display = 'none';
         if (this._updatesOpen) this.toggleUpdates(false);
       }
-    } catch (e) {
-      console.warn("Kairo OS updateData Error:", e);
     }
+  } catch (e) {
+    console.warn("Kairo OS updateData Error:", e);
   }
+}
 }
 
 if (!customElements.get('openkairo-card')) customElements.define('openkairo-card', OpenKairoCard);
