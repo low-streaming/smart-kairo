@@ -599,29 +599,52 @@ class OpenKairoSolarCard extends HTMLElement {
           if (!def) return;
           const list = parts[pathId];
           list.forEach(p => {
-              p.t += p.speed;
+              // Advance position
               if (p.reverse) {
-                  p.t -= p.speed * 2;
+                  p.t -= p.speed;
                   if (p.t < 0) p.t = 1;
               } else {
+                  p.t += p.speed;
                   if (p.t > 1) p.t = 0;
               }
               const pos = this._bezier(def, Math.max(0, Math.min(1, p.t)), W, H);
-              // Draw glowing ball
-              const r = p.radius || 5;
-              const grd = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, r * 2.5);
-              grd.addColorStop(0, p.color);
-              grd.addColorStop(0.4, p.color + 'bb');
-              grd.addColorStop(1, p.color + '00');
+
+              // Draw comet trail
+              if (p.trailLen > 0) {
+                  p.history = p.history || [];
+                  p.history.push({ x: pos.x, y: pos.y });
+                  if (p.history.length > p.trailLen) p.history.shift();
+                  p.history.forEach((hp, i) => {
+                      const ratio = i / p.history.length;
+                      const tr = p.radius * ratio * 0.9;
+                      if (tr < 0.5) return;
+                      ctx.beginPath();
+                      ctx.arc(hp.x, hp.y, tr, 0, Math.PI * 2);
+                      ctx.fillStyle = p.color;
+                      ctx.globalAlpha = ratio * 0.6;
+                      ctx.fill();
+                  });
+                  ctx.globalAlpha = 1;
+              }
+
+              const r = p.radius;
+              const gMult = p.glowMult || 2.5;
+
+              // Draw glow halo
+              const grd = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, r * gMult);
+              grd.addColorStop(0,   p.color + 'ff');
+              grd.addColorStop(0.5, p.color + '88');
+              grd.addColorStop(1,   p.color + '00');
               ctx.beginPath();
-              ctx.arc(pos.x, pos.y, r * 2.5, 0, Math.PI * 2);
+              ctx.arc(pos.x, pos.y, r * gMult, 0, Math.PI * 2);
               ctx.fillStyle = grd;
               ctx.fill();
-              // Solid core
+
+              // Solid white core
               ctx.beginPath();
               ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
               ctx.fillStyle = '#ffffff';
-              ctx.globalAlpha = 0.9;
+              ctx.globalAlpha = 0.95;
               ctx.fill();
               ctx.globalAlpha = 1.0;
           });
@@ -635,7 +658,6 @@ class OpenKairoSolarCard extends HTMLElement {
       const def = this._pathDefs[pathId];
       const color = colorOverride || def.color;
       const absW = Math.abs(watts);
-
       this._particles = this._particles || {};
 
       if (absW < 5) {
@@ -643,13 +665,28 @@ class OpenKairoSolarCard extends HTMLElement {
           return;
       }
 
-      // Speed: 100W = 0.0008/frame, 5000W = 0.004/frame (60fps)
-      const speedBase = 0.0008 + (absW / 5000) * 0.0035;
-      // Ball count: 1 per 200W, max 6
-      const count = Math.max(1, Math.min(6, Math.round(absW / 300)));
+      // Read user settings
+      const cfgSpeed = parseFloat(this.getValStr('animation_speed', '5'));
+      const speedMult = isNaN(cfgSpeed) ? 0.5 : Math.max(0.05, cfgSpeed / 10);
+      const animType = this.getValStr('animation_type', 'dots');
+
+      // Base speed: scales with watts, then multiplied by user slider
+      const speedBase = (0.0003 + (absW / 8000) * 0.003) * speedMult;
+
+      // Ball appearance per animation type
+      let radius = 4, glowMult = 2.5, trailLen = 0;
+      let count = Math.max(1, Math.min(5, Math.round(absW / 400)));
+      switch (animType) {
+          case 'dots':   radius = 4.5; glowMult = 2.5; trailLen = 0; break;
+          case 'dash':   radius = 3.5; glowMult = 1.8; trailLen = 0; count = Math.max(2, count + 1); break;
+          case 'neon':   radius = 4;   glowMult = 5;   trailLen = 4; break;
+          case 'comet':  radius = 5.5; glowMult = 2;   trailLen = 14; count = Math.max(1, Math.round(absW / 800)); break;
+          case 'pulse':  radius = 7;   glowMult = 3.5; trailLen = 0; count = Math.max(1, Math.round(absW / 700)); break;
+          case 'liquid': radius = 5.5; glowMult = 2.8; trailLen = 6; break;
+          case 'warp':   radius = 3;   glowMult = 2;   trailLen = 18; count = Math.max(2, count); break;
+      }
 
       const existing = this._particles[pathId] || [];
-      // Rebuild with correct count/speed, preserving t positions
       const newList = [];
       for (let i = 0; i < count; i++) {
           const ex = existing[i];
@@ -658,7 +695,10 @@ class OpenKairoSolarCard extends HTMLElement {
               speed: speedBase,
               reverse,
               color,
-              radius: 4 + (absW / 5000) * 3
+              radius,
+              glowMult,
+              trailLen,
+              history: ex ? (ex.history || []) : []
           });
       }
       this._particles[pathId] = newList;
