@@ -532,36 +532,7 @@ class OpenKairoCard extends HTMLElement {
   }
 
   async startBootSequence() {
-    if (this._booting) return;
-    this._booting = true;
-    const btn = this.shadowRoot.getElementById('go');
-    const text = this.shadowRoot.getElementById('btn-text');
-    const bar = this.shadowRoot.getElementById('boot-progress');
-    const icon = this.shadowRoot.getElementById('btn-icon');
-
-    const steps = ["PRÜFE NODES...", "LADE ENERGIE-HUB...", "SYNCHRONISIERE...", "ZUGRIFF GEWÄHRT"];
-    let step = 0;
-    
-    icon.setAttribute('icon', 'mdi:loading');
-    icon.style.animation = 'spin 1s infinite linear';
-
-    const interval = setInterval(() => {
-      if (step >= steps.length) {
-        clearInterval(interval);
-        this.toggleOS(false);
-        setTimeout(() => {
-           this._booting = false;
-           text.innerText = "DASHBOARD INITIALISIEREN";
-           bar.style.width = '0%';
-           icon.setAttribute('icon', 'mdi:arrow-right');
-           icon.style.animation = '';
-        }, 1000);
-        return;
-      }
-      text.innerText = steps[step];
-      bar.style.width = `${((step + 1) / steps.length) * 100}%`;
-      step++;
-    }, 600);
+    this.toggleOS(false);
   }
 
   openUpdateDialog(entityId) {
