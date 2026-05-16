@@ -34,18 +34,18 @@ class OpenKairoSolarCardEditor extends HTMLElement {
       </style>
       <div class="card-config">
         <div class="group">
-          <h3>UI & Animation</h3>
+          <h3>Animation & Flow</h3>
           <div class="row">
             <div class="row-col">
-              <label>Typ</label>
+              <label>Flow Typ</label>
               <select id="animation_type">
                 <option value="dots" ${this.getVal('animation_type') === 'dots' ? 'selected' : ''}>Cyber Particles (Sharp)</option>
                 <option value="comet" ${this.getVal('animation_type') === 'comet' ? 'selected' : ''}>Luxury Comet (Glow)</option>
-                <option value="stream" ${this.getVal('animation_type') === 'stream' ? 'selected' : ''}>Data Stream (Dense)</option>
+                <option value="stream" ${this.getVal('animation_type') === 'stream' ? 'selected' : ''}>Digital Stream</option>
               </select>
             </div>
             <div class="row-col">
-              <label>Speed (${this.getVal('animation_speed', '5')})</label>
+              <label>Speed (1-10)</label>
               <input type="range" id="animation_speed" min="1" max="10" step="1" value="${this.getVal('animation_speed', '5')}">
             </div>
           </div>
@@ -59,11 +59,19 @@ class OpenKairoSolarCardEditor extends HTMLElement {
           <div class="item-box"><label>Batterie (%)</label><div id="battery_level_entity_picker"></div></div>
         </div>
         <div class="group">
-          <h3>Optionale Verbraucher</h3>
+          <h3>Verbraucher (Optional)</h3>
           <div class="item-box"><label>Miner</label><div id="miner_entity_picker"></div></div>
           <div class="item-box"><label>Heizung</label><div id="heatpump_entity_picker"></div></div>
           <div class="item-box"><label>E-Auto</label><div id="ev_entity_picker"></div></div>
           <div class="item-box"><label>Klima</label><div id="ac_entity_picker"></div></div>
+          <div class="item-box"><label>Pool</label><div id="pool_entity_picker"></div></div>
+          <div class="item-box"><label>Waschmaschine</label><div id="washer_entity_picker"></div></div>
+        </div>
+        <div class="group">
+          <h3>Statistiken (Optional)</h3>
+          <div class="item-box"><label>Solar Heute (kWh)</label><div id="solar_yield_today_entity_picker"></div></div>
+          <div class="item-box"><label>Solar Woche (kWh)</label><div id="solar_yield_week_entity_picker"></div></div>
+          <div class="item-box"><label>Wetter (Entity)</label><div id="weather_entity_picker"></div></div>
         </div>
       </div>
     `;
@@ -78,7 +86,8 @@ class OpenKairoSolarCardEditor extends HTMLElement {
     };
 
     ['solar_entity', 'grid_import_entity', 'grid_export_entity', 'battery_power_entity', 'battery_level_entity', 
-     'miner_entity', 'heatpump_entity', 'ev_entity', 'ac_entity'].forEach(mount);
+     'miner_entity', 'heatpump_entity', 'ev_entity', 'ac_entity', 'pool_entity', 'washer_entity',
+     'solar_yield_today_entity', 'solar_yield_week_entity', 'weather_entity'].forEach(mount);
     
     this.querySelectorAll('input, select').forEach(el => {
         el.addEventListener('change', () => this.updateConfig(el.id, el.value));
@@ -104,7 +113,7 @@ class OpenKairoSolarCard extends HTMLElement {
   setupDOM() {
     this.innerHTML = `
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;700&display=swap');
         
         :host { 
           --c-solar: #ff9900; --c-grid: #ff007f; --c-home: #00ffff; --c-batt: #00ff00;
@@ -112,146 +121,152 @@ class OpenKairoSolarCard extends HTMLElement {
         
         ha-card {
            background: radial-gradient(circle at center, #0f172a, #06080f);
-           border-radius: 28px; padding: 25px;
-           position: relative; overflow: hidden !important; border: 1px solid rgba(255,255,255,0.05);
+           border-radius: 28px; padding: 25px; min-height: 540px;
+           position: relative; overflow: hidden !important; border: 1px solid rgba(255,255,255,0.06);
            color: #fff; font-family: 'Inter', sans-serif;
         }
 
         .header {
            font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #00ffff; 
            text-align: center; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; 
-           text-transform: uppercase; text-shadow: 0 0 10px rgba(0,255,255,0.3);
+           text-transform: uppercase; text-shadow: 0 0 15px rgba(0,255,255,0.4);
         }
 
-        .main-container { 
-           display: flex; flex-wrap: wrap; gap: 20px; 
-           align-items: center; justify-content: center;
-           position: relative; width: 100%; min-height: 520px;
+        .main-layout { 
+           display: flex; gap: 25px; align-items: stretch; position: relative;
         }
 
-        .sidebar-stats {
-          flex: 0 0 150px; display: flex; flex-direction: column; gap: 12px; z-index: 20;
+        .sidebar {
+          flex: 0 0 160px; display: flex; flex-direction: column; gap: 15px; z-index: 20;
         }
 
-        .stat-box {
-          background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 14px; padding: 10px; display: flex; flex-direction: column;
-          align-items: center; backdrop-filter: blur(10px);
+        .stat-card {
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 18px; padding: 12px; display: flex; flex-direction: column;
+          align-items: center; backdrop-filter: blur(12px); border-left: 3px solid #00ffff;
         }
-        .stat-box ha-icon { --mdc-icon-size: 18px; color: #00ffff; opacity: 0.8; }
-        .stat-label { font-size: 8px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 4px; }
-        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 800; color: #fff; }
+        .stat-card ha-icon { --mdc-icon-size: 20px; color: #00ffff; margin-bottom: 4px; }
+        .stat-label { font-size: 9px; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 800; color: #fff; }
 
-        .flow-container { 
-           flex: 1 1 450px; position: relative; height: 500px; min-width: 350px; overflow: hidden;
-        }
-
-        .svg-layer { 
-          position: absolute; top:0; left:0; width:100%; height:100%; 
-          pointer-events:none; z-index: 1;
+        .flow-area { 
+           flex: 1; position: relative; height: 520px; overflow: hidden;
         }
 
-        .path-base { fill: none; stroke-width: 1.2; stroke: rgba(255,255,255,0.05); stroke-linecap: round; }
-        .path-anim { fill: none; stroke-width: 2.5; stroke-linecap: round; filter: url(#glow); opacity: 0; }
+        .svg-canvas { 
+          position: absolute; inset: 0; pointer-events:none; z-index: 1;
+        }
+
+        .path-wire { fill: none; stroke-width: 1.2; stroke: rgba(255,255,255,0.05); stroke-linecap: round; }
+        .path-glow { fill: none; stroke-width: 2.8; stroke-linecap: round; filter: url(#neon-filter); opacity: 0; }
         
-        /* THE SHARP PARTICLES FLOW */
-        .anim-dots { stroke-dasharray: 2 20; animation: flow linear infinite; opacity: 1 !important; }
-        .anim-comet { stroke-dasharray: 60 180; animation: flow linear infinite; opacity: 1 !important; }
-        .anim-stream { stroke-dasharray: 1 12; animation: flow linear infinite; opacity: 1 !important; }
+        /* SHARP CYBER DOTS FLOW */
+        .anim-dots { stroke-dasharray: 2 24; animation: flowMove linear infinite; opacity: 1 !important; }
+        .anim-comet { stroke-dasharray: 80 200; animation: flowMove linear infinite; opacity: 1 !important; }
+        .anim-stream { stroke-dasharray: 1 15; animation: flowMove linear infinite; opacity: 1 !important; }
         
-        @keyframes flow { to { stroke-dashoffset: -300; } }
+        @keyframes flowMove { to { stroke-dashoffset: -300; } }
 
+        /* ROUND PREMIUM NODES */
         .node {
            position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center;
-           transform: translate(-50%, -50%); z-index: 10; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+           transform: translate(-50%, -50%); z-index: 10; transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         
-        .node-box {
-           width: 72px; height: 72px; border-radius: 20px; background: rgba(0,0,0,0.6);
+        .node-circle {
+           width: 76px; height: 76px; border-radius: 50%; background: rgba(0,0,0,0.75);
            border: 2px solid currentColor; display: flex; align-items: center; justify-content: center;
-           box-shadow: 0 0 20px rgba(0,0,0,0.6); position: relative;
+           box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.05);
+           position: relative;
         }
-        .node-box.active { box-shadow: 0 0 25px currentColor; }
+        .node-circle.active { box-shadow: 0 0 30px currentColor; }
         
-        .node-icon { --mdc-icon-size: 26px; color: currentColor; }
-        .node-value { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 800; margin-top: 6px; }
-        .node-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.4; margin-top: 1px; }
+        .node-icon { --mdc-icon-size: 28px; color: currentColor; filter: drop-shadow(0 0 5px currentColor); }
+        .node-val { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 800; margin-top: 8px; }
+        .node-lab { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.5; margin-top: 1px; }
 
-        .home-center {
-           width: 110px; height: 110px; border-radius: 30px; background: rgba(0,0,0,0.8);
-           border: 3px solid #00ffff; box-shadow: 0 0 35px rgba(0,255,255,0.1);
+        .center-home {
+           width: 110px; height: 110px; border-radius: 50%; background: rgba(0,0,0,0.85);
+           border: 3px solid #00ffff; box-shadow: 0 0 40px rgba(0,255,255,0.2);
         }
-        .home-center .node-icon { --mdc-icon-size: 38px; }
+        .center-home .node-icon { --mdc-icon-size: 42px; }
+        .center-home .node-val { font-size: 1.2rem; }
+
+        .batt-badge { 
+          position: absolute; top: -10px; right: -10px; background: #00ff00; color: #000;
+          font-size: 11px; font-weight: 900; padding: 2px 6px; border-radius: 20px; box-shadow: 0 0 10px #00ff00;
+        }
 
         .footer {
-          display: flex; align-items: center; justify-content: center; gap: 8px;
-          margin-top: 20px; font-family: 'Orbitron', sans-serif; font-size: 0.55rem; 
-          color: rgba(255,255,255,0.2); letter-spacing: 3px;
+          text-align: center; font-family: 'Orbitron', sans-serif; font-size: 9px; 
+          color: rgba(255,255,255,0.2); letter-spacing: 4px; margin-top: 25px;
+          border-top: 1px solid rgba(255,255,255,0.03); padding-top: 15px;
         }
       </style>
       <ha-card>
-        <div class="header">ENERGY FLOW :: OPENKAIRO OS</div>
-        <div class="main-container">
-          <div class="sidebar-stats" id="sidebar">
-            <div class="stat-box"><ha-icon icon="mdi:calendar-today"></ha-icon><span class="stat-label">Heute</span><span class="stat-value" id="stat-today">-- kWh</span></div>
-            <div class="stat-box"><ha-icon icon="mdi:calendar-week"></ha-icon><span class="stat-label">Woche</span><span class="stat-value" id="stat-week">-- kWh</span></div>
-            <div class="stat-box"><ha-icon icon="mdi:weather-sunny"></ha-icon><span class="stat-label">Wetter</span><span class="stat-value" id="stat-weather">--</span></div>
+        <div class="header">OPENKAIRO :: ELITE FLOW V5.5</div>
+        <div class="main-layout">
+          <div class="sidebar" id="sidebar">
+            <div class="stat-card"><ha-icon icon="mdi:calendar-today"></ha-icon><span class="stat-label">Heute</span><span class="stat-value" id="s-today">-- kWh</span></div>
+            <div class="stat-card"><ha-icon icon="mdi:calendar-week"></ha-icon><span class="stat-label">Woche</span><span class="stat-value" id="s-week">-- kWh</span></div>
+            <div class="stat-card"><ha-icon icon="mdi:weather-partly-cloudy"></ha-icon><span class="stat-label">Wetter</span><span class="stat-value" id="s-weather">--</span></div>
           </div>
           
-          <div class="flow-container" id="flow-container">
-            <svg class="svg-layer">
+          <div class="flow-area" id="flow-area">
+            <svg class="svg-canvas" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
               <defs>
-                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="1.2" result="blur"/>
+                <filter id="neon-filter" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="1.5" result="blur"/>
                   <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
               </defs>
-              <g id="paths"></g>
+              <g id="path-g"></g>
             </svg>
-            <div id="nodes"></div>
+            <div id="node-g"></div>
           </div>
         </div>
-        <div class="footer">POWERED BY <span style="color:#00ffff; font-weight:800;">OPENKAIRO</span></div>
+        <div class="footer">ELITE CORE :: POWERED BY OPENKAIRO</div>
       </ha-card>
     `;
     this.content = true;
   }
 
-  drawNode(id, icon, label, color, x, y, isHome = false) {
+  drawNode(id, icon, label, color, x, y, isCenter = false) {
     return `
       <div class="node" style="left:${x}%; top:${y}%; color:${color};">
-        <div class="node-box ${isHome ? 'home-center' : ''}" id="node-${id}">
+        <div class="node-circle ${isCenter ? 'center-home' : ''}" id="node-${id}">
+          ${id === 'batt' ? '<div class="batt-badge" id="p-batt">0%</div>' : ''}
           <ha-icon class="node-icon" icon="${icon}"></ha-icon>
         </div>
-        <div class="node-value" id="val-${id}">0W</div>
-        <div class="node-label">${label}</div>
+        <div class="node-val" id="val-${id}">0W</div>
+        <div class="node-lab">${label}</div>
       </div>`;
   }
 
   drawPath(id, color, x1, y1, x2, y2) {
     const dx = x2 - x1;
     const dy = y2 - y1;
-    const cy1 = y1 + dy*0.5;
+    const cy = y1 + dy*0.5;
     const curve = (Math.abs(dy) < 5) ? 5 : 0;
-    const d = `M ${x1} ${y1} C ${x1 + dx*0.3} ${cy1+curve}, ${x2 - dx*0.3} ${cy1+curve}, ${x2} ${y2}`;
+    const d = `M ${x1} ${y1} C ${x1 + dx*0.35} ${cy+curve}, ${x2 - dx*0.35} ${cy+curve}, ${x2} ${y2}`;
     return `
-      <path class="path-base" d="${d}"></path>
-      <path id="path-${id}" class="path-anim" d="${d}" stroke="${color}"></path>
+      <path class="path-wire" d="${d}"></path>
+      <path id="path-${id}" class="path-glow" d="${d}" stroke="${color}"></path>
     `;
   }
 
   updateLayout() {
-    const pBox = this.querySelector('#paths');
-    const nBox = this.querySelector('#nodes');
+    const pBox = this.querySelector('#path-g');
+    const nBox = this.querySelector('#node-g');
     if (!pBox || !nBox) return;
 
     const paths = [], nodes = [];
-    const cX = 50, cY = 40;
+    const cX = 50, cY = 42;
 
-    nodes.push(this.drawNode('home', 'mdi:home', 'HAUS', '#00ffff', cX, cY, true));
+    nodes.push(this.drawNode('home', 'mdi:home-variant', 'SYSTEM', '#00ffff', cX, cY, true));
     
     if (this.getVal('solar_entity')) {
-      nodes.push(this.drawNode('solar', 'mdi:solar-power', 'SOLAR', '#ff9900', cX, 12));
+      nodes.push(this.drawNode('solar', 'mdi:solar-power-variant', 'SOLAR', '#ff9900', cX, 12));
       paths.push(this.drawPath('solar-home', '#ff9900', cX, 12, cX, cY));
     }
     if (this.getVal('grid_import_entity') || this.getVal('grid_export_entity')) {
@@ -264,10 +279,11 @@ class OpenKairoSolarCard extends HTMLElement {
     }
 
     const consumers = [
-      { key: 'miner_entity', label: 'MINER', icon: 'mdi:bitcoin', color: '#a855f7', x: 22, y: 72 },
-      { key: 'heatpump_entity', label: 'HEIZUNG', icon: 'mdi:heat-pump', color: '#3b82f6', x: 40, y: 84 },
-      { key: 'ev_entity', label: 'AUTO', icon: 'mdi:car-electric', color: '#eab308', x: 60, y: 84 },
-      { key: 'ac_entity', label: 'KLIMA', icon: 'mdi:air-conditioner', color: '#00d1ff', x: 78, y: 72 }
+      { key: 'miner_entity', label: 'MINER', icon: 'mdi:bitcoin', color: '#a855f7', x: 18, y: 76 },
+      { key: 'pool_entity', label: 'POOL', icon: 'mdi:pool', color: '#00d1ff', x: 34, y: 84 },
+      { key: 'heatpump_entity', label: 'HEIZUNG', icon: 'mdi:heat-pump', color: '#3b82f6', x: 50, y: 88 },
+      { key: 'ev_entity', label: 'AUTO', icon: 'mdi:car-electric', color: '#eab308', x: 66, y: 84 },
+      { key: 'ac_entity', label: 'KLIMA', icon: 'mdi:air-conditioner', color: '#00d1ff', x: 82, y: 76 }
     ];
 
     consumers.forEach(c => {
@@ -285,10 +301,9 @@ class OpenKairoSolarCard extends HTMLElement {
     if (!this._config || !hass || !hass.states) return;
     if (!this._layoutBuilt) { this.updateLayout(); this._layoutBuilt = true; }
 
-    const getP = (id, isKw=false) => {
+    const getP = (id) => {
       const s = hass.states[id];
-      let v = s ? parseFloat(s.state) || 0 : 0;
-      return isKw ? v * 1000 : v;
+      return s ? parseFloat(s.state) || 0 : 0;
     };
 
     const format = (v) => Math.abs(v) >= 1000 ? (v/1000).toFixed(1) + 'kW' : Math.round(v) + 'W';
@@ -305,44 +320,47 @@ class OpenKairoSolarCard extends HTMLElement {
       if (Math.abs(val) < 5) { p.style.opacity = '0'; return; }
       p.style.opacity = '1';
       const speed = parseFloat(this.getVal('animation_speed', '5'));
-      const duration = (8000 / Math.max(50, Math.abs(val))) * (10/speed);
-      p.style.animationDuration = Math.min(12, Math.max(0.4, duration)) + 's';
+      const duration = (9000 / Math.max(50, Math.abs(val))) * (10/speed);
+      p.style.animationDuration = Math.min(15, Math.max(0.4, duration)) + 's';
       p.style.animationDirection = rev ? 'reverse' : 'normal';
-      p.setAttribute('class', `path-anim anim-${this.getVal('animation_type', 'dots')}`);
+      p.setAttribute('class', `path-glow anim-${this.getVal('animation_type', 'dots')}`);
     };
 
-    const upd = (id, v) => {
+    const updNode = (id, v) => {
       const el = this.querySelector(`#val-${id}`);
-      const box = this.querySelector(`#node-${id}`);
+      const circle = this.querySelector(`#node-${id}`);
       if (el) el.innerText = format(v);
-      if (box) {
-        if (Math.abs(v) > 20) box.classList.add('active');
-        else box.classList.remove('active');
+      if (circle) {
+        if (Math.abs(v) > 15) circle.classList.add('active');
+        else circle.classList.remove('active');
       }
     };
 
-    upd('solar', solarW); upd('grid', netzW); upd('batt', battW);
-    upd('home', solarW + gridInW - gridOutW + battW);
+    updNode('solar', solarW); updNode('grid', netzW); updNode('batt', battW);
+    updNode('home', solarW + gridInW - gridOutW + battW);
 
     anim('solar-home', solarW);
     anim('grid-home', netzW, netzW < 0);
     anim('batt-home', battW, battW < 0);
 
-    ['miner_entity', 'heatpump_entity', 'ev_entity', 'ac_entity'].forEach(key => {
+    ['miner', 'pool', 'heatpump', 'ev', 'ac'].forEach(id => {
+        const key = id + '_entity';
         if (this._config[key]) {
             const val = getP(this._config[key]);
-            const id = key.replace('_entity', '');
-            upd(id, val);
+            updNode(id, val);
             anim(`home-${id}`, val);
         }
     });
 
-    const sToday = this.querySelector('#stat-today');
-    if (sToday) sToday.innerText = getP(this._config.solar_yield_today_entity).toFixed(1) + ' kWh';
-    const sWeek = this.querySelector('#stat-week');
-    if (sWeek) sWeek.innerText = getP(this._config.solar_yield_week_entity).toFixed(1) + ' kWh';
-    const sWeather = this.querySelector('#stat-weather');
-    if (sWeather && this._config.weather_entity) sWeather.innerText = hass.states[this._config.weather_entity]?.state || '--';
+    const bP = this.querySelector('#p-batt');
+    if (bP) bP.innerText = Math.round(getP(this._config.battery_level_entity)) + '%';
+
+    const sT = this.querySelector('#s-today');
+    if (sT) sT.innerText = getP(this._config.solar_yield_today_entity).toFixed(1) + ' kWh';
+    const sW = this.querySelector('#s-week');
+    if (sW) sW.innerText = getP(this._config.solar_yield_week_entity).toFixed(1) + ' kWh';
+    const sWe = this.querySelector('#s-weather');
+    if (sWe && this._config.weather_entity) sWe.innerText = hass.states[this._config.weather_entity]?.state || '--';
   }
 }
 
