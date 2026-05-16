@@ -329,7 +329,7 @@ const Templates = {
             if (b.icon) yaml += `    icon: ${b.icon}\n`;
             yaml += `    color: '${b.color || '#fff'}'\n`;
             if (b.glow) yaml += `    glow: ${b.glow}\n`;
-            if (b.animation && b.animation !== 'none') { yaml += `    }\n    animDuration: ${b.animDuration || 2}\n`; }
+            if (b.animation && b.animation !== 'none') { yaml += `    animation: ${b.animation}\n    animDuration: ${b.animDuration || 2}\n`; }
             if (b.tap_action) yaml += `    tap_action: ${b.tap_action}\n`;
         });
         return yaml;
