@@ -333,7 +333,7 @@ class OpenKairoGaugeCard extends HTMLElement {
                       }
                       svg {
                           filter: drop-shadow(0 0 10px var(--dynamic-glow-color));
-                          transition: filter 0.5s ease-in-out;
+                          
                       }
                       .name {
                           font-family: 'Orbitron', sans-serif !important;
@@ -343,7 +343,7 @@ class OpenKairoGaugeCard extends HTMLElement {
                           font-size: 0.85rem !important;
                           font-weight: 700 !important;
                           padding-top: 10px;
-                          transition: color 0.5s ease-in-out, text-shadow 0.5s ease-in-out;
+                          
                       }
                   `;
                   haCard.appendChild(style);

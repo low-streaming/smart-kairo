@@ -8,8 +8,8 @@ const BlockRegistry = {
     renderLight: (b) => {
         const isOn = b.state === 'on';
         const color = b.color || '#00f6ff';
-        return `<div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.08)'}; border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow: ${isOn ? '0 0 30px ' + color + '40, inset 0 0 10px ' + color + '20' : 'none'}; transition:0.4s ease;">
-            <ha-icon icon="${isOn ? 'mdi:lightbulb-on' : 'mdi:lightbulb-outline'}" style="color:${isOn ? color : '#fff'}; filter:${isOn ? 'drop-shadow(0 0 10px ' + color + ')' : 'none'}; transform:${isOn ? 'scale(1.1)' : 'scale(1)'}; transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></ha-icon>
+        return `<div style="width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.08)'}; border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow: ${isOn ? '0 0 30px ' + color + '40, inset 0 0 10px ' + color + '20' : 'none'}; ">
+            <ha-icon icon="${isOn ? 'mdi:lightbulb-on' : 'mdi:lightbulb-outline'}" style="color:${isOn ? color : '#fff'}; filter:${isOn ? 'drop-shadow(0 0 10px ' + color + ')' : 'none'}; transform:${isOn ? 'scale(1.1)' : 'scale(1)'}; "></ha-icon>
         </div>`;
     },
     renderFan: (b) => {
@@ -52,7 +52,7 @@ const BlockRegistry = {
                 <span style="font-size:9px; color:#fff; font-weight:900; background:${color}30; padding:2px 6px; border-radius:10px; border:1px solid ${color}40;">${b.state || '85%'}</span>
             </div>
             <div style="flex:1; display:flex; align-items:flex-end; gap:3px; padding-bottom:4px;">
-                ${Array(12).fill(0).map((_,i) => `<div style="flex:1; background:linear-gradient(to top, ${color}20, ${color}); height:${[30,40,20,60,45,70,30,85,40,95,65,80][i]}%; border-radius:10px; opacity:${i === 9 ? 1 : 0.4}; box-shadow:${i === 9 ? '0 0 15px ' + color : 'none'}; transition:0.3s;"></div>`).join('')}
+                ${Array(12).fill(0).map((_,i) => `<div style="flex:1; background:linear-gradient(to top, ${color}20, ${color}); height:${[30,40,20,60,45,70,30,85,40,95,65,80][i]}%; border-radius:10px; opacity:${i === 9 ? 1 : 0.4}; box-shadow:${i === 9 ? '0 0 15px ' + color : 'none'}; "></div>`).join('')}
             </div>
         </div>`;
     },
@@ -76,11 +76,11 @@ const BlockRegistry = {
     renderNeonSwitch: (b) => {
         const color = b.color || '#a1ff10';
         const isOn = b.state === 'on';
-        return `<div style="width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:20px; display:flex; flex-direction:column; justify-content:space-between; padding:12px; box-shadow: ${isOn ? '0 0 25px ' + color + '30, inset 0 0 10px ' + color + '15' : '0 10px 30px rgba(0,0,0,0.3)'}; transition:0.4s ease;">
+        return `<div style="width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); border:1px solid ${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:20px; display:flex; flex-direction:column; justify-content:space-between; padding:12px; box-shadow: ${isOn ? '0 0 25px ' + color + '30, inset 0 0 10px ' + color + '15' : '0 10px 30px rgba(0,0,0,0.3)'}; ">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <ha-icon icon="mdi:flash-circle" style="--mdc-icon-size:20px; color:${isOn ? color : 'rgba(255,255,255,0.2)'}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'}; transition:0.4s;"></ha-icon>
+              <ha-icon icon="mdi:flash-circle" style="--mdc-icon-size:20px; color:${isOn ? color : 'rgba(255,255,255,0.2)'}; filter:${isOn ? 'drop-shadow(0 0 8px ' + color + ')' : 'none'}; "></ha-icon>
               <div style="width:34px; height:20px; background:${isOn ? color : 'rgba(255,255,255,0.1)'}; border-radius:12px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
-                <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:2px; left:${isOn ? '18px' : '2px'}; box-shadow:0 0 5px rgba(0,0,0,0.5); transition:0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);"></div>
+                <div style="position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:2px; left:${isOn ? '18px' : '2px'}; box-shadow:0 0 5px rgba(0,0,0,0.5); "></div>
               </div>
             </div>
             <div style="font-size:10px; font-weight:900; color:${isOn ? '#fff' : 'rgba(255,255,255,0.4)'}; text-transform:uppercase; letter-spacing:1px;">${b.text || 'Toggle'}</div>
@@ -183,7 +183,6 @@ class OpenKairoCustomCard extends HTMLElement {
            overflow: hidden !important; 
            color: #fff; font-family: 'Outfit', 'Inter', sans-serif;
            min-height: ${c.height || 480}px;
-           transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         
         ha-card::before {
@@ -224,7 +223,7 @@ class OpenKairoCustomCard extends HTMLElement {
         }
 
         #blocks-container { position: absolute; inset: 0; z-index: 20; }
-        .block-element { position: absolute; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 30; }
+        .block-element { position: absolute; cursor: pointer;  z-index: 30; }
         .block-element:hover { transform: scale(1.06); z-index: 100; }
         .block-element:active { transform: scale(0.94); }
 

@@ -40,7 +40,7 @@ class OpenKairoSolarCardEditor extends HTMLElement {
         .item-box { background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .item-header label { margin: 0; color: #05f0a0; font-size: 10px; letter-spacing: 1px;}
-        .clear-btn { --mdc-icon-size: 16px; color: rgba(255,255,255,0.3); cursor: pointer; transition: 0.2s; }
+        .clear-btn { --mdc-icon-size: 16px; color: rgba(255,255,255,0.3); cursor: pointer;  }
         .clear-btn:hover { color: #f43f5e; }
         .item-selector { margin-bottom: 10px; }
         .item-options { display: flex; gap: 20px; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; flex-wrap: wrap; }
@@ -383,9 +383,8 @@ class OpenKairoSolarCard extends HTMLElement {
           background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
           border-radius: 16px; padding: 12px; display: flex; flex-direction: column;
           align-items: center; gap: 4px; backdrop-filter: blur(8px);
-          transition: 0.3s; width: 150px;
+          width: 150px;
         }
-        .stat-box:hover { background: rgba(255,255,255,0.07); border-color: rgba(16, 185, 129, 0.3); transform: translateY(-2px);}
         .stat-box ha-icon { --mdc-icon-size: 20px; color: #10b981; margin-bottom: 2px; filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.4));}
         .stat-label { font-size: 0.55rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px; font-weight: 500;}
         .stat-value { font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 800; color: #fff; line-height: 1.2; text-align: center; overflow-wrap: anywhere; max-width: 100%;}
@@ -400,7 +399,7 @@ class OpenKairoSolarCard extends HTMLElement {
           pointer-events:none; z-index: 1; display: block;
           overflow: hidden !important;
         }
-        .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; transition: 0.5s; opacity: 0.2; }
+        .svg-path { fill: none; stroke-width: 1.2; stroke-linecap: round; opacity: 0.2; }
         
         /* Animation Types - Premium Particles */
         .anim-dots { stroke-dasharray: 2 15; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor);}
@@ -424,13 +423,11 @@ class OpenKairoSolarCard extends HTMLElement {
         }
 
         .node {
-           position: absolute; width: 82px; height: 82px; border-radius: 50%;
-           background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5)); 
-           border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column;
+           width: 85px; height: 85px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.15);
+           background: rgba(10, 15, 25, 0.6); display: flex; flex-direction: column;
            justify-content: center; align-items: center; transform: translate(-50%, -50%); z-index: 10;
            box-shadow: 0 12px 30px rgba(0,0,0,0.65), inset 0 0 15px rgba(255,255,255,0.05); 
            backdrop-filter: blur(12px) saturate(180%);
-           transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .node * { z-index: 12; }
         .node::after {

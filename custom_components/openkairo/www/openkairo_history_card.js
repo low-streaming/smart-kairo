@@ -281,7 +281,7 @@ class OpenKairoHistoryCard extends HTMLElement {
           letter-spacing: 1px;
           opacity: 0.5;
         }
-        .view-toggle span { cursor: pointer; transition: 0.3s; padding: 2px 4px; border-radius: 4px; }
+        .view-toggle span { cursor: pointer;  padding: 2px 4px; border-radius: 4px; }
         .view-toggle span.active { color: #05f0a0; opacity: 1; background: rgba(5, 240, 160, 0.15); }
 
         .chart-container {
@@ -350,7 +350,7 @@ class OpenKairoHistoryCard extends HTMLElement {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
-          transition: all 0.3s ease;
+          
         }
         .value-box:hover {
           background: rgba(255, 255, 255, 0.08);

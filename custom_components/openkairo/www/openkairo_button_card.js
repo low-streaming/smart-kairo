@@ -134,7 +134,7 @@ class OpenKairoButtonCardEditor extends HTMLElement {
              </div>
              <div style="display:flex; gap:10px; align-items:center; width:100%;">
                <input type="checkbox" id="card_live_animation" ${this.getVal('live_animation') ? 'checked' : ''}>
-               <div style="font-size:12px; color: var(--primary-text-color, white);"><b>Live-Icon Animation:</b> Ventilatoren drehen sich, wenn eingeschaltet.</div>
+               <div style="font-size:12px; color: var(--primary-text-color, white);"><b>Live-Icon 
              </div>
              <div style="display:flex; gap:10px; align-items:center; width:100%;">
                <input type="checkbox" id="card_slide_to_dim" ${this.getVal('slide_to_dim') ? 'checked' : ''}>
@@ -216,7 +216,7 @@ class OpenKairoButtonCard extends HTMLElement {
       double_tap_action: "none",
       hold_action: "more-info",
       hold_to_unlock: false,
-      live_animation: true,
+      live_
       slide_to_dim: false,
       badge_entity: ""
     };
@@ -284,7 +284,6 @@ class OpenKairoButtonCard extends HTMLElement {
            flex-direction: ${flexDir};
            align-items: ${alignItems};
            justify-content: ${justifyContent};
-           transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
            overflow: hidden;
            text-align: ${textAlign};
            box-sizing: border-box;
@@ -294,7 +293,7 @@ class OpenKairoButtonCard extends HTMLElement {
         .slider-bg {
             position: absolute; left: 0; bottom: 0; top: 0; width: 0%;
             background: linear-gradient(90deg, ${this.hexToRgba(cStr, 0.05)}, ${this.hexToRgba(cStr, 0.25)});
-            pointer-events: none; z-index: 1; transition: width 0.1s linear; opacity: 0;
+            pointer-events: none; z-index: 1; opacity: 0;
         }
 
         /* Unlock Progress Ring Layer */
@@ -303,7 +302,7 @@ class OpenKairoButtonCard extends HTMLElement {
             border: 3px solid transparent; 
             border-top-color: ${cStr}; border-right-color: ${cStr};
             opacity: 0; transform: rotate(0deg); pointer-events: none;
-            transition: opacity 0.3s; z-index: 5;
+             z-index: 5;
         }
         .unlocking .unlock-ring {
             opacity: 1;
@@ -311,10 +310,10 @@ class OpenKairoButtonCard extends HTMLElement {
 
         ha-card::after {
             content: ''; position: absolute; inset: -1px; border-radius: ${cardRadius};
-            border: 1px solid ${cStr}; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            border: 1px solid ${cStr}; opacity: 0; pointer-events: none;
         }
 
-        ha-card:hover { transform: translateY(-2px); background: rgba(20, 30, 38, 0.55); border-color: rgba(255, 255, 255, 0.15); }
+        ha-card:hover { background: rgba(20, 30, 38, 0.55); border-color: rgba(255, 255, 255, 0.15); }
         ha-card:active:not(.is-sliding) { transform: scale(0.97); }
         ha-card.is-sliding { transform: scale(1.02); box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
 
@@ -322,12 +321,12 @@ class OpenKairoButtonCard extends HTMLElement {
             position: relative; z-index: 2; width: ${isHoriz ? '46px' : '56px'}; height: ${isHoriz ? '46px' : '56px'};
             border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(0,0,0,0.5));
             border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;
-            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.05);
             flex-shrink: 0;
         }
         .icon-container::after {
             content: ''; position: absolute; inset: -1px; border-radius: 50%; border: 1px solid ${cStr}; opacity: 0; 
-            pointer-events: none; transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
         }
 
         /* Badge Styling */
@@ -339,7 +338,7 @@ class OpenKairoButtonCard extends HTMLElement {
         }
 
         ha-icon {
-            --mdc-icon-size: ${isHoriz ? '22px' : '28px'}; color: rgba(255,255,255,0.4); transition: all 0.5s;
+            --mdc-icon-size: ${isHoriz ? '22px' : '28px'}; color: rgba(255,255,255,0.4);
         }
 
         /* LIVE ANIMATIONS */
@@ -349,7 +348,7 @@ class OpenKairoButtonCard extends HTMLElement {
 
         .text-wrapper { display: flex; flex-direction: column; margin: ${nameMargin}; flex: ${wrapperFlex}; z-index: 2; justify-content: center; min-width: 0; }
         .name { font-family: 'Orbitron', 'Inter', sans-serif; font-size: 0.8rem; color: #fff; letter-spacing: 1px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .state-text { font-family: 'Inter', sans-serif; font-size: 0.6rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: ${isHoriz ? '3px' : '6px'}; transition: color 0.4s; display: ${showState ? 'block' : 'none'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .state-text { font-family: 'Inter', sans-serif; font-size: 0.6rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: ${isHoriz ? '3px' : '6px'};  display: ${showState ? 'block' : 'none'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* ACTIVE STATE PROFILES */
         ha-card.state-on { box-shadow: 0 15px 40px ${glowStyle === 'full' ? this.hexToRgba(cStr, 0.18) : '0 8px 32px 0 rgba(0, 0, 0, 0.6)'}; border-color: rgba(255, 255, 255, 0.15); }
@@ -364,12 +363,12 @@ class OpenKairoButtonCard extends HTMLElement {
         /* SCI-FI SWITCH TOGGLE */
         .kairo-switch {
            position: relative; width: 44px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-           box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; flex-shrink: 0; display: ${showSwitch ? 'block' : 'none'};
+           box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);  flex-shrink: 0; display: ${showSwitch ? 'block' : 'none'};
            margin: ${isHoriz ? '0 0 0 auto' : '15px auto 0 auto'}; z-index: 3;
         }
         .kairo-switch::after {
            content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%;
-           background: rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.5); transition: all 0.3s;
+           background: rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.5); 
         }
         ha-card.state-on .kairo-switch { background: ${this.hexToRgba(cStr, 0.15)}; border-color: ${this.hexToRgba(cStr, 0.5)}; }
         ha-card.state-on .kairo-switch::after { left: 22px; background: ${cStr}; box-shadow: 0 0 10px ${cStr}, 0 0 5px #fff; }
