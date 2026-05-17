@@ -246,11 +246,12 @@ class OpenKairoCard extends HTMLElement {
 
         /* Update Panel & Quick Config Styles */
         #update-panel, #config-panel {
-          position: absolute; right: -500px; top: 0; bottom: 0; width: 450px;
+          position: absolute; right: -600px; top: 0; bottom: 0; width: 450px;
           background: var(--glass-heavy); backdrop-filter: blur(50px) saturate(200%);
           border-left: 1px solid var(--glass-border); z-index: 100;
           transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 50px;
           display: flex; flex-direction: column; gap: 30px; box-shadow: -20px 0 60px rgba(0,0,0,0.8);
+          box-sizing: border-box;
         }
         #update-panel.open, #config-panel.open { right: 0; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
@@ -300,8 +301,8 @@ class OpenKairoCard extends HTMLElement {
         @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 
         @media (max-width: 1000px) {
-           .kairo-os { flex-direction: column; overflow-y: auto; padding: 40px 30px; gap: 40px; }
-           #update-panel, #config-panel { width: 100%; right: -100%; }
+           .kairo-os { flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 40px 30px; gap: 40px; }
+           #update-panel, #config-panel { width: 100%; right: -120%; }
            .clock { font-size: 6rem; }
            .right { grid-template-columns: 1fr; gap: 20px; }
            .energy, .btn-main { grid-column: span 1; }
