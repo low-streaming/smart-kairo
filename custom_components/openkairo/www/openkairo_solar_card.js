@@ -790,8 +790,8 @@ class OpenKairoSolarCard extends HTMLElement {
 
     const formatPower = (val) => {
         const abs = Math.abs(val);
-        if (abs >= 1000) return (val / 1000).toFixed(1) + ' kW';
-        return Math.round(val) + ' W';
+        if (abs >= 1000) return (abs / 1000).toFixed(1) + ' kW';
+        return Math.round(abs) + ' W';
     };
 
     const upd = (id, val, colorOverride = null) => {
