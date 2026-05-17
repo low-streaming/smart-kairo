@@ -303,8 +303,29 @@ class OpenKairoCard extends HTMLElement {
            .kairo-os { flex-direction: column; overflow-y: auto; padding: 40px 30px; gap: 40px; }
            #update-panel, #config-panel { width: 100%; right: -100%; }
            .clock { font-size: 6rem; }
-           .right { grid-template-columns: 1fr; }
+           .right { grid-template-columns: 1fr; gap: 20px; }
            .energy, .btn-main { grid-column: span 1; }
+        }
+        @media (max-width: 600px) {
+           .kairo-os { padding: 25px 20px; gap: 30px; }
+           .clock { font-size: 4.5rem; }
+           .branding { font-size: 1.3rem; margin-bottom: 20px; gap: 15px; }
+           .branding img { width: 45px !important; }
+           .bento { padding: 25px; border-radius: 24px; }
+           .energy { padding: 25px; }
+           .energy-val { font-size: 3.5rem; margin: 10px 0; }
+           .stat-val { font-size: 3rem; }
+           .btn-main { font-size: 1.1rem; height: 80px; border-radius: 20px; }
+           .health { padding: 12px 20px; font-size: 0.75rem; }
+           .update-badge { padding: 12px 20px; font-size: 0.75rem; }
+           .clock-area { margin-bottom: 30px; }
+           .date { font-size: 0.85rem; margin-top: 10px; }
+           .weather { font-size: 1.1rem; margin-top: 15px; }
+           .fab-btn { width: 60px; height: 60px; border-radius: 18px; }
+           #kairo-fab-container { bottom: 20px; right: 20px; gap: 10px; }
+           #update-panel, #config-panel { padding: 30px 20px; }
+           .right { gap: 15px; }
+           .status-row { flex-direction: column; align-items: flex-start; gap: 15px; }
         }
       </style>
 
